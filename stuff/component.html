@@ -1,0 +1,53 @@
+<heydo-bubu id="one-bubu">
+	<ae-state name="carota">
+		<ae-render if="roger == `rabbit`" template="carotaggio"/>
+		<ae-each src="roger.teeth">
+			<div class="pippa"></div>
+		</ae-each>
+		<div class="bunny">crunch</div>
+		<ae-state name="marcia">
+			<span></span>
+			<ae-checkbox class="" name="ciuccia">
+				<ae-bind-value in="true" out="true" to="my.path."/>
+				<ae-bind-attr to="my.path." name="selected"/>
+				<ae-action name="sgomma">
+					<ae-param value="tutto"/>
+				</ae-param>
+			</ae-checkbox>
+			<ae-button class="my-butt" label="Cliccami">
+				<ae-action name="tutto"/>
+			</ae-button>
+		</ae-state>
+	</ae-state>
+	<div>
+		<ae-action name="pirro" bubble="false"/>
+	</div>
+</heydo-bubu>
+<ae-hide if="test === 1">
+	<div class="can be hidden"></div>
+</ae-hide>
+<ae-radio name="tab">
+	<ae-map-value to="my.model.state.path"/>
+</ae-radio>
+<label>Option 1<span></span></label>
+
+<ae-radio name="tab">
+	<ae-map-value to="_state" pattern="my.previous.state.$value"/>
+	<ae-label>
+		Option 1<span></span>
+	</ae-label>
+</ae-radio>
+
+<ae-state name=".uno">
+	<div>my content for option 1</div>
+</ae-state>
+<ae-state name=".due">
+	<div>my content for option 2</div>
+</ae-state>
+<ae-each>
+	<ae-data-source name="firebase" path="product/234/attachments"/> 
+	<ae-busy>
+		
+	</ae-busy>
+	<div>binding</div>
+</ae-each>

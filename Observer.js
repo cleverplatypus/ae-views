@@ -49,10 +49,14 @@ module.exports = (function() {
             const propName = segs.shift();
             if(/\w+/.test(propName)) {
                 _p.children[propName] = _p.children[propName] || new Observer(this);
-                if(segs.length) {
-
+                 if(segs.length) {
                     _p.children[propName].listen(segs.join('.'), inListener);
                 } else {
+                     _p.listeners.add(function(inNotifiedPath, inChanges) {
+                         if(inNotifiedPath === inPath) {
+                             inListener(inNotifiedPath, inChanges);
+                         }
+                     });
                     _private.get(_p.children[propName]).listeners.add(inListener);
                 }
             } else if(propName === '*') {
