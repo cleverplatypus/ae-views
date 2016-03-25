@@ -1,9 +1,11 @@
+'use strict';
+
 import $ from 'jquery';
 import _ from 'lodash';
 import Element from './ae-element';
 import dust from 'dustjs-linkedin';
-import Observable from './Observable';
-import ObservableCollection from './ObservableCollection';
+import Observable from '../Observable';
+import ObservableCollection from '../ObservableCollection';
 
 export default function each(inPage) {
     const _page = inPage;
@@ -34,7 +36,6 @@ export default function each(inPage) {
         let dataSourceName = $(this).attr('source');
         const path = $(this).attr('path');
         let dataSource = _page.getDataSource(dataSourceName);
-        let component = _page.resolveNodeComponent(this);
         const template = _private.get(this).template;
 
         const renderFn = (inData) => {
@@ -48,14 +49,6 @@ export default function each(inPage) {
                         $(this).find('>ae-managed').append(out);
                     });
                 }
-                // _.each(inData.toNative(false), (instance) => {
-                //     dust.render(template, instance, (err, out) => {
-                //         if (err) {
-                //             throw new Error(err);
-                //         }
-                //         $(this).find('>ae-managed').append(out);
-                //     });
-                // });
             }
         };
 

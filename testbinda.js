@@ -2,10 +2,10 @@ require('document-register-element');
 require('babel-polyfill');
 
 
-const ae = require('./AEFactory');
+const ae = require('./src/AEFactory');
 const $ = require('jquery');
 const _ = require('lodash');
-import State from './State';
+import State from './src/State';
 const heydoPufu = require('./heydo-pufu');
 
 const firebaseDatasource = require('./firebase-datasource');
@@ -46,10 +46,7 @@ ae.page({
             alert('gasted!');
         });
 
-        this.states = new State([
-        	'zucca',
-        	'barucca'
-        ]);
+        
 
         this.initialize = function() {
             return new Promise((resolve, reject) => {

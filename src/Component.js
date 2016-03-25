@@ -56,7 +56,7 @@ class Component {
         this.name = inName;
         
         this.model = ObservableObject.fromObject({ 
-            data: (inInitObj || {}), 
+            data: inInitObj, 
             _state: '',
             _nextState : '' });
         _watchState.bind(this)();

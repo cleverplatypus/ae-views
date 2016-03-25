@@ -36,7 +36,7 @@
 </head>
 
 <body>
-    <div id="mount-here">
+    <div id="mount-here" style="display: none;">
         <div>
             <ae-action name="flabba"></ae-action>
             <ae-render template="pube">
@@ -51,40 +51,44 @@
         </ae-checkbox>
         <br>
         <br>
-        <div class="tab">
-            <ae-bind in="class:selected" path="_state" if="zucca"></ae-bind>
-            <ae-radio name="switch" label="Primo tab" value="zucca">
-                <ae-bind path="_nextState" out="true"></ae-bind>
-            </ae-radio>
-        </div>
-        <div class="tab">
-            <ae-bind in="class:selected" path="_state" if="barucca"></ae-bind>
-            <ae-radio name="switch" label="secondo tab" checked="true" value="barucca">
-                <ae-bind path="_nextState" out="true"></ae-bind>
-            </ae-radio>
-        </div>
-        <ae-state pattern="zucca">
-            <div class="container">
-                <div>
-                    <ae-each path="people">
-                        <template>
-                            <tr>
-                                <td>{name}</td>
-                                <td>{age}</td>
-                            </tr>
-                        </template>
-                    </ae-each>
-                </div>
-            </div>
-        </ae-state>
-        <ae-state pattern="barucca">
-            <div class="container">
-                <ae-render template="pube">
-                    <ae-bind in="attr:param-world" path="test.nyeep"> </ae-bind>
-                </ae-render>
-            </div>
-        </ae-state>
+        <!-- <ae-tab class="my-tab" group="" target="state" value="zucca"></ae-tab> -->
         <br>
+        <heydo-pufu>
+            <ae-each path="people">
+                <template>
+                    <tr>
+                        <td>{name}</td>
+                        <td>{age}</td>
+                    </tr>
+                </template>
+            </ae-each>
+            <div class="tab">
+                <ae-bind in="class:selected" path="_state" if="zucca"></ae-bind>
+                <ae-radio name="switch" label="Primo tab" value="zucca">
+                    <ae-bind path="_nextState" out="true"></ae-bind>
+                </ae-radio>
+            </div>
+            <div class="tab">
+                <ae-bind in="class:selected" path="_state" if="barucca"></ae-bind>
+                <ae-radio name="switch" label="secondo tab" checked="true" value="barucca">
+                    <ae-bind path="_nextState" out="true"></ae-bind>
+                </ae-radio>
+            </div>
+            <ae-state pattern="zucca">
+                <div class="container">
+                    <div>
+                        alsdflskl
+                    </div>
+                </div>
+            </ae-state>
+            <ae-state pattern="barucca">
+                <div class="container">
+                    <ae-render template="pube">
+                        <ae-bind in="attr:param-world" path="test.nyeep"> </ae-bind>
+                    </ae-render>
+                </div>
+            </ae-state>
+        </heydo-pufu>
     </div>
 </body>
 

@@ -1,12 +1,28 @@
 //const aTemplate = require('./templates/a-template');
-import State from './State';
+import State from './src/State';
+
 module.exports = function(inPage) {
 	const _page = inPage;
 	const _factory = _page.factory;
 
 	var _bus, _model, _fRef, _id, _node;
 
-	_factory.component('heydo-pufu', { nyeep : 'popz'}, function() {
+	_factory.component('heydo-pufu', { 
+		people : [
+        	{
+        		name : 'gorgo',
+        		age : 12
+        	},
+        	{
+        		name : 'catturami',
+        		age : 2
+        	},
+        	{
+        		name : 'fantaman',
+        		age : 66
+        	}
+        ]
+	}, function() {
 		_fRef = this.fRef;
 		_bus = this.bus;
 		_model = this.model;
@@ -18,8 +34,9 @@ module.exports = function(inPage) {
 		// };
 
 		this.states = new State([
-			new State('geppo')
-		]);
+        	'zucca',
+        	'barucca'
+        ]);
 
 
 		this.render = function render() {

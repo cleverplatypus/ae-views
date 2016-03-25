@@ -1,12 +1,12 @@
 'use strict';
 import Bus from './Bus';
-const Component = require('./Component');
-const $ = require('jquery');
-const ObservableObject = require('./ObservableObject');
-const modelDataSource = require('./model-datasource');
+import Component from './component'
+import $ from 'jquery';
+import ObservableObject from './ObservableObject';
+import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
-const lang= require('./ae-lang');
-let _registry = new Map();
+import lang from './lang/ae-lang';
+let _registry = new WeakMap();
 
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
@@ -16,9 +16,9 @@ class Page extends Component {
         this.mountPoint = inConfig.mountPoint || 'body';
         const that = this;
 
-        
+
         $(this.mountPoint).css('display', 'none !important');
-        
+
         //this.bus = new Bus();
         this.addDataSource('model', modelDataSource(this));
         this.template = inConfig.templates;
@@ -26,31 +26,41 @@ class Page extends Component {
         this.currentState = this.states;
         let result = this.initialize.bind(this)();
         let resultHandler = () => {
-                _.forEach(inConfig.components, (inComponentFn) => {
-                    inComponentFn(this);
-                });
+            _.forEach(inConfig.components, (inComponentFn) => {
+                inComponentFn(this);
+            });
+            $(() => {
+                Object.defineProperty($(this.mountPoint).get(0), 'component', { value: this });
+                lang(this);
                 this.render();
-            };
+            });
+        };
         if (result instanceof Promise) {
             result.then(resultHandler);
         } else {
             resultHandler();
         }
-        $(() => {
-            Object.defineProperty($(this.mountPoint).get(0), 'component', {value : this});
-            lang(this);
-        });
+
+    }
+
+    resolveNodeModel(inNode, inPath) {
+        let component = this.resolveNodeComponent(inNode);
+        if (!/^_/.test(inPath.split('.')[0]) &&
+            !component.model.prop('data')) {
+            return this.resolveNodeModel(component.node, inPath);
+        }
+        return component.model;
     }
 
     resolveNodeComponent(inNode) {
         let originalNode = $(inNode).get(0);
-        while(!_registry.get(inNode)) {
+        while (!_registry.get(inNode)) {
             inNode = $(inNode).parent().get(0);
-            if(!inNode) {
+            if (!inNode) {
                 break;
             }
         }
-        if(!_registry.get(inNode)) {
+        if (!_registry.get(inNode)) {
             console.debug('Could not find component in ancestry. Falling back to page component');
             return this;
         }
@@ -67,14 +77,14 @@ class Page extends Component {
         return _dataSources.get(inName);
     }
 
-    
+
 
     initialize() {
         return Promise.resolve();
     }
 
     render() {
-        $(this.mountPoint).css('display', null);
+        $(this.mountPoint).css('display', '');
         console.log('it is time to render');
     }
 
@@ -87,16 +97,17 @@ class Page extends Component {
     }
 
     registerComponentElement(inDefinition) {
-        var proto = Object.create(HTMLElement.prototype);
+        var proto = Object.create(HTMLDivElement.prototype);
         var that = this;
 
         proto.createdCallback = function() {
             let component = new Component(
-                inDefinition.name, 
-                inDefinition.modelPrototype, 
+                inDefinition.name,
+                inDefinition.modelPrototype,
                 inDefinition.constructor,
-                that); 
-                _registry.set(this,component);
+                that);
+            component.node = this;
+            _registry.set(this, component);
             if (that.injectComponent) {
                 that.injectComponent(component);
             }
@@ -106,7 +117,7 @@ class Page extends Component {
             // setTimeout( () => {
             //     $(this).html(content);
             // }, 0);
-            
+
         }
 
         proto.attachedCallback = function() {

@@ -8,7 +8,7 @@ const Page = require('./Page');
 const ObservableObject = require('./ObservableObject');
 
 
-class Binda {
+class AEFactory {
     constructor() {}
 
     component(inName, inModelPrototype, inSetupFunction) {
@@ -27,5 +27,5 @@ class Binda {
     }
 }
 
-let ae = new Binda();
+let ae = new AEFactory();
 module.exports = ae;

@@ -14,14 +14,14 @@ module.exports = function() {
                 if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
-                return _page.resolveNodeComponent(inNode).model.prop(inPath);
+                return _page.resolveNodeModel(inNode, inPath).prop(inPath);
             };
 
             this.bindPath = function resolve(inNode, inPath, inHandler) {
                 if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
-                const model = _page.resolveNodeComponent(inNode).model;
+                const model = _page.resolveNodeModel(inNode, inPath);
 
                 model.watch(inPath, function(inPath, inChanges) {
                 	inHandler(inChanges.newValue, inChanges.oldValue);
@@ -32,7 +32,7 @@ module.exports = function() {
             	if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
-                const model = _page.resolveNodeComponent(inNode).model;
+                const model = _page.resolveNodeModel(inNode, inPath);
                 model.prop(inPath, inValue);
             }
 
