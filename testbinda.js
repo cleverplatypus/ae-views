@@ -1,5 +1,6 @@
-//require('babel-polyfill');
-//require('document-register-element')
+require('document-register-element');
+require('babel-polyfill');
+
 
 const ae = require('./AEFactory');
 const $ = require('jquery');

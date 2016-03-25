@@ -1,19 +1,17 @@
 //const aTemplate = require('./templates/a-template');
-
+const State = require('./State');
 module.exports = function(inPage) {
 	const _page = inPage;
 	const _factory = _page.factory;
 
-	var _bus, _model, _fRef, _id;
+	var _bus, _model, _fRef, _id, _node;
 
-	_factory.component('heydo-pufu', {}, function() {
-		_fRef = this.app.firebase;
+	_factory.component('heydo-pufu', { nyeep : 'popz'}, function() {
+		_fRef = this.fRef;
 		_bus = this.bus;
 		_model = this.model;
 		_id = this.id;
 		_node = this.node;
-
-		_model.prop('nyepp', 'popz');
 
 		// this.templates = {
 		// 	aTemplate : aTemplate

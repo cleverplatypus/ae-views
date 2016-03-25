@@ -2,6 +2,7 @@
 
 const ObservableObject = require('./ObservableObject');
 const State = require('./State');
+const Bus = require('./Bus');
 
 const _findState = function _findState(inStateName) {
     if(!inStateName) {
@@ -46,10 +47,12 @@ const _private = new WeakMap();
 
 class Component {
 
-    constructor(inName, inInitObj, inConstructor) {
+    constructor(inName, inInitObj, inConstructor, inPage) {
         _private.set(this, {
             stateWatchers : new Set()
         });
+        this.page = inPage;
+        this.bus = new Bus(inPage);
         this.name = inName;
         
         this.model = ObservableObject.fromObject({ 

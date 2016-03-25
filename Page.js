@@ -6,6 +6,7 @@ const ObservableObject = require('./ObservableObject');
 const modelDataSource = require('./model-datasource');
 const _dataSources = new Map();
 const lang= require('./ae-lang');
+let _registry = new Map();
 
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
@@ -18,7 +19,7 @@ class Page extends Component {
         
         $(this.mountPoint).css('display', 'none !important');
         
-        this.bus = new Bus();
+        //this.bus = new Bus();
         this.addDataSource('model', modelDataSource(this));
         this.template = inConfig.templates;
         inConstructor.bind(this)();
@@ -42,15 +43,18 @@ class Page extends Component {
     }
 
     resolveNodeComponent(inNode) {
-        let originalNode = inNode;
-        while(!$(inNode).prop('component')) {
-            inNode = $(inNode).parent();
+        let originalNode = $(inNode).get(0);
+        while(!_registry.get(inNode)) {
+            inNode = $(inNode).parent().get(0);
+            if(!inNode) {
+                break;
+            }
         }
-        if(!$(inNode).prop('component')) {
+        if(!_registry.get(inNode)) {
             console.debug('Could not find component in ancestry. Falling back to page component');
             return this;
         }
-        return $(inNode).prop('component');
+        return _registry.get(inNode);
 
     }
 
@@ -84,31 +88,36 @@ class Page extends Component {
 
     registerComponentElement(inDefinition) {
         var proto = Object.create(HTMLElement.prototype);
+        var that = this;
 
-
-
-        proto.createdCallback = () => {
+        proto.createdCallback = function() {
             let component = new Component(
                 inDefinition.name, 
                 inDefinition.modelPrototype, 
-                inDefinition.constructor);
-                Object.defineProperty(this, 'component', {value : component});
-            if (this.injectComponent) {
-                this.injectComponent(component);
+                inDefinition.constructor,
+                that); 
+                _registry.set(this,component);
+            if (that.injectComponent) {
+                that.injectComponent(component);
             }
-            component.onElementCreated(this);
+            component.onElementCreated(that);
+            let content = $(this).html();
+            $(this).empty();
+            setTimeout( () => {
+                $(this).html(content);
+            }, 0);
             
         }
 
         proto.attachedCallback = function() {
-            let fn = this.component.onElementAttached;
+            let fn = _registry.get(this).onElementAttached;
             if (fn) {
                 fn(this);
             }
         }
 
         proto.detachedCallback = function() {
-            let fn = this.component.onElementDetached;
+            let fn = _registry.get(this).onElementDetached;
             if (fn) {
                 fn(this);
             }
