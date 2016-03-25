@@ -5,7 +5,7 @@ require('babel-polyfill');
 const ae = require('./AEFactory');
 const $ = require('jquery');
 const _ = require('lodash');
-const State = require('./State');
+import State from './State';
 const heydoPufu = require('./heydo-pufu');
 
 const firebaseDatasource = require('./firebase-datasource');
@@ -22,7 +22,21 @@ ae.page({
         test: {
             pup: 'horray!',
             nyeep: 'gork'
-        }
+        },
+        people : [
+        	{
+        		name : 'pippo',
+        		age : 12
+        	},
+        	{
+        		name : 'pluto',
+        		age : 2
+        	},
+        	{
+        		name : 'paperino',
+        		age : 66
+        	}
+        ]
     },
     function() {
         this.addDataSource('koala', firebaseDatasource(firebase));

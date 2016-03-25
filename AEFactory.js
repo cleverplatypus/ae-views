@@ -2,7 +2,7 @@
 
 const $ = require('jquery');
 const _ = require('lodash');
-const Bus = require('./Bus');
+import Bus from './Bus';
 const Component = require('./Component');
 const Page = require('./Page');
 const ObservableObject = require('./ObservableObject');

@@ -1,8 +1,8 @@
 'use strict';
 
-const ObservableObject = require('./ObservableObject');
-const State = require('./State');
-const Bus = require('./Bus');
+import ObservableObject from './ObservableObject';
+import State from './State';
+import Bus from './Bus';
 
 const _findState = function _findState(inStateName) {
     if(!inStateName) {

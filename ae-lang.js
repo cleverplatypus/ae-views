@@ -1,13 +1,19 @@
 const $ = require('jquery');
 const dust = require('dustjs-linkedin');
 const _ = require('lodash');
+import Element from './ae-element';
+
+import aeEach from './ae-each';
+
 
 module.exports = function(inPage) {
     const _page = inPage;
     const _registry = new WeakMap();
 
+    aeEach(_page);
+    
     function newProto() {
-        return Object.create(HTMLElement.prototype);
+        return Object.create(Element.prototype);
 
     }
 
@@ -51,7 +57,7 @@ module.exports = function(inPage) {
                 inHandler($(this).find('input').attr('value'));
             };
             if (_.isFunction(inHandler)) {
-                $(this).off('click', handler).on('click', handler);
+                $(this).find('input').off('click', handler).on('click', handler);
             }
 
         };
@@ -122,23 +128,6 @@ module.exports = function(inPage) {
     })();
 
 
-    (function each() {
-        var proto = newProto();
-
-        proto.createdCallback = function() {
-
-        };
-
-        proto.attachedCallback = function() {
-
-        };
-
-        proto.detachedCallback = function() {
-
-        };
-
-        document.registerElement('ae-each', { prototype: proto });
-    })();
 
  
     (function state() {

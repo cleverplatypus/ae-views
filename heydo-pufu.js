@@ -1,5 +1,5 @@
 //const aTemplate = require('./templates/a-template');
-const State = require('./State');
+import State from './State';
 module.exports = function(inPage) {
 	const _page = inPage;
 	const _factory = _page.factory;

@@ -1,8 +1,6 @@
 <html>
 
 <head>
-
-
     <script src="bundle.js"></script>
     <style>
     .container {
@@ -15,7 +13,6 @@
     .tab {
         height: 32px;
         display: inline-block;
-
     }
     
     .tab label {
@@ -50,7 +47,7 @@
             <ae-bind source="koala" path="/db/products_aggregate/-KCsqeG8q00IzgwdXmdN/lead"></ae-bind>
         </div>
         <ae-checkbox label-class="cirripede" value="porchetto">
-            <ae-bind in="attr:label" path="test.nyeep"></ae-bind>
+            <ae-bind in="attr:label" path="test.nyeep" out="true"></ae-bind>
         </ae-checkbox>
         <br>
         <br>
@@ -68,7 +65,16 @@
         </div>
         <ae-state pattern="zucca">
             <div class="container">
-                zucca container
+                <div>
+                    <ae-each path="people">
+                        <template>
+                            <tr>
+                                <td>{name}</td>
+                                <td>{age}</td>
+                            </tr>
+                        </template>
+                    </ae-each>
+                </div>
             </div>
         </ae-state>
         <ae-state pattern="barucca">
@@ -79,12 +85,6 @@
             </div>
         </ae-state>
         <br>
-        <heydo-pufu>
-			<ae-bind path="nyeep"></ae-bind>
-        </heydo-pufu>
-        <heydo-pufu>
-			<ae-bind path="nyeep"></ae-bind>
-        </heydo-pufu>
     </div>
 </body>
 

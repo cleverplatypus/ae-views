@@ -1,5 +1,5 @@
 'use strict';
-const Bus = require('./Bus');
+import Bus from './Bus';
 const Component = require('./Component');
 const $ = require('jquery');
 const ObservableObject = require('./ObservableObject');
@@ -102,10 +102,10 @@ class Page extends Component {
             }
             component.onElementCreated(that);
             let content = $(this).html();
-            $(this).empty();
-            setTimeout( () => {
-                $(this).html(content);
-            }, 0);
+            // $(this).empty();
+            // setTimeout( () => {
+            //     $(this).html(content);
+            // }, 0);
             
         }
 
