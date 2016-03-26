@@ -2,14 +2,13 @@
   "name": "binda-es6",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/ae.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ae-dust-full": "git+https://git@github.com/cleverplatypus/ae-dust-full.git",
     "babel": "^6.5.2",
     "babel-core": "^6.7.2",
     "babel-polyfill": "^6.7.4",
