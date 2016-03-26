@@ -1,19 +1,21 @@
 require('document-register-element');
-require('babel-polyfill');
+//var bubu = require('babel-regenerator-runtime');
+//require("babel-core/register");
+//require('babel-polyfill');
 
+import {pagefactory, State} from './src/ae';
 
-const ae = require('./src/AEFactory');
-const $ = require('jquery');
-const _ = require('lodash');
-import State from './src/State';
-const heydoPufu = require('./heydo-pufu');
+import $ from 'jquery';
+import _ from 'lodash';
+import heydoPufu from './heydo-pufu';
 
-const firebaseDatasource = require('./firebase-datasource');
-const firebase = new(require('firebase'))('https://heydokoala.firebaseio.com');
-const eucalyptusDataSource = require('./eucalyptus-datasource');
+import firebaseDatasource  from './firebase-datasource';
+import Firebase from 'firebase';
+import eucalyptusDataSource from './eucalyptus-datasource';
 
+const firebase =  new Firebase('https://heydokoala.firebaseio.com');
 
-ae.page({
+pagefactory.page({
         name: 'mypage',
         mountPoint: '#mount-here',
         components: [heydoPufu],

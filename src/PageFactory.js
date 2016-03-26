@@ -1,14 +1,14 @@
 'use strict';
 
-const $ = require('jquery');
-const _ = require('lodash');
+import $ from 'jquery';
+import _ from 'lodash';
 import Bus from './Bus';
-const Component = require('./Component');
-const Page = require('./Page');
-const ObservableObject = require('./ObservableObject');
+import Component from './Component';
+import Page from './Page';
+import ObservableObject from './ObservableObject';
 
 
-class AEFactory {
+class PageFactory {
     constructor() {}
 
     component(inName, inModelPrototype, inSetupFunction) {
@@ -27,5 +27,5 @@ class AEFactory {
     }
 }
 
-let ae = new AEFactory();
-module.exports = ae;
+
+export default new PageFactory();

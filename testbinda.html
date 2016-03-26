@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.7.4/polyfill.min.js"></script>
     <script src="bundle.js"></script>
     <style>
     .container {
@@ -54,14 +55,6 @@
         <!-- <ae-tab class="my-tab" group="" target="state" value="zucca"></ae-tab> -->
         <br>
         <heydo-pufu>
-            <ae-each path="people">
-                <template>
-                    <tr>
-                        <td>{name}</td>
-                        <td>{age}</td>
-                    </tr>
-                </template>
-            </ae-each>
             <div class="tab">
                 <ae-bind in="class:selected" path="_state" if="zucca"></ae-bind>
                 <ae-radio name="switch" label="Primo tab" value="zucca">
@@ -77,7 +70,14 @@
             <ae-state pattern="zucca">
                 <div class="container">
                     <div>
-                        alsdflskl
+                        <ae-each path="people">
+                            <template>
+                                <tr>
+                                    <td>{name}</td>
+                                    <td>{age}</td>
+                                </tr>
+                            </template>
+                        </ae-each>
                     </div>
                 </div>
             </ae-state>

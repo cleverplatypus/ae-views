@@ -1,0 +1,79 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   'babel-runtime-interop-require-default' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.36
+4 warn package.json binda-es6@1.0.0 No description
+5 warn package.json binda-es6@1.0.0 No repository field.
+6 warn package.json binda-es6@1.0.0 No README data
+7 warn package.json babel-polyfill@6.7.4 No description
+8 warn package.json ae-dust-full@1.0.0 No repository field.
+9 verbose readDependencies using package.json deps
+10 verbose cache add [ 'babel-runtime-interop-require-default', null ]
+11 verbose cache add name=undefined spec="babel-runtime-interop-require-default" args=["babel-runtime-interop-require-default",null]
+12 verbose parsed url { protocol: null,
+12 verbose parsed url   slashes: null,
+12 verbose parsed url   auth: null,
+12 verbose parsed url   host: null,
+12 verbose parsed url   port: null,
+12 verbose parsed url   hostname: null,
+12 verbose parsed url   hash: null,
+12 verbose parsed url   search: null,
+12 verbose parsed url   query: null,
+12 verbose parsed url   pathname: 'babel-runtime-interop-require-default',
+12 verbose parsed url   path: 'babel-runtime-interop-require-default',
+12 verbose parsed url   href: 'babel-runtime-interop-require-default' }
+13 silly lockFile e56596c9--runtime-interop-require-default babel-runtime-interop-require-default
+14 verbose lock babel-runtime-interop-require-default /Users/aekidna/.npm/e56596c9--runtime-interop-require-default.lock
+15 silly lockFile e56596c9--runtime-interop-require-default babel-runtime-interop-require-default
+16 silly lockFile e56596c9--runtime-interop-require-default babel-runtime-interop-require-default
+17 verbose addNamed [ 'babel-runtime-interop-require-default', '' ]
+18 verbose addNamed [ null, '*' ]
+19 silly lockFile d1617589--runtime-interop-require-default babel-runtime-interop-require-default@
+20 verbose lock babel-runtime-interop-require-default@ /Users/aekidna/.npm/d1617589--runtime-interop-require-default.lock
+21 silly addNameRange { name: 'babel-runtime-interop-require-default',
+21 silly addNameRange   range: '*',
+21 silly addNameRange   hasData: false }
+22 verbose request where is /babel-runtime-interop-require-default
+23 verbose request registry https://registry.npmjs.org/
+24 verbose request id 0d5dcc791d8ea162
+25 verbose url raw /babel-runtime-interop-require-default
+26 verbose url resolving [ 'https://registry.npmjs.org/',
+26 verbose url resolving   './babel-runtime-interop-require-default' ]
+27 verbose url resolved https://registry.npmjs.org/babel-runtime-interop-require-default
+28 verbose request where is https://registry.npmjs.org/babel-runtime-interop-require-default
+29 info trying registry request attempt 1 at 10:32:39
+30 http GET https://registry.npmjs.org/babel-runtime-interop-require-default
+31 http 404 https://registry.npmjs.org/babel-runtime-interop-require-default
+32 silly registry.get cb [ 404,
+32 silly registry.get   { 'content-type': 'application/json',
+32 silly registry.get     'cache-control': 'max-age=0',
+32 silly registry.get     'content-length': '2',
+32 silly registry.get     'accept-ranges': 'bytes',
+32 silly registry.get     date: 'Sat, 26 Mar 2016 00:02:40 GMT',
+32 silly registry.get     via: '1.1 varnish',
+32 silly registry.get     age: '0',
+32 silly registry.get     connection: 'keep-alive',
+32 silly registry.get     'x-served-by': 'cache-mel6521-MEL',
+32 silly registry.get     'x-cache': 'MISS',
+32 silly registry.get     'x-cache-hits': '0',
+32 silly registry.get     'x-timer': 'S1458950559.897189,VS0,VE921' } ]
+33 silly lockFile d1617589--runtime-interop-require-default babel-runtime-interop-require-default@
+34 silly lockFile d1617589--runtime-interop-require-default babel-runtime-interop-require-default@
+35 error 404 Not Found
+35 error 404
+35 error 404 'babel-runtime-interop-require-default' is not in the npm registry.
+35 error 404 You should bug the author to publish it
+35 error 404 It was specified as a dependency of 'binda-es6'
+35 error 404
+35 error 404 Note that you can also install from a
+35 error 404 tarball, folder, or http url, or git url.
+36 error System Darwin 15.4.0
+37 error command "node" "/usr/local/bin/npm" "install" "babel-runtime-interop-require-default"
+38 error cwd /Users/aekidna/Development/Projects/ae-framework
+39 error node -v v0.10.36
+40 error npm -v 1.4.28
+41 error code E404
+42 verbose exit [ 1, true ]
