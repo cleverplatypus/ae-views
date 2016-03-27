@@ -3,7 +3,7 @@
 import $ from 'jquery';
 import _ from 'lodash';
 import Element from './ae-element';
-import dust from 'dustjs-linkedin';
+import dust from 'ae-dust-full';
 import Observable from '../Observable';
 import ObservableCollection from '../ObservableCollection';
 
@@ -16,7 +16,7 @@ export default function each(inPage) {
     proto.createdCallback = function() {
 
         $(this).children().each(function() {
-            if (!(this instanceof Element) && this.nodeName.toUpperCase() !== 'TEMPLATE') {
+            if (!(document.createElement(this.tagName) instanceof Element) && this.nodeName.toUpperCase() !== 'TEMPLATE') {
                 throw new Error('ae-each children must be either <ae-...> or a <template> element.');
             }
         });
@@ -29,7 +29,9 @@ export default function each(inPage) {
         _private.set(this, {
             template: dust.loadSource(compiled)
         });
-        $(this).append($('<ae-managed></ae-managed>'));
+        if (!$(this).find('>ae-managed').length) {
+            $(this).append(document.createElement('ae-managed'));
+        }
     };
 
     proto.attachedCallback = function() {
@@ -40,8 +42,9 @@ export default function each(inPage) {
 
         const renderFn = (inData) => {
             $(this).find('>ae-managed').empty();
+            let that = this;
             if (inData instanceof ObservableCollection) {
-               for(let instance of inData) {
+                for (let instance of inData) {
                     dust.render(template, instance, (err, out) => {
                         if (err) {
                             throw new Error(err);
@@ -49,11 +52,18 @@ export default function each(inPage) {
                         $(this).find('>ae-managed').append(out);
                     });
                 }
+            } else {
+                dust.render(template, inData, (err, out) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    $(that).find('>ae-managed').append(out);
+                });
             }
         };
 
         dataSource.bindPath(this, path, (inNewValue) => {
-        	renderFn(inNewValue);
+            renderFn(inNewValue);
 
         });
         renderFn(dataSource.resolve(this, path));

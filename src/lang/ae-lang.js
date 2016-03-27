@@ -1,5 +1,6 @@
 'use strict';
 
+import aeManaged from './ae-managed';
 import aeEach from './ae-each';
 import aeState from './ae-state';
 import aeCheckbox from './ae-checkbox';
@@ -11,6 +12,7 @@ import aeRender from './ae-render';
 
 export default function(inPage) {
 
+    aeManaged(inPage);
     aeEach(inPage);
     aeState(inPage);
     aeCheckbox(inPage);

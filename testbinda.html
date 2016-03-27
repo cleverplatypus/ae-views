@@ -70,12 +70,14 @@
             <ae-state pattern="zucca">
                 <div class="container">
                     <div>
-                        <ae-each path="people">
+                        <ae-each path="company">
                             <template>
+                            {#people}
                                 <tr>
                                     <td>{name}</td>
                                     <td>{age}</td>
                                 </tr>
+                            {/people}
                             </template>
                         </ae-each>
                     </div>

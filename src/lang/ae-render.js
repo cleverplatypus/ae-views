@@ -2,7 +2,7 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import dust from 'dustjs-linkedin';
+import dust from 'ae-dust-full';
 
 export default function render(inPage) {
     const _page = inPage;
