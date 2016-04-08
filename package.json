@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ae-dust-full": "git+https://git@github.com/cleverplatypus/ae-dust-full.git",
+    "ae-dustjs": "git+https://git@github.com/cleverplatypus/ae-dustjs.git",
     "firebase": "^2.4.1",
     "jquery": "^2.2.2",
     "signals": "^1.0.0"
