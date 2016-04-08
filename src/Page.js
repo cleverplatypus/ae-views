@@ -88,9 +88,9 @@ class Page extends Component {
         console.log('it is time to render');
     }
 
-    registerComponent(inName, inModelPrototype, inConstructor) {
+    registerComponent(inConfig, inModelPrototype, inConstructor) {
         this.registerComponentElement({
-            name: inName,
+            config : inConfig,
             modelPrototype: inModelPrototype,
             constructor: inConstructor
         });
@@ -102,7 +102,7 @@ class Page extends Component {
 
         proto.createdCallback = function() {
             let component = new Component(
-                inDefinition.name,
+                inDefinition.config,
                 inDefinition.modelPrototype,
                 inDefinition.constructor,
                 that);

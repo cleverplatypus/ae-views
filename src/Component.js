@@ -47,13 +47,14 @@ const _private = new WeakMap();
 
 class Component {
 
-    constructor(inName, inInitObj, inConstructor, inPage) {
+    constructor(inConfig, inInitObj, inConstructor, inPage) {
         _private.set(this, {
             stateWatchers : new Set()
         });
         this.page = inPage;
         this.bus = new Bus(inPage);
-        this.name = inName;
+        this.name = inConfig.name;
+        this.templates = inConfig.templates;
         
         this.model = ObservableObject.fromObject({ 
             data: inInitObj, 

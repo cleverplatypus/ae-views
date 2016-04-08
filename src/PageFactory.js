@@ -11,8 +11,8 @@ import ObservableObject from './ObservableObject';
 class PageFactory {
     constructor() {}
 
-    component(inName, inModelPrototype, inSetupFunction) {
-        return this.page.registerComponent(inName, inModelPrototype, inSetupFunction);
+    component(inConfig, inModelPrototype, inSetupFunction) {
+        return this.page.registerComponent(inConfig, inModelPrototype, inSetupFunction);
     }
 
     page(inConfig, inModel, inSetupFunction) {
