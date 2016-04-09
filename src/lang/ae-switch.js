@@ -8,7 +8,7 @@ import _ from 'lodash';
 *   A container for element that change the value of a property based on 
 *   selection of its children. It behaves like a radio group.
 */
-export default function switch(inPage) {
+export default function aeSwitch(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
 
