@@ -67,6 +67,10 @@ class Component {
         this.currentState = this.states;
     }
 
+    tryState(inState) {
+        this.model.prop('_nextState', inState);
+    }
+
     setState(inState) {
         this.currentState = inState;
         this.model.prop('_state', inState.getName());
