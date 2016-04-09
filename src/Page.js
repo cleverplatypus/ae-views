@@ -134,7 +134,7 @@ class Page extends Component {
             }
         }
 
-        document.registerElement(inDefinition.name, { prototype: proto });
+        document.registerElement(inDefinition.config.name, { prototype: proto });
 
     }
 
