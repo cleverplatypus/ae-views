@@ -3,7 +3,7 @@
 import $ from 'jquery';
 import _ from 'lodash';
 import Element from './ae-element';
-import dust from 'ae-dust-full';
+import dust from 'ae-dustjs';
 import Observable from '../Observable';
 import ObservableCollection from '../ObservableCollection';
 
