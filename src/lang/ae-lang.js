@@ -8,6 +8,7 @@ import aeRadio from './ae-radio';
 import aeAction from './ae-action';
 import aeBind from './ae-bind';
 import aeRender from './ae-render';
+import aeSwitch from './ae-switch';
 
 
 export default function(inPage) {
@@ -20,4 +21,5 @@ export default function(inPage) {
     aeAction(inPage);
     aeBind(inPage);
     aeRender(inPage);
+    aeSwitch(inPage);
 };
