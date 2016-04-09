@@ -35,11 +35,18 @@ export default function aeSwitch(inPage) {
         const that = this;
         const _p = _private.get(this);
         _p.target = _page.resolveNodeComponent(this);
+        let defaultSwitch;
         $(this).children().each(function() {
+            if($(this).data('ae-switch-value') === $(that).attr('default-value')) {
+                defaultSwitch = $(this);
+            }
             //TODO: register click handlers
             $(this).off('click', selectHandler).on('click', () => {
                 selectHandler.call(that, this);
             });
+            if(defaultSwitch) {
+                selectHandler.call(that, defaultSwitch);
+            }
        })
     };
 
