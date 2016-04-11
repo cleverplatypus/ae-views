@@ -9,6 +9,7 @@ let evilFn;
 
 class DustTemplatingDelegate extends TemplatingDelegate {
 	constructor(inEvilFn) {
+		super();
 		var n = 'EV' + 'a' + 'L';
 		evilFn = inEvilFn || window[n.toLowerCase()];
 	}
