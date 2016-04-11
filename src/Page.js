@@ -3,16 +3,17 @@ import Bus from './Bus';
 import Component from './component'
 import $ from 'jquery';
 import ObservableObject from './ObservableObject';
+import DustTemplatingDelegate from './delegate/DustTemplatingDelegate';
 import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
 import lang from './lang/ae-lang';
 let _registry = new WeakMap();
-let _renderDelegate;
+let _templatingDelegate;
 
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig.name, inModelPrototype);
-        _renderDelegate = inConfig.renderDelegate || new DustRenderDelegate(inConfig.evilFunction);
+        _templatingDelegate = inConfig.templatingDelegate || new DustTemplatingDelegate(inConfig.evilFunction);
         window.ppage = this; //DEBUG
         this.mountPoint = inConfig.mountPoint || 'body';
         const that = this;
@@ -44,8 +45,8 @@ class Page extends Component {
 
     }
 
-    getRenderDelegate() {
-        return _renderDelegate;
+    getTemplatingDelegate() {
+        return _templatingDelegate;
     }
 
     resolveNodeModel(inNode, inPath) {

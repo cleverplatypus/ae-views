@@ -7,7 +7,7 @@ import ObservableCollection from '../ObservableCollection';
 export default function each(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
-    const _renderDelegate = _page.getRenderDelegate();
+    const _templatingDelegate = _page.getTemplatingDelegate();
 
     var proto = Object.create(Element.prototype);
 
@@ -22,7 +22,7 @@ export default function each(inPage) {
         let template = $(this).find('>template');
 
         _private.set(this, {
-            templateName: _renderDelegate.registerTemplate(template.html())
+            templateName: _templatingDelegate.registerTemplate(template.html())
         });
 
         if (!$(this).find('>ae-managed').length) {
@@ -48,12 +48,12 @@ export default function each(inPage) {
             $(this).find('>ae-managed').empty();
             if (inData instanceof ObservableCollection) {
                 for (let instance of inData) {
-                    _renderDelegate.render(templateName, instance)
+                    _templatingDelegate.render(templateName, instance)
                         .then(appendFn)
                         .catch(errorFn);
                 }
             } else {
-                _renderDelegate.render(templateName, inData)
+                _templatingDelegate.render(templateName, inData)
                 .then(appendFn)
                 .catch(errorFn);
             }
