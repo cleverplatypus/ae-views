@@ -10,15 +10,11 @@ export default function action(inPage) {
     var proto = Object.create(Element.prototype);
 
     proto.createdCallback = function() {
-        var target = $(this).parent();
-        var actionName = $(this).attr('name');
-        var node = $(this);
-
-        while (!$(node).prop('component')) {
-            node = $(node).parent();
-        }
+        const target = $(this).parent();
+        const actionName = $(this).attr('name');
+        const component = _page.resolveNodeComponent(target);
         $(target).click(() => {
-            $(node).prop('component').bus.triggerAction(actionName);
+            component.bus.triggerAction(actionName);
         });
 
 

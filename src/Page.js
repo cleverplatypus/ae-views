@@ -21,7 +21,6 @@ class Page extends Component {
 
         $(this.mountPoint).css('display', 'none !important');
 
-        //this.bus = new Bus();
         this.addDataSource('model', modelDataSource(this));
         this.template = inConfig.templates;
         inConstructor.bind(this)();
@@ -32,7 +31,6 @@ class Page extends Component {
                 inComponentFn(this);
             });
             $(() => {
-                Object.defineProperty($(this.mountPoint).get(0), 'component', { value: this });
                 lang(this);
                 this.render();
             });
@@ -119,10 +117,6 @@ class Page extends Component {
             }
             component.onElementCreated(that);
             let content = $(this).html();
-            // $(this).empty();
-            // setTimeout( () => {
-            //     $(this).html(content);
-            // }, 0);
 
         }
 
