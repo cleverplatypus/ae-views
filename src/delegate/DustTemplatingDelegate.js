@@ -10,6 +10,7 @@ let evilFn;
 class DustTemplatingDelegate extends TemplatingDelegate {
 	constructor(inEvilFn) {
 		super();
+		window.dust = dust;
 		var n = 'EV' + 'a' + 'L';
 		evilFn = inEvilFn || window[n.toLowerCase()];
 	}
@@ -28,13 +29,14 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 	}
 
 	render(inTemplateName, inModel) {
-		var promise = new Promise();
-		dust.render(_private.get('inTemplateName'), inModel, (inHtml, inError) => {
-			if(inError) {
-				promise.reject(inError);
-			} else {
-				promise.resolve(inHtml);
-			}
+		var promise = new Promise((resolve, reject) => {
+			dust.render(_private.get(inTemplateName), inModel, (inError, inHtml) => {
+				if(inError) {
+					reject(inError);
+				} else {
+					resolve(inHtml);
+				}
+			});
 		});
 		return promise;
 	}

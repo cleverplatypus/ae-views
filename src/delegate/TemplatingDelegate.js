@@ -1,3 +1,5 @@
+'use strict';
+
 class TemplatingDelegate {
 	registerTemplate(inSource, inName) {
 		//if(!inName) generate name and return it
