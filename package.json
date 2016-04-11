@@ -11,11 +11,22 @@
   "dependencies": {
     "ae-dustjs": "git+https://git@github.com/cleverplatypus/ae-dustjs.git",
     "jquery": "^2.2.2",
+    "node-uuid": "^1.4.7",
     "signals": "^1.0.0"
   },
   "browserify": {
-    "transform": [["babelify", { "presets": ["es2015", "stage-1"] }]]
-},
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015",
+            "stage-1"
+          ]
+        }
+      ]
+    ]
+  },
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-core": "^6.7.2",
