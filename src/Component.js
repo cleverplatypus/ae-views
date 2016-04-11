@@ -52,7 +52,7 @@ class Component {
             stateWatchers : new Set()
         });
         this.page = inPage;
-        this.bus = new Bus(inPage);
+        this.bus = new Bus(inPage? inPage.bus : null);
         this.name = inConfig.name;
         this.templates = inConfig.templates;
         

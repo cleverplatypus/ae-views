@@ -9,7 +9,7 @@ class Bus {
 
     publishAction(inName, inHandler) {
         if (this.parent()) {
-            this.parent().exportAction(inName, inHandler);
+            this.parent().publishAction(inName, inHandler);
         } else {
             this.addAction(inName, inHandler)
         }
