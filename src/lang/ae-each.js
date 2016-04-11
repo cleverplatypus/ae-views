@@ -1,15 +1,13 @@
 'use strict';
 
 import $ from 'jquery';
-import _ from 'lodash';
 import Element from './ae-element';
-import dust from 'ae-dustjs';
-import Observable from '../Observable';
 import ObservableCollection from '../ObservableCollection';
 
 export default function each(inPage) {
     const _page = inPage;
-    const _private = new Map();
+    const _private = new WeakMap();
+    const _renderDelegate = _page.getRenderDelegate();
 
     var proto = Object.create(Element.prototype);
 
@@ -20,15 +18,13 @@ export default function each(inPage) {
                 throw new Error('ae-each children must be either <ae-...> or a <template> element.');
             }
         });
+
         let template = $(this).find('>template');
-        let compiled = dust.compile($(template).html());
-
-
-
 
         _private.set(this, {
-            template: dust.loadSource(compiled)
+            templateName: _renderDelegate.registerTemplate(template.html())
         });
+
         if (!$(this).find('>ae-managed').length) {
             $(this).append(document.createElement('ae-managed'));
         }
@@ -38,33 +34,33 @@ export default function each(inPage) {
         let dataSourceName = $(this).attr('source');
         const path = $(this).attr('path');
         let dataSource = _page.getDataSource(dataSourceName);
-        const template = _private.get(this).template;
+        const templateName = _private.get(this).templateName;
+
+        const appendFn = (inHtml) => {
+            $(this).find('>ae-managed').append(inHtml);
+        };
+
+        const errorFn = (inError) => {
+            throw new Error(inError);
+        };
 
         const renderFn = (inData) => {
             $(this).find('>ae-managed').empty();
-            let that = this;
             if (inData instanceof ObservableCollection) {
                 for (let instance of inData) {
-                    dust.render(template, instance, (err, out) => {
-                        if (err) {
-                            throw new Error(err);
-                        }
-                        $(this).find('>ae-managed').append(out);
-                    });
+                    _renderDelegate.render(templateName, instance)
+                        .then(appendFn)
+                        .catch(errorFn);
                 }
             } else {
-                dust.render(template, inData, (err, out) => {
-                    if (err) {
-                        throw new Error(err);
-                    }
-                    $(that).find('>ae-managed').append(out);
-                });
+                _renderDelegate.render(templateName, inData)
+                .then(appendFn)
+                .catch(errorFn);
             }
         };
 
         dataSource.bindPath(this, path, (inNewValue) => {
             renderFn(inNewValue);
-
         });
         renderFn(dataSource.resolve(this, path));
     };
@@ -74,4 +70,4 @@ export default function each(inPage) {
     };
 
     document.registerElement('ae-each', { prototype: proto });
-};
+}

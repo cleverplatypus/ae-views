@@ -8,6 +8,7 @@ export default function bind(inPage) {
     const _page = inPage;
 
     var proto = Object.create(Element.prototype);
+    
     proto.attachedCallback = function() {
         let target = $(this).parent();
         let dataSourceName = $(this).attr('source');

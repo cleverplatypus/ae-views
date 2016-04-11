@@ -23,3 +23,4 @@ export default function(inPage) {
     aeRender(inPage);
     aeSwitch(inPage);
 };
+

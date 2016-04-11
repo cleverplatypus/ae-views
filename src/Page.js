@@ -7,12 +7,13 @@ import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
 import lang from './lang/ae-lang';
 let _registry = new WeakMap();
+let _renderDelegate;
 
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig.name, inModelPrototype);
-
-        window.ppage = this;
+        _renderDelegate = inConfig.renderDelegate || new DustRenderDelegate(inConfig.evilFunction);
+        window.ppage = this; //DEBUG
         this.mountPoint = inConfig.mountPoint || 'body';
         const that = this;
 
@@ -41,6 +42,10 @@ class Page extends Component {
             resultHandler();
         }
 
+    }
+
+    getRenderDelegate() {
+        return _renderDelegate;
     }
 
     resolveNodeModel(inNode, inPath) {
