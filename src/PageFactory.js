@@ -9,12 +9,7 @@ import ObservableObject from './ObservableObject';
 
 
 class PageFactory {
-    constructor() {}
-
-    component(inConfig, inModelPrototype, inSetupFunction) {
-        return this.page.registerComponent(inConfig, inModelPrototype, inSetupFunction);
-    }
-
+    
     page(inConfig, inModel, inSetupFunction) {
         this.page = new Page(inConfig, inModel, inSetupFunction);
         this.page.factory = this;

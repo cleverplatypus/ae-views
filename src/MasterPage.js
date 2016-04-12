@@ -3,7 +3,7 @@ import _ from 'lodash';
 import pageFactory from './PageFactory';
 let _config, _model, _constructorFn
 
-class PageTemplate {
+class MasterPage {
 
     constructor(inConfig, inModel, inConstructorFn) {
         _config = inConfig;
@@ -11,7 +11,7 @@ class PageTemplate {
         _constructorFn = inConstructorFn;
     }
 
-    extend(inConfig, inModel, inConstructorFn) {
+    create(inConfig, inModel, inConstructorFn) {
         //TODO: merge params with template params. wrap constructor
 
         function customizer(objValue, srcValue) {
@@ -35,4 +35,4 @@ class PageTemplate {
     }
 }
 
-export default PageTemplate;
+export default MasterPage;
