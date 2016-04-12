@@ -1,8 +1,9 @@
 'use strict';
-import Bus from './Bus';
-import Component from './component'
+
+import Component from './component';
+import _ from 'lodash';
 import $ from 'jquery';
-import ObservableObject from './ObservableObject';
+
 import DustTemplatingDelegate from './delegate/DustTemplatingDelegate';
 import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
@@ -10,14 +11,46 @@ import lang from './lang/ae-lang';
 let _registry = new WeakMap();
 let _templatingDelegate;
 
+const _initializers = [];
+const _componentInjectors = [];
+
+let _config;
+
+const callNextInitializer = function() {
+    let initializer = _initializers.shift();
+    if (!initializer) {
+        return;
+    }
+    let result = initializer.call(this);
+    let resultHandler = () => {
+        let fn;
+        while(fn = _config.components.shift()) {
+            fn(this);
+        };
+        if (_initializers.length) {
+            callNextInitializer.call(this);
+        } else {
+            $(() => {
+                lang(this);
+                this.render();
+            });
+        }
+    };
+    if (result instanceof Promise) {
+        result.then(resultHandler);
+    } else {
+        resultHandler();
+    }
+
+};
+
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig.name, inModelPrototype);
+        _config = inConfig;
         _templatingDelegate = inConfig.templatingDelegate || new DustTemplatingDelegate(inConfig.evilFunction);
         window.ppage = this; //DEBUG
         this.mountPoint = inConfig.mountPoint || 'body';
-        const that = this;
-
 
         $(this.mountPoint).css('display', 'none !important');
 
@@ -25,21 +58,8 @@ class Page extends Component {
         this.template = inConfig.templates;
         inConstructor.bind(this)();
         this.currentState = this.states;
-        let result = this.initialize.bind(this)();
-        let resultHandler = () => {
-            _.forEach(inConfig.components, (inComponentFn) => {
-                inComponentFn(this);
-            });
-            $(() => {
-                lang(this);
-                this.render();
-            });
-        };
-        if (result instanceof Promise) {
-            result.then(resultHandler);
-        } else {
-            resultHandler();
-        }
+
+        callNextInitializer.call(this);
 
     }
 
@@ -57,7 +77,7 @@ class Page extends Component {
     }
 
     resolveNodeComponent(inNode) {
-        let originalNode = $(inNode).get(0);
+        //let originalNode = $(inNode).get(0);
         while (!_registry.get(inNode)) {
             inNode = $(inNode).parent().get(0);
             if (!inNode) {
@@ -81,10 +101,12 @@ class Page extends Component {
         return _dataSources.get(inName);
     }
 
+    registerInitializer(inFn) {
+        _initializers.push(inFn);
+    }
 
-
-    initialize() {
-        return Promise.resolve();
+    registerComponentInjector(inInjectorFn) {
+        _componentInjectors.push(inInjectorFn);
     }
 
     render() {
@@ -94,7 +116,7 @@ class Page extends Component {
 
     registerComponent(inConfig, inModelPrototype, inConstructor) {
         this.registerComponentElement({
-            config : inConfig,
+            config: inConfig,
             modelPrototype: inModelPrototype,
             constructor: inConstructor
         });
@@ -112,27 +134,27 @@ class Page extends Component {
                 that);
             component.node = this;
             _registry.set(this, component);
-            if (that.injectComponent) {
-                that.injectComponent(component);
+            for (let injector of _componentInjectors) {
+                injector.call(that, component);
             }
             component.onElementCreated(that);
-            let content = $(this).html();
+            //let content = $(this).html();
 
-        }
+        };
 
         proto.attachedCallback = function() {
             let fn = _registry.get(this).onElementAttached;
             if (fn) {
                 fn(this);
             }
-        }
+        };
 
         proto.detachedCallback = function() {
             let fn = _registry.get(this).onElementDetached;
             if (fn) {
                 fn(this);
             }
-        }
+        };
 
         document.registerElement(inDefinition.config.name, { prototype: proto });
 
@@ -144,4 +166,4 @@ class Page extends Component {
 }
 
 
-module.exports = Page;
+export default Page;

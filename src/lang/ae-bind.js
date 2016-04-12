@@ -4,13 +4,17 @@ import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
 
+window.zz = $;
 export default function bind(inPage) {
     const _page = inPage;
+    const _private = new WeakSet();
 
     var proto = Object.create(Element.prototype);
     
     proto.attachedCallback = function() {
-        let target = $(this).parent();
+
+        let target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
+
         let dataSourceName = $(this).attr('source');
         let shouldOut = $(this).attr('out') === 'true';
         const path = $(this).attr('path');
@@ -25,14 +29,21 @@ export default function bind(inPage) {
         }
         if (inAttr) {
             let nodeAttr = inAttr.split(':');
+            nodeAttr[0] = nodeAttr[0] || 'html';
+
+            if(nodeAttr[0] === 'html') {
+                $(target).attr('data-ae-bind-html', path);
+            }
             let val = dataSource.resolve(this, path);
+
             const valueResolver = (inValue) => {
                 switch (nodeAttr[0]) {
-                    case '':
-                    case undefined:
                     case 'html':
-                        console.log('should modify html');
-                        $(target).html(inValue);
+                        {
+                            console.log('should modify html');
+
+                            $(target).html(inValue);
+                        }
                         break;
                     case 'attr':
                         console.log('should modify attribute: ' + nodeAttr[1]);
@@ -50,15 +61,16 @@ export default function bind(inPage) {
                 }
 
             };
+             dataSource.bindPath(this, path, function(inNewValue) {
+                valueResolver(inNewValue);
+            });
             if (val instanceof Promise) {
                 val.then(valueResolver);
             } else {
                 valueResolver(val);
             }
 
-            dataSource.bindPath(this, path, function(inNewValue) {
-                valueResolver(inNewValue);
-            });
+           
         }
 
         if (shouldOut) {
