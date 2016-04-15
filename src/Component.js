@@ -3,6 +3,9 @@
 import ObservableObject from './ObservableObject';
 import State from './State';
 import Bus from './Bus';
+import dust from 'ae-dustjs';
+import _ from 'lodash';
+
 
 const _findState = function _findState(inStateName) {
     if(!inStateName) {
@@ -81,6 +84,19 @@ class Component {
 
     watchState(inWatcherFunction) {
         _private.get(this).stateWatchers.add(inWatcherFunction);
+    }
+asdfasds
+    render() {
+        let defaultTemplate = _.get(this, 'templates._default');
+        if(defaultTemplate) {
+            dust.render(defaultTemplate, (inError, inHtml) => {
+                if(inError) {
+                    console.error(inError);
+                    return;
+                }
+                $(node).html(inHtml);
+            });
+        }
     }
 
     onElementCreated() {

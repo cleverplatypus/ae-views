@@ -127,6 +127,7 @@ class Page extends Component {
         var that = this;
 
         proto.createdCallback = function() {
+
             let component = new Component(
                 inDefinition.config,
                 inDefinition.modelPrototype,
@@ -138,6 +139,7 @@ class Page extends Component {
                 injector.call(that, component);
             }
             component.onElementCreated(that);
+            component.render();
             //let content = $(this).html();
 
         };

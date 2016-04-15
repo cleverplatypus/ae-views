@@ -10,6 +10,17 @@
  * E.g. param-string_value="`123`"
  */
 
+ /*
+  * IMPROVEMENTS: at the moment only the local data model is always used for model path resolution
+  * I should evaluate the option of passing the action handler a Promise, in the case where
+  * the path resolution requires an async operation.
+  * The application should be informed of a pending operation so it could
+  * show a progress panel, where appropriate
+  * This involves, aside from passing a Promise to the action handler, 
+  * the resolution of all parameters that could protentially make
+  * separate async operations
+  */ 
+
 'use strict';
 
 import $ from 'jquery';
@@ -17,6 +28,13 @@ import Element from './ae-element';
 import _ from 'lodash';
 let _page;
 
+
+/* 
+ * REFACTOR: move this to library. 
+ * Typification should be html node agnostic therefore some kind
+ * of delegation should be used or the tilde string handling has to be
+ * hanled after returning
+ */
 var typifyParams = function typifyParams(inActionNode, inParams) {
     var out = {};
     _.each(inParams, function(inParamValue, inParamKey) {
