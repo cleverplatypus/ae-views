@@ -56,6 +56,7 @@ export default function action(inPage) {
 
     proto.createdCallback = function() {
         const target = $(this).parent();
+        $(target).attr('onclick', 'return false');
         const actionName = $(this).attr('name');
         const component = _page.resolveNodeComponent(target);
         $(target).click((inEvent) => {
