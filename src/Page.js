@@ -31,6 +31,7 @@ const callNextInitializer = function() {
             callNextInitializer.call(this);
         } else {
             $(() => {
+                this.node = $(this.mountPoint);
                 lang(this);
                 this.render();
             });
@@ -52,10 +53,10 @@ class Page extends Component {
         window.ppage = this; //DEBUG
         this.mountPoint = inConfig.mountPoint || 'body';
 
-        $(this.mountPoint).css('display', 'none !important');
+        // $(this.mountPoint).css('display', 'none !important');
 
         this.addDataSource('model', modelDataSource(this));
-        this.template = inConfig.templates;
+        this.templates = inConfig.templates;
         inConstructor.bind(this)();
         this.currentState = this.states;
 
@@ -110,8 +111,8 @@ class Page extends Component {
     }
 
     render() {
+        super.render();
         $(this.mountPoint).css('display', '');
-        console.log('it is time to render');
     }
 
     registerComponent(inConfig, inModelPrototype, inConstructor) {
@@ -139,7 +140,7 @@ class Page extends Component {
                 injector.call(that, component);
             }
             component.onElementCreated(that);
-            component.render();
+
             //let content = $(this).html();
 
         };
@@ -149,6 +150,7 @@ class Page extends Component {
             if (fn) {
                 fn(this);
             }
+            _registry.get(this).render();
         };
 
         proto.detachedCallback = function() {
