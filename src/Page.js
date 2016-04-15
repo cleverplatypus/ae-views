@@ -69,7 +69,7 @@ class Page extends Component {
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);
-        if (!/^_/.test(inPath.split('.')[0]) &&
+        if (inPath && !/^_/.test(inPath.split('.')[0]) &&
             !component.model.prop('data')) {
             return this.resolveNodeModel($(component.node).parent(), inPath);
         }

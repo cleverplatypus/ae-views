@@ -16,12 +16,17 @@ class Bus {
     }
 
     triggerAction(inName, ...rest) {
-        var signal = this.signals[inName];
-        if(!signal) {
-            console.warn('Trying to trigger non existing action: ' + inName);
-            return;
+        if (!this.signals[inName]) {
+            if (this.parent()) {
+                this.parent().triggerAction.apply(this.parent(), [inName].concat(rest));
+            } else {
+                console.warn('Trying to trigger non existing action: ' + inName);
+                return;
+            }
+
+        } else {
+            this.signals[inName].dispatch.apply(null, rest);
         }
-        signal.dispatch();//TODO: handle params
     }
 
     addAction(inName, inHandler) {

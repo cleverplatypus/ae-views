@@ -6,6 +6,8 @@ export State from './State';
 export pagefactory from './PageFactory';
 export TemplatingDelegate from './delegate/TemplatingDelegate';
 export MasterPage from './MasterPage';
+export ObservableObject from './ObservableObject';
+export ObservableCollection from './ObservableCollection';
 
 
 

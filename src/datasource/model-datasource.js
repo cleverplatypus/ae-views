@@ -11,6 +11,9 @@ module.exports = function() {
             this.page = _page = inPage;
 
             this.resolve = function resolve(inNode, inPath) {
+                if(!inPath) {
+                    return _page.resolveNodeModel(inNode).prop('data');
+                }
                 if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
