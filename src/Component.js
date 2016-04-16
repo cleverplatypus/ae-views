@@ -57,12 +57,20 @@ class Component {
         this.page = inPage;
         this.bus = new Bus(inPage? inPage.bus : null);
         this.name = inConfig.name;
-        this.templates = inConfig.templates;
+        this.templates = inConfig.templates || {};
         
         this.model = ObservableObject.fromObject({ 
             data: inInitObj, 
             _state: '',
             _nextState : '' });
+        debugger;
+        for(let templateName in this.templates) {
+            if(!/^_/.test(templateName)) {
+                dust.register(templateName, this.templates[templateName]);
+            }
+        }
+
+
         _watchState.bind(this)();
         
         inConstructor && inConstructor.bind(this)(); //jshint ignore:this

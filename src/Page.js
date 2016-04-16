@@ -47,7 +47,7 @@ const callNextInitializer = function() {
 
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
-        super(inConfig.name, inModelPrototype);
+        super(inConfig, inModelPrototype);
         _config = inConfig;
         _templatingDelegate = inConfig.templatingDelegate || new DustTemplatingDelegate(inConfig.evilFunction);
         window.ppage = this; //DEBUG
