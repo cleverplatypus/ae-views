@@ -68,7 +68,7 @@ class State {
 
 	matches(inPattern) {
 		return (!inPattern && !_private.get(this).name) ||
-			inPattern === _private.get(this).name;
+			(new RegExp(inPattern)).test(_private.get(this).name);
 	}
 }
 

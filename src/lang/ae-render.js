@@ -14,9 +14,8 @@ export default function render(inPage) {
             item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value);
         }, {});
 
-        var compiled = dust.compile('cippirimerlo: {world}');
-        var tmpl = dust.loadSource(compiled);
-        dust.render(tmpl, { world: attrs['world'] }, (err, out) => {
+        
+        dust.render(templateName, _page.resolveNodeModel(this), (err, out) => {
             $(this).find('>.ae-render-container').html(out);
         });
     };
