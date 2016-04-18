@@ -29,10 +29,10 @@ class Bus {
         }
     }
 
-    addAction(inName, inHandler) {
+    addAction(inName, inHandler, inOnce) {
         this.signals[inName] = new Signal();
         if (inHandler) {
-            this.signals[inName].add(inHandler);
+            this.signals[inName]['add' + inOnce ? 'Once' : ''](inHandler);
         }
     }
 

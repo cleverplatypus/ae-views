@@ -63,7 +63,6 @@ class Component {
             data: inInitObj, 
             _state: '',
             _nextState : '' });
-        debugger;
         for(let templateName in this.templates) {
             if(!/^_/.test(templateName)) {
                 dust.register(templateName, this.templates[templateName]);

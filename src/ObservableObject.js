@@ -1,6 +1,6 @@
 'use strict';
-const Observer = require('./Observer');
-const _ = require('lodash');
+import Observer = from './Observer';
+import _ = from 'lodash';
 import Observable from './Observable';
 import ObservableCollection from './ObservableCollection';
 
