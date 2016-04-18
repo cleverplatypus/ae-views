@@ -2,7 +2,6 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import dust from 'ae-dustjs';
 
 export default function render(inPage) {
     const _page = inPage;
@@ -15,7 +14,7 @@ export default function render(inPage) {
         }, {});
 
         
-        dust.render(templateName, _page.resolveNodeModel(this), (err, out) => {
+        _page.getTemplatingDelegate().render(templateName, _page.resolveNodeModel(this), (err, out) => {
             $(this).find('>.ae-render-container').html(out);
         });
     };

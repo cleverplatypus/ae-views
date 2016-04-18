@@ -134,8 +134,9 @@ class Page extends Component {
                 inDefinition.modelPrototype,
                 inDefinition.constructor,
                 that);
+             _registry.set(this, component);
             component.node = this;
-            _registry.set(this, component);
+           
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }

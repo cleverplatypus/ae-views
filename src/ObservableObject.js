@@ -1,6 +1,6 @@
 'use strict';
-import Observer = from './Observer';
-import _ = from 'lodash';
+import Observer from './Observer';
+import _ from 'lodash';
 import Observable from './Observable';
 import ObservableCollection from './ObservableCollection';
 

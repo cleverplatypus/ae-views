@@ -32,7 +32,7 @@ class Bus {
     addAction(inName, inHandler, inOnce) {
         this.signals[inName] = new Signal();
         if (inHandler) {
-            this.signals[inName]['add' + inOnce ? 'Once' : ''](inHandler);
+            this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);
         }
     }
 

@@ -3,7 +3,6 @@
 import ObservableObject from './ObservableObject';
 import State from './State';
 import Bus from './Bus';
-import dust from 'ae-dustjs';
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -19,7 +18,6 @@ const _findState = function _findState(inStateName) {
     }
     return currentState;
 }
-
 const _watchState = function _watchState() {
     this.model.watch('_nextState', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
@@ -65,7 +63,7 @@ class Component {
             _nextState : '' });
         for(let templateName in this.templates) {
             if(!/^_/.test(templateName)) {
-                dust.register(templateName, this.templates[templateName]);
+                this.page.getTemplatingDelegate().register(templateName, this.templates[templateName]);
             }
         }
 
@@ -93,10 +91,11 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
-    render() {
+    render(inModel) {
+
         let defaultTemplate = _.get(this, 'templates._default');
         if(defaultTemplate) {
-            dust.render(defaultTemplate, {}, (inError, inHtml) => {
+            dust.render(defaultTemplate, this.model.prop('data'), (inError, inHtml) => {
                 if(inError) {
                     console.error(inError);
                     return;

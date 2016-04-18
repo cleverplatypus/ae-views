@@ -1,7 +1,8 @@
 'use strict';
 import Observable from './Observable';
-import Observer = from './Observer';
-import _ = from 'lodash';
+import ObservableObject from './ObservableObject';
+import Observer from './Observer';
+import _ from 'lodash';
 
 const _private = new Map();
 
@@ -41,7 +42,7 @@ class ObservableCollection extends Observable {
         super();
         _private.set(this, {
             data: [],
-            observer: new Observer();
+            observer: new Observer()
         });
     }
 
@@ -62,22 +63,24 @@ class ObservableCollection extends Observable {
             console.warn('Cannot fill ObservableCollection with non-array object');
         }
         const _p = _private.get(this);
-        const oldContent = _p.data;
-        const newData = fromObject(inData);
+        const oldData = _p.data;
+        const newData = [];
+        for(let item of inData ) {
+            newData.push(fromObject(item));
+        }
         _p.data = newData;
         _p.changesQueue = [{
             path: '*',
             change: {
-                {
-                    type: 'fill',
-                    oldValue: oldData,
-                    newValue: newData
-                }
+                type: 'fill',
+                oldValue: oldData,
+                newValue: newData
             }
+
         }];
         notifyWatchers(this);
     }
-    
+
     getItemAt(inIndex) {
         if (isNaN(inIndex)) {
             throw new Error(`Trying to access an invalid index in collection: ${inIndex}`);
