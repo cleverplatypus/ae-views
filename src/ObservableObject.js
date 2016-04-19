@@ -8,36 +8,6 @@ import ObservableCollection from './ObservableCollection';
 
 const _private = new WeakMap();
 
-function notifyWatchers(inInstance) {
-    const _p = _private.get(inInstance);
-    if (_p.isSilent) {
-        return;
-    }
-    for (let c of _p.changesQueue) {
-        // console.log(c);
-        _p.observer.notify(c.path, c.change);
-    }
-    _p.changesQueue = [];
-
-}
-
-function fromObject(inObj) {
-    if (_.isArray(inObj)) {
-        let a = new ObservableCollection();
-        _.each(inObj, function(inVal, inKey) {
-            a.setItemAt(inKey, fromObject(inVal));
-        });
-        return a;
-    } else if (_.isPlainObject(inObj)) {
-        let o = new ObservableObject();
-        _.each(inObj, function(inVal, inKey) {
-            o.prop(inKey, fromObject(inVal));
-        });
-        return o;
-    } else {
-        return inObj;
-    }
-}
 
 class Dummy {
     constructor() {
@@ -74,7 +44,7 @@ class ObservableObject extends Observable {
                 let val = _private.get(this).props.prop(localProp);
 
                 if (!path.length) {
-                    _private.get(this).props.prop(localProp, fromObject(inValue));
+                    _private.get(this).props.prop(localProp, ObservableObject.fromObject(inValue));
                     return inAlreadyFoundChange ? null : {
                         path: inBackPath.join('.'),
                         change: {
@@ -98,7 +68,7 @@ class ObservableObject extends Observable {
                                 newValue: _private.get(this).props.prop(localProp)
                             }
                         };
-                        alreadyFound = true
+                        alreadyFound = true;
                     }
                     let result = _private.get(val).setProp(path.join('.'), inValue, inBackPath, alreadyFound);
                     return (result ? result : out);
@@ -106,6 +76,24 @@ class ObservableObject extends Observable {
             }.bind(this)
         });
 
+    }
+
+    static fromObject(inData) {
+        if (_.isArray(inData)) {
+            let a = new ObservableCollection();
+            _.each(inData, function(inVal, inKey) {
+                a.setItemAt(inKey, ObservableObject.fromObject(inVal));
+            });
+            return a;
+        } else if (_.isPlainDataect(inData)) {
+            let o = new ObservableObject();
+            _.each(inData, function(inVal, inKey) {
+                o.prop(inKey, ObservableObject.fromObject(inVal));
+            });
+            return o;
+        } else {
+            return inData;
+        }
     }
 
     dummy() {
@@ -128,17 +116,16 @@ class ObservableObject extends Observable {
                     console.warn('trying to access path through a non traversable property');
                     return undefined;
                 } else if (path.length) {
-                    return myProps.prop(propName).prop(path.join('.'))
+                    return myProps.prop(propName).prop(path.join('.'));
                 }
                 return myProps.prop(propName);
             }
         } else {
             const branch = [];
             var change = _p.setProp(inPath, inValue, branch);
-            // console.log(change.path);
             if (!inSilent) {
                 _p.changesQueue.push(change);
-                notifyWatchers(this);
+                ObservableObject.notifyWatchers(_p);
             }
         }
     }
@@ -158,12 +145,20 @@ class ObservableObject extends Observable {
         return out;
     }
 
-    empty() {
+    static notifyWatchers(inInstance) {
+        if (inInstance.isSilent) {
+            return;
+        }
+        for (let c of inInstance.changesQueue) {
+            // console.log(c);
+            inInstance.observer.notify(c.path, c.change);
+        }
+        inInstance.changesQueue = [];
 
     }
 
-    static fromObject(inObj) {
-        return fromObject(inObj)
+    empty() {
+
     }
 }
 export default ObservableObject;

@@ -102,7 +102,9 @@ class Component {
         let defaultTemplate = _.get(this, 'templates._default');
         if(defaultTemplate) {
             const delegate = this.getTemplatingDelegate();
-            const model = inModel || this.model.prop('data');
+            const model = inModel ? 
+                ObservableObject.fromObject(inModel) :
+                this.model.prop('data');
 
             delegate.render(
                 defaultTemplate, 

@@ -6,35 +6,23 @@ import _ from 'lodash';
 
 const _private = new Map();
 
-function fromObject(inObj) {
-    if (_.isArray(inObj)) {
-        let a = new ObservableCollection();
-        _.each(inObj, function(inVal, inKey) {
-            a.setItemAt(inKey, fromObject(inVal));
-        });
-        return a;
-    } else if (_.isPlainObject(inObj)) {
-        let o = new ObservableObject();
-        _.each(inObj, function(inVal, inKey) {
-            o.prop(inKey, fromObject(inVal));
-        });
-        return o;
-    } else {
-        return inObj;
-    }
-}
-
-function notifyWatchers(inInstance) {
-    const _p = _private.get(inInstance);
-    if (_p.isSilent) {
-        return;
-    }
-    for (let c of _p.changesQueue) {
-        _p.observer.notify(c.path, c.change);
-    }
-    _p.changesQueue = [];
-
-}
+// function fromObject(inObj) {
+//     if (_.isArray(inObj)) {
+//         let a = new ObservableCollection();
+//         _.each(inObj, function(inVal, inKey) {
+//             a.setItemAt(inKey, fromObject(inVal));
+//         });
+//         return a;
+//     } else if (_.isPlainObject(inObj)) {
+//         let o = new ObservableObject();
+//         _.each(inObj, function(inVal, inKey) {
+//             o.prop(inKey, fromObject(inVal));
+//         });
+//         return o;
+//     } else {
+//         return inObj;
+//     }
+// }
 
 class ObservableCollection extends Observable {
 
@@ -66,7 +54,7 @@ class ObservableCollection extends Observable {
         const oldData = _p.data;
         const newData = [];
         for(let item of inData ) {
-            newData.push(fromObject(item));
+            newData.push(ObservableObject.fromObject(item));
         }
         _p.data = newData;
         _p.changesQueue = [{
@@ -78,7 +66,7 @@ class ObservableCollection extends Observable {
             }
 
         }];
-        notifyWatchers(this);
+        ObservableObject.notifyWatchers(_p);
     }
 
     getItemAt(inIndex) {
