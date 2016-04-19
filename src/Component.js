@@ -56,6 +56,7 @@ class Component {
         _private.set(this, {
             stateWatchers: new Set()
         });
+        this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null);
         this.name = inConfig.name;

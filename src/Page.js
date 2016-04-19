@@ -25,7 +25,7 @@ const callNextInitializer = function() {
     let result = initializer.call(this);
     let resultHandler = () => {
         let fn;
-        while(fn = _config.components.shift()) { //jshint ignore:line
+        while (fn = _config.components.shift()) { //jshint ignore:line
             fn(this);
         }
         if (_initializers.length) {
@@ -62,7 +62,7 @@ class Page extends Component {
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);
-        if (inPath && !/^_/.test(inPath.split('.')[0]) &&
+        if (inPath && !/^(_state|_nextState)/.test(inPath.split('.')[0]) &&
             !component.model.prop('data')) {
             return this.resolveNodeModel($(component.node).parent(), inPath);
         }
@@ -126,9 +126,9 @@ class Page extends Component {
                 inDefinition.modelPrototype,
                 inDefinition.constructor,
                 that);
-             _registry.set(this, component);
+            _registry.set(this, component);
             component.node = this;
-           
+
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }
@@ -139,13 +139,16 @@ class Page extends Component {
         };
 
         proto.attachedCallback = function() {
-            let fn = _registry.get(this).onElementAttached;
+            const component = _registry.get(this);
+            let fn = component.onElementAttached;
             if (fn) {
                 fn(this);
             }
-            _registry.get(this).render();
+            if (component.config.autoRender !== false) {
+                component.render.call(component);
+            }
         };
-
+ 
         proto.detachedCallback = function() {
             let fn = _registry.get(this).onElementDetached;
             if (fn) {
