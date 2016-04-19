@@ -24,9 +24,9 @@ const callNextInitializer = function() {
     let result = initializer.call(this);
     let resultHandler = () => {
         let fn;
-        while(fn = _config.components.shift()) {
+        while(fn = _config.components.shift()) { //jshint ignore:line
             fn(this);
-        };
+        }
         if (_initializers.length) {
             callNextInitializer.call(this);
         } else {

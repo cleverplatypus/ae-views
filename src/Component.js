@@ -14,10 +14,11 @@ const _findState = function _findState(inStateName) {
     let currentState = this.states;
     while (path.length && currentState) {
         let seg = path.shift();
-        currentState = currentState.child(seg)
+        currentState = currentState.child(seg);
     }
     return currentState;
-}
+};
+
 const _watchState = function _watchState() {
     this.model.watch('_nextState', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
@@ -42,7 +43,9 @@ const _watchState = function _watchState() {
             }).catch(rollback);
         }
     });
-}
+};
+
+
 
 const _private = new WeakMap();
 
@@ -70,7 +73,7 @@ class Component {
 
         _watchState.bind(this)();
         
-        inConstructor && inConstructor.bind(this)(); //jshint ignore:this
+        inConstructor && inConstructor.bind(this)(); //jshint ignore:line
         this.states = this.states || new State();
         this.currentState = this.states;
     }
@@ -91,11 +94,19 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
-    render(inModel) {
+    getTemplatingDelegate() {
+        return this.page.getTemplatingDelegate();
+    }
 
+    render(inModel) {
         let defaultTemplate = _.get(this, 'templates._default');
         if(defaultTemplate) {
-            dust.render(defaultTemplate, this.model.prop('data'), (inError, inHtml) => {
+            const delegate = this.getTemplatingDelegate();
+            const model = inModel || this.model.prop('data');
+
+            delegate.render(
+                defaultTemplate, 
+                model , (inError, inHtml) => {
                 if(inError) {
                     console.error(inError);
                     return;
@@ -118,4 +129,4 @@ class Component {
     }
 }
 
-module.exports = Component;
+export default Component;

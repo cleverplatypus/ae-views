@@ -14,10 +14,6 @@ class PageFactory {
         this.page = new Page(inConfig, inModel, inSetupFunction);
         this.page.factory = this;
         
-        // $(() => {
-        //     _.isFunction(this.page.ready) && this.page.ready(); //jshint ignore:line
-        //     lang(this.page);
-        // });
         return this.page;
     }
 }
