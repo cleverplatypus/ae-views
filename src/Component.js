@@ -5,9 +5,10 @@ import State from './State';
 import Bus from './Bus';
 import _ from 'lodash';
 import $ from 'jquery';
+import factory from './page-factory';
 
 const _findState = function _findState(inStateName) {
-    if(!inStateName) {
+    if (!inStateName) {
         return this.states;
     }
     let path = inStateName.split('.');
@@ -53,29 +54,35 @@ class Component {
 
     constructor(inConfig, inInitObj, inConstructor, inPage) {
         _private.set(this, {
-            stateWatchers : new Set()
+            stateWatchers: new Set()
         });
         this.page = inPage;
-        this.bus = new Bus(inPage? inPage.bus : null);
+        this.bus = new Bus(inPage ? inPage.bus : null);
         this.name = inConfig.name;
-        this.templates = inConfig.templates || {};
-        
-        this.model = ObservableObject.fromObject({ 
-            data: inInitObj, 
+        let templates = inConfig.templates || {};
+
+        this.model = ObservableObject.fromObject({
+            data: inInitObj,
             _state: '',
-            _nextState : '' });
-        for(let templateName in this.templates) {
-            if(!/^_/.test(templateName)) {
-                this.page.getTemplatingDelegate().register(templateName, this.templates[templateName]);
-            }
+            _nextState: ''
+        });
+        for (let templateName in templates) {
+            let actualTemplateName = templateName === '_default' ?
+                '_default.' + this.name :
+                templateName;
+            factory.getTemplatingDelegate()
+                .register(actualTemplateName, templates[templateName]);
         }
-
-
+        _private.get(this).hasDefaultTemplate = !!templates._default;
         _watchState.bind(this)();
-        
-        inConstructor && inConstructor.bind(this)(); //jshint ignore:line
         this.states = this.states || new State();
         this.currentState = this.states;
+        inConstructor && inConstructor.bind(this)(); //jshint ignore:line
+        
+    }
+
+    getCurrentState() {
+        return this.model.prop('_state');
     }
 
     tryState(inState) {
@@ -84,8 +91,8 @@ class Component {
 
     setState(inState) {
         this.currentState = inState;
-        this.model.prop('_state', inState.getName());
-        for(let watcher of _private.get(this).stateWatchers) {
+        this.model.prop('_state', this.model.prop('_nextState'));
+        for (let watcher of _private.get(this).stateWatchers) {
             watcher(inState);
         }
     }
@@ -94,26 +101,19 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
-    getTemplatingDelegate() {
-        return this.page.getTemplatingDelegate();
-    }
-
     render(inModel) {
-        let defaultTemplate = _.get(this, 'templates._default');
-        if(defaultTemplate) {
-            const delegate = this.getTemplatingDelegate();
-            const model = inModel ? 
+        if (_private.get(this).hasDefaultTemplate) {
+            const delegate = factory.getTemplatingDelegate();
+            const model = inModel ?
                 ObservableObject.fromObject(inModel) :
                 this.model.prop('data');
 
             delegate.render(
-                defaultTemplate, 
-                model , (inError, inHtml) => {
-                if(inError) {
-                    console.error(inError);
-                    return;
-                }
+                '_default.' + this.name,
+                model).then((inHtml) => {
                 $(this.node).html(inHtml);
+            }).catch((inError) => {
+                console.error(inError);
             });
         }
     }

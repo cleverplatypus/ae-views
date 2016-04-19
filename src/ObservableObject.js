@@ -85,7 +85,7 @@ class ObservableObject extends Observable {
                 a.setItemAt(inKey, ObservableObject.fromObject(inVal));
             });
             return a;
-        } else if (_.isPlainDataect(inData)) {
+        } else if (_.isPlainObject(inData)) {
             let o = new ObservableObject();
             _.each(inData, function(inVal, inKey) {
                 o.prop(inKey, ObservableObject.fromObject(inVal));
@@ -150,7 +150,6 @@ class ObservableObject extends Observable {
             return;
         }
         for (let c of inInstance.changesQueue) {
-            // console.log(c);
             inInstance.observer.notify(c.path, c.change);
         }
         inInstance.changesQueue = [];

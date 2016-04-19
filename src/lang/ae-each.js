@@ -1,5 +1,5 @@
 'use strict';
-
+import factory from '../page-factory';
 import $ from 'jquery';
 import Element from './ae-element';
 import ObservableCollection from '../ObservableCollection';
@@ -7,7 +7,7 @@ import ObservableCollection from '../ObservableCollection';
 export default function each(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
-    const _templatingDelegate = _page.getTemplatingDelegate();
+    const _templatingDelegate = factory.getTemplatingDelegate();
 
     var proto = Object.create(Element.prototype);
 

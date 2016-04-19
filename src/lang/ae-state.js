@@ -9,9 +9,9 @@ export default function state(inPage) {
 
     proto.createdCallback = function() {
         const component = _page.resolveNodeComponent(this);
-        const statePattern = $(this).attr('pattern');
+        const statePattern = new RegExp($(this).attr('pattern'));
         const watcher = (inState) => {
-            if (inState.matches(statePattern)) {
+            if (statePattern.test(component.getCurrentState())) {
                 $(this).html(this.content);
             } else {
                 $(this).empty();

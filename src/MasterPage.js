@@ -1,6 +1,6 @@
 'use strict';
 import _ from 'lodash';
-import pageFactory from './PageFactory';
+import pageFactory from './page-factory';
 let _config, _model, _constructorFn
 
 class MasterPage {

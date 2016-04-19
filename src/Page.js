@@ -4,10 +4,11 @@ import Component from './component';
 import _ from 'lodash';
 import $ from 'jquery';
 
-import DustTemplatingDelegate from './delegate/DustTemplatingDelegate';
 import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
 import lang from './lang/ae-lang';
+import factory from './page-factory';
+
 let _registry = new WeakMap();
 let _templatingDelegate;
 
@@ -49,14 +50,8 @@ class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig, inModelPrototype);
         _config = inConfig;
-        _templatingDelegate = inConfig.templatingDelegate || new DustTemplatingDelegate(inConfig.evilFunction);
-        window.ppage = this; //DEBUG
         this.mountPoint = inConfig.mountPoint || 'body';
-
-        // $(this.mountPoint).css('display', 'none !important');
-
         this.addDataSource('model', modelDataSource(this));
-        this.templates = inConfig.templates;
         inConstructor.bind(this)();
         this.currentState = this.states;
 
@@ -64,9 +59,6 @@ class Page extends Component {
 
     }
 
-    getTemplatingDelegate() {
-        return _templatingDelegate;
-    }
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);

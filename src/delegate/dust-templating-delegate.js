@@ -6,7 +6,7 @@ import uuid from 'node-uuid';
 import ObservableCollection from '../ObservableCollection';
 import ObservableObject from '../ObservableObject';
 
-const _private = new Map();
+const _templates = new Map();
 let evilFn;
 
 class DustTemplatingDelegate extends TemplatingDelegate {
@@ -41,25 +41,32 @@ class DustTemplatingDelegate extends TemplatingDelegate {
     }
 
     register(inName, inTemplate) {
+    	_templates.set(inName, inTemplate)
         dust.register(inName, inTemplate);
     }
 
     registerTemplate(inSource, inName) {
         inName = inName || ('template_' + uuid.v4());
-        const compiledFn = evilFn(dust.compile(inSource));
+        const compiledSrc = dust.compile(inSource).replace(/\bdust\b/g, '');
+
+        const compiledFn = evilFn(compiledSrc);
         if (compiledFn instanceof Promise) {
             compiledFn.then((inFn) => {
-                _private.set(inName, inFn);
+                _templates.set(inName, inFn);
             });
         } else {
-            _private.set(inName, compiledFn);
+            _templates.set(inName, compiledFn);
         }
         return inName;
     }
 
     render(inTemplateName, inModel) {
+    	const template = _templates.get(inTemplateName);
+    	if(!template) {
+    		return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
+    	}
         var promise = new Promise((resolve, reject) => {
-            dust.render(_private.get(inTemplateName), inModel, (inError, inHtml) => {
+            dust.render(template, inModel, (inError, inHtml) => {
                 if (inError) {
                     reject(inError);
                 } else {
@@ -70,5 +77,8 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         return promise;
     }
 }
+let instance;
 
-export default DustTemplatingDelegate;
+export default function(inEvilFn) {
+	return (instance ? instance : (instance = new DustTemplatingDelegate(inEvilFn)));
+}

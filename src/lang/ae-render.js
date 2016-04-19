@@ -2,6 +2,7 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
+import factory from '../page-factory';
 
 export default function render(inPage) {
     const _page = inPage;
@@ -9,17 +10,24 @@ export default function render(inPage) {
 
     var render = function render() {
         const templateName = $(this).attr('template');
+        let model = _page.getDataSource().resolve(this, $(this).attr('path'));
+
         var attrs = _.transform(this.attributes, function(result, item) {
             item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value);
         }, {});
 
         
-        _page.getTemplatingDelegate().render(templateName, _page.resolveNodeModel(this), (err, out) => {
-            $(this).find('>.ae-render-container').html(out);
-        });
+        factory.getTemplatingDelegate()
+            .render(templateName, model)
+            .then((inHtml) => {
+                $(this).find('>ae-managed').html(inHtml);
+            })
+            .catch((inError) => {
+                console.error(inError);
+            });
     };
     proto.createdCallback = function() {
-        $(this).append('<div class="ae-render-container"></div>');
+        $(this).append('<ae-managed></ae-managed>');
     };
 
     proto.attachedCallback = function() {
@@ -38,6 +46,11 @@ export default function render(inPage) {
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
 
+        _page.getDataSource().bindPath(this, 
+            $(this).attr('watch') || '*',
+            () => {
+            render.bind(this)();
+        });
 
     };
 

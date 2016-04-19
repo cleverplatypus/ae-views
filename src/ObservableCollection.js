@@ -6,24 +6,6 @@ import _ from 'lodash';
 
 const _private = new Map();
 
-// function fromObject(inObj) {
-//     if (_.isArray(inObj)) {
-//         let a = new ObservableCollection();
-//         _.each(inObj, function(inVal, inKey) {
-//             a.setItemAt(inKey, fromObject(inVal));
-//         });
-//         return a;
-//     } else if (_.isPlainObject(inObj)) {
-//         let o = new ObservableObject();
-//         _.each(inObj, function(inVal, inKey) {
-//             o.prop(inKey, fromObject(inVal));
-//         });
-//         return o;
-//     } else {
-//         return inObj;
-//     }
-// }
-
 class ObservableCollection extends Observable {
 
     constructor() {
@@ -38,11 +20,6 @@ class ObservableCollection extends Observable {
         for (var item of _private.get(this).data) {
             yield item;
         }
-    }
-
-    watch(inHandler) {
-        const _p = _private.get(this);
-        _p.observer.listen('*', inHandler);
     }
 
 
@@ -93,7 +70,22 @@ class ObservableCollection extends Observable {
         if (isNaN(inIndex)) {
             throw new Error(`Trying to set a value with an invalid index in collection: ${inIndex}`);
         }
-        _private.get(this).data[parseInt(inIndex)] = inValue;
+
+        const _p = _private.get(this);
+        const oldValue = _p.data[parseInt(inIndex)];
+        
+        _p.data[parseInt(inIndex)] = inValue;
+        _p.changesQueue = [{
+            path: '*',
+            change: {
+                type: 'change',
+                oldValue: oldValue,
+                newValue: inValue
+            }
+
+        }];
+        ObservableObject.notifyWatchers(_p);
+
     }
 
     toNative(inDeep) {
