@@ -1,11 +1,12 @@
-'use strict';
 
 import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
+import valueChangeDelegate from '../delegate/value-change-delegate';
 
-window.zz = $;
+
 export default function bind(inPage) {
+    'use strict';
     const _page = inPage;
     const _private = new WeakSet();
 
@@ -16,13 +17,13 @@ export default function bind(inPage) {
         let target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
 
         let dataSourceName = $(this).attr('source');
-        let shouldOut = $(this).attr('out') === 'true';
+        const shouldOut = $(this).attr('out') === 'true';
         const path = $(this).attr('path');
         let dataSource = _page.getDataSource(dataSourceName);
         if (!dataSource) {
             throw new Error('Cannot bind to data-source: ' + dataSourceName);
         }
-        let outAttr = $(this).attr('out')
+        let outAttr = $(this).attr('out');
         let inAttr = $(this).attr('in');
         if (!inAttr && !outAttr) {
             inAttr = 'html';
@@ -73,12 +74,20 @@ export default function bind(inPage) {
            
         }
 
-        if (shouldOut) {
-            if (_.isFunction($(target).get(0).valueChangedHook)) {
-                $(target).get(0).valueChangedHook((inValue) => {
-                    dataSource.setPath(this, path, inValue);
-                });
+        if(outAttr) {
+            if(!valueChangeDelegate.canOutputValue(target)) {
+                throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
+            const outOptions = {};
+            _.each(target.attributes, (inAttribute) => {
+                if(/^out-/.test(inAttribute.name)) {
+                    outOptions[inAttribute.replace(/^out-/, '')] = inAttribute.value;
+                }
+            });
+            valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
+                //TODO: manage collection element set
+                dataSource.setPath(this, outAttr, inValue);
+            });
         }
 
 
@@ -89,4 +98,4 @@ export default function bind(inPage) {
     };
 
     document.registerElement('ae-bind', { prototype: proto });
-};
+}
