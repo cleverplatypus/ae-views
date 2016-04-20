@@ -12,9 +12,13 @@ export default function state(inPage) {
         const statePattern = new RegExp($(this).attr('pattern'));
         const watcher = (inState) => {
             if (statePattern.test(component.getCurrentState())) {
-                $(this).html(this.content);
+                if (!$(this).prop('wasRendered')) {
+                    $(this).html(this.content);
+                    $(this).prop('wasRendered', true);
+                }
             } else {
                 $(this).empty();
+                $(this).prop('wasRendered', false);
             }
         }
         component.watchState(watcher);

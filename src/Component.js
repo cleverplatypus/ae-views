@@ -87,8 +87,7 @@ class Component {
     }
 
     tryState(inStateName) {
-        debugger;
-        if(this.model.prop('_state') && inStateName === this.model.prop('_state').name) {
+        if(inStateName === this.model.prop('_state')) {
             return;
         }
         this.model.prop('_nextState', inStateName);
