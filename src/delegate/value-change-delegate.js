@@ -25,7 +25,6 @@ class InputValueChangeDelegate {
 			case 'INPUT':
 				if(_.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
 					eventName = (commitOnly ? 'change' : 'keyup');
-					debugger;
 				} else if(_.includes(['CHECKBOX', 'RADIO'],$(inElement).attr('type').toUpperCase())) {
 					eventName = 'click';
 				}
@@ -57,6 +56,32 @@ class InputValueChangeDelegate {
 		$(inElement).off(eventName, inHandler.handler).on(eventName,handler);
 	}
 
+	setValue(inElement, inValue) {
+		inElement = $(inElement);
+				if(!$(inElement).get(0)) {
+			return;
+		}
+		if($(inElement).get(0).nodeName.toUpperCase() === 'INPUT') {
+			switch($(inElement).attr('type').toLowerCase()) {
+				case 'text':
+				case 'email':
+				case 'tel':
+				case 'password':
+					$(inElement).val(inValue);
+					break;
+				case 'checkbox':
+				case 'radio':
+					$(inElement).prop('checked', inValue === inElement.attr('value'));
+			}
+
+		} else if($(inElement).get(0).nodeName.toUpperCase() === 'SELECT') {
+			$(inElement).find('option[value=' + inValue + ']').each(function() {
+				$(this).prop('checked', inValue === inElement.attr('value'));
+			});
+		}
+
+	}
+
 	getValue(inElement) {
 		if(!$(inElement).get(0)) {
 			return;
@@ -69,7 +94,7 @@ class InputValueChangeDelegate {
 				case 'password':
 					return $(inElement).val();
 				case 'checkbox':
-					if($(inElement).attr('checked')) {
+					if($(inElement).prop('checked')) {
 						return $(inElement).val();
 					}
 					return;

@@ -13,29 +13,39 @@ export default function bind(inPage) {
     var proto = Object.create(Element.prototype);
     
     proto.attachedCallback = function() {
-
-        let target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
+        if($(this).attr('path') && ($(this).attr('from') && $(this).attr('to'))) {
+            console.warn('ae-bind attribute "path" is ignored when either "from" or "to" are specified: \nNode:');
+            console.warn(this);
+        }
+        let target;
+        if($(this).children().length) {
+            target = $(this).children().get(0);
+        } else {
+            target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
+        }
 
         let dataSourceName = $(this).attr('source');
-        const shouldOut = $(this).attr('out') === 'true';
         const path = $(this).attr('path');
         let dataSource = _page.getDataSource(dataSourceName);
         if (!dataSource) {
             throw new Error('Cannot bind to data-source: ' + dataSourceName);
         }
-        let outAttr = $(this).attr('out');
+        const usePath = path && !$(this).attr('from') && !$(this).attr('to');
+        const toAttr = usePath ? path : $(this).attr('to');
+        const fromAttr = usePath ? path : $(this).attr('from');
         let inAttr = $(this).attr('in');
-        if (!inAttr && !outAttr) {
-            inAttr = 'html';
-        }
-        if (inAttr) {
+        const isFormElement = valueChangeDelegate.canOutputValue(target);
+        if(!inAttr && isFormElement) {
+            inAttr = 'form-element-value';
+        };
+        if (fromAttr) {
             let nodeAttr = inAttr.split(':');
             nodeAttr[0] = nodeAttr[0] || 'html';
 
             if(nodeAttr[0] === 'html') {
-                $(target).attr('data-ae-bind-html', path);
+                $(target).attr('data-ae-bind-html', fromAttr);
             }
-            let val = dataSource.resolve(this, path);
+            let val = dataSource.resolve(this, fromAttr);
 
             const valueResolver = (inValue) => {
                 switch (nodeAttr[0]) {
@@ -58,11 +68,17 @@ export default function bind(inPage) {
                         } else {
                             $(target).removeClass(nodeAttr[1]);
                         }
-
+                        break;
+                    case 'form-element-value':
+                        console.log('should set form element state');
+                        valueChangeDelegate.setValue(target, inValue);
+                        break;
+                    default: 
+                        console.warn('I don\'t know how to bind value to element');
                 }
 
             };
-             dataSource.bindPath(this, path, function(inNewValue) {
+             dataSource.bindPath(this, fromAttr, function(inNewValue) {
                 valueResolver(inNewValue);
             });
             if (val instanceof Promise) {
@@ -74,8 +90,8 @@ export default function bind(inPage) {
            
         }
 
-        if(outAttr) {
-            if(!valueChangeDelegate.canOutputValue(target)) {
+        if(toAttr) {
+            if(!isFormElement) {
                 throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
             const outOptions = {};
@@ -86,7 +102,8 @@ export default function bind(inPage) {
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
                 //TODO: manage collection element set
-                dataSource.setPath(this, outAttr, inValue);
+
+                dataSource.setPath(this, toAttr, inValue || null);
             });
         }
 
