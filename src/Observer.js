@@ -28,7 +28,6 @@ module.exports = (function() {
                 descendantListeners: new Set(),
                 children: {}
             });
-            this.du = _private.get(this);
         }
 
 

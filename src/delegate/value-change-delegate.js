@@ -18,7 +18,7 @@ class InputValueChangeDelegate {
 	}
 
 	onValueChange(inElement, inConfig, inHandler) {
-		const delay = inConfig.delay;
+		const delay = !isNaN(inConfig.delay) ? Number(inConfig.delay) : null;
 		const commitOnly = inConfig.commitOnly === true;
 		var eventName = null;
 		switch($(inElement).get(0).nodeName.toUpperCase()) {
@@ -41,10 +41,15 @@ class InputValueChangeDelegate {
 				inHandler(this.getValue(inElement));
 			};
 		const delayedHandler = () => {
-			if(delayedTimeout) {
+			if(delayedTimeout === undefined || !!delayedTimeout) {
 				clearTimeout(delayedTimeout);
+				delayedTimeout = setTimeout(timeoutHandler, delay);	
+			} else {
+				delayedTimeout = null;
+				timeoutHandler();
 			}
-			delayedTimeout = setTimeout(timeoutHandler, Number(delay));
+
+			
 		};
 
 		const defaultHandler = () => {

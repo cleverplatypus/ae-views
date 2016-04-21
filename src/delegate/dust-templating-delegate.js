@@ -14,6 +14,20 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         super();
         var n = 'EV' + 'a' + 'L';
         evilFn = inEvilFn || window[n.toLowerCase()];
+        dust.helpers.nempty = function(chunk, context, bodies, params) {
+            if (context.stack.head instanceof ObservableCollection && context.stack.head.length) {
+                chunk.render(bodies.block, context);
+            }
+
+            return chunk;
+        };
+
+        // const oldGt = dust.helpers.gt;
+        // dust.helpers.gt = function(chunk, context, bodies, params) {
+        //     console.log(oldGt);
+        //        debugger;
+        //         return chunk;
+        // };
 
         dust.collectionResolver = function(inCollection) {
             if (inCollection instanceof ObservableCollection) {
@@ -26,6 +40,8 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         dust.propertyResolver = function(inBase, inPath) {
             if (inBase instanceof ObservableObject) {
                 return inBase.prop(inPath);
+            } else if (inBase instanceof ObservableCollection && inPath === 'length') {
+                return inBase.length;
             } else {
                 return _.get(inBase, inPath);
             }
@@ -41,7 +57,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
     }
 
     register(inName, inTemplate) {
-    	_templates.set(inName, inTemplate)
+        _templates.set(inName, inTemplate)
         dust.register(inName, inTemplate);
     }
 
@@ -61,10 +77,10 @@ class DustTemplatingDelegate extends TemplatingDelegate {
     }
 
     render(inTemplateName, inModel) {
-    	const template = _templates.get(inTemplateName);
-    	if(!template) {
-    		return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
-    	}
+        const template = _templates.get(inTemplateName);
+        if (!template) {
+            return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
+        }
         var promise = new Promise((resolve, reject) => {
             dust.render(template, inModel, (inError, inHtml) => {
                 if (inError) {
@@ -80,5 +96,5 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 let instance;
 
 export default function(inEvilFn) {
-	return (instance ? instance : (instance = new DustTemplatingDelegate(inEvilFn)));
+    return (instance ? instance : (instance = new DustTemplatingDelegate(inEvilFn)));
 }
