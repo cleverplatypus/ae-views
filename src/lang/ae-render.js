@@ -10,13 +10,13 @@ export default function render(inPage) {
 
     var render = function render() {
         const templateName = $(this).attr('template');
-        let model = _page.getDataSource().resolve(this, $(this).attr('path'));
-
-        var attrs = _.transform(this.attributes, function(result, item) {
+        const path = $(this).attr('path')
+        const model = _page.getDataSource().resolve(this, path);
+        const attrs = _.transform(this.attributes, function(result, item) {
             item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value);
         }, {});
 
-        
+
         factory.getTemplatingDelegate()
             .render(templateName, model)
             .then((inHtml) => {
@@ -45,12 +45,11 @@ export default function render(inPage) {
 
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
-
-        _page.getDataSource().bindPath(this, 
+        _page.getDataSource().bindPath(this,
             $(this).attr('watch') || '*',
             () => {
-            render.bind(this)();
-        });
+                render.bind(this)();
+            });
 
     };
 

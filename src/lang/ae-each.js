@@ -18,13 +18,18 @@ export default function each(inPage) {
                 throw new Error('ae-each children must be either <ae-...> or a <template> element.');
             }
         });
+        let templateName = $(this).attr('template')
+        if (!templateName) {
+            let template = $(this).find('>template');
 
-        let template = $(this).find('>template');
-
-        _private.set(this, {
-            templateName: _templatingDelegate.registerTemplate(template.html())
-        });
-
+            _private.set(this, {
+                templateName: _templatingDelegate.registerTemplate(template.html())
+            });
+        } else {
+            _private.set(this, {
+                templateName: templateName
+            });
+        }
         if (!$(this).find('>ae-managed').length) {
             $(this).append(document.createElement('ae-managed'));
         }
@@ -54,8 +59,8 @@ export default function each(inPage) {
                 }
             } else {
                 _templatingDelegate.render(templateName, inData)
-                .then(appendFn)
-                .catch(errorFn);
+                    .then(appendFn)
+                    .catch(errorFn);
             }
         };
 

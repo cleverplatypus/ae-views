@@ -1,6 +1,7 @@
 'use strict';
 
 import ObservableObject from './ObservableObject';
+import Observable from './Observable';
 import State from './State';
 import Bus from './Bus';
 import _ from 'lodash';
@@ -62,11 +63,13 @@ class Component {
         this.name = inConfig.name;
         let templates = inConfig.templates || {};
 
-        this.model = ObservableObject.fromObject({
-            data: inInitObj,
-            _state: '',
-            _nextState: ''
-        });
+        this.model = inInitObj instanceof Observable ? 
+            inInitObj : 
+            ObservableObject.fromObject({
+                data: inInitObj,
+                _state: '',
+                _nextState: ''
+            });
         for (let templateName in templates) {
             let actualTemplateName = templateName === '_default' ?
                 '_default.' + this.name :

@@ -78,6 +78,15 @@ class ObservableObject extends Observable {
 
     }
 
+    fill(inData, inSilent) {
+        if(!_.isPlainObject(inData)) {
+            throw new Error('ObservableObject.fill() must be passed a plain object');
+        }
+        _.each(inData, (inValue, inKey) => {
+            this.prop(inKey, ObservableObject.fromObject(inValue), inSilent);
+        });
+    }
+
     static fromObject(inData) {
         if (_.isArray(inData)) {
             let a = new ObservableCollection();

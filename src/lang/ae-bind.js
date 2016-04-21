@@ -95,9 +95,9 @@ export default function bind(inPage) {
                 throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
             const outOptions = {};
-            _.each(target.attributes, (inAttribute) => {
+            _.each(this.attributes, (inAttribute) => {
                 if(/^out-/.test(inAttribute.name)) {
-                    outOptions[inAttribute.replace(/^out-/, '')] = inAttribute.value;
+                    outOptions[inAttribute.name.replace(/^out-/, '')] = inAttribute.value;
                 }
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {

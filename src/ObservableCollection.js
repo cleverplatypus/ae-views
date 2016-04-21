@@ -6,6 +6,17 @@ import _ from 'lodash';
 
 const _private = new Map();
 
+const touchProp = function() {
+    return {
+        path: 'content',
+        change: {
+            type: 'change',
+            oldValue: null,
+            newValue: Math.random()
+        }
+    };
+};
+
 class ObservableCollection extends Observable {
 
     constructor() {
@@ -14,6 +25,7 @@ class ObservableCollection extends Observable {
             data: [],
             observer: new Observer()
         });
+        this.length = 0;
     }
 
     * [Symbol.iterator]() {
@@ -22,6 +34,24 @@ class ObservableCollection extends Observable {
         }
     }
 
+    empty() {
+        const _p = _private.get(this);
+        const oldData = _p.data;
+        const newData = [];
+
+        _p.data = newData;
+        _p.changesQueue = [{
+            path: '*',
+            change: {
+                type: 'empty',
+                oldValue: oldData,
+                newValue: newData
+            }
+
+        }, touchProp()];
+        this.length = 0;
+        ObservableObject.notifyWatchers(_p);
+    }
 
     fill(inData) {
         if (!_.isArray(inData)) {
@@ -30,7 +60,7 @@ class ObservableCollection extends Observable {
         const _p = _private.get(this);
         const oldData = _p.data;
         const newData = [];
-        for(let item of inData ) {
+        for (let item of inData) {
             newData.push(ObservableObject.fromObject(item));
         }
         _p.data = newData;
@@ -42,8 +72,15 @@ class ObservableCollection extends Observable {
                 newValue: newData
             }
 
-        }];
+        }, touchProp()];
+        this.length = _private.get(this).data.length;
         ObservableObject.notifyWatchers(_p);
+    }
+
+    watch(inPath, inHandler) {
+        //CRITICAL: to be fully implemented
+        const _p = _private.get(this);
+        _p.observer.listen(inPath, inHandler);
     }
 
     getItemAt(inIndex) {
@@ -56,14 +93,20 @@ class ObservableCollection extends Observable {
         return !_.set(_private.get(this).data[parseInt(inIndex)]);
     }
 
+    prop(inPath, inValue, inSilent) {
+        //CRITICAL: to be implemented
+    }
+
     push(inItem) {
         if (inItem !== undefined) {
-            _private.get(this).data.push(inItem);
+            this.length = _private.get(this).data.length;
         }
     }
 
     pop() {
-        return _private.get(this).data.pop();
+        const out = _private.get(this).data.pop();
+        this.length = _private.get(this).data.length;
+        return out;
     }
 
     setItemAt(inIndex, inValue) {
@@ -73,7 +116,7 @@ class ObservableCollection extends Observable {
 
         const _p = _private.get(this);
         const oldValue = _p.data[parseInt(inIndex)];
-        
+
         _p.data[parseInt(inIndex)] = inValue;
         _p.changesQueue = [{
             path: '*',
@@ -83,7 +126,8 @@ class ObservableCollection extends Observable {
                 newValue: inValue
             }
 
-        }];
+        }, touchProp()];
+        this.length = _private.get(this).data.length;
         ObservableObject.notifyWatchers(_p);
 
     }
