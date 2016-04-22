@@ -33,7 +33,7 @@ class InputValueChangeDelegate {
 				eventName = 'change';
 				break;
 			default: 
-				eventName = 'keyup';
+				eventName = 'keydown';
 		}
 		let delayedTimeout;
 

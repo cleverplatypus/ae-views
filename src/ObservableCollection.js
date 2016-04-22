@@ -6,24 +6,16 @@ import _ from 'lodash';
 
 const _private = new Map();
 
-const touchProp = function() {
-    return {
-        path: 'content',
-        change: {
-            type: 'change',
-            oldValue: null,
-            newValue: Math.random()
-        }
-    };
-};
+
 
 class ObservableCollection extends Observable {
 
     constructor() {
         super();
+        const observer = new Observer();
         _private.set(this, {
             data: [],
-            observer: new Observer()
+            observer: observer
         });
         this.length = 0;
     }
@@ -48,9 +40,9 @@ class ObservableCollection extends Observable {
                 newValue: newData
             }
 
-        }, touchProp()];
+        }];
         this.length = 0;
-        ObservableObject.notifyWatchers(_p);
+        this.notifyWatchers();
     }
 
     fill(inData) {
@@ -72,9 +64,9 @@ class ObservableCollection extends Observable {
                 newValue: newData
             }
 
-        }, touchProp()];
+        }];
         this.length = _private.get(this).data.length;
-        ObservableObject.notifyWatchers(_p);
+        this.notifyWatchers();
     }
 
     watch(inPath, inHandler) {
@@ -126,12 +118,24 @@ class ObservableCollection extends Observable {
                 newValue: inValue
             }
 
-        }, touchProp()];
+        }];
         this.length = _private.get(this).data.length;
-        ObservableObject.notifyWatchers(_p);
+        this.notifyWatchers();
 
     }
 
+    notifyWatchers() {
+        const _p = _private.get(this);
+        if (_p.isSilent) {
+            return;
+        }
+        for (let c of _p.changesQueue) {
+            _p.observer.notify(c.path, c.change);
+        }
+        _p.changesQueue = [];
+
+    }
+    
     toNative(inDeep) {
         let out = [];
         for (let item of _private.get(this).data) {

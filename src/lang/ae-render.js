@@ -1,19 +1,18 @@
-'use strict';
-
 import $ from 'jquery';
 import Element from './ae-element';
 import factory from '../page-factory';
 
 export default function render(inPage) {
+    'use strict';
     const _page = inPage;
     var proto = Object.create(Element.prototype);
 
     var render = function render() {
         const templateName = $(this).attr('template');
-        const path = $(this).attr('path')
+        const path = $(this).attr('path');
         const model = _page.getDataSource().resolve(this, path);
         const attrs = _.transform(this.attributes, function(result, item) {
-            item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value);
+            item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
         }, {});
 
 
@@ -45,12 +44,15 @@ export default function render(inPage) {
 
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
-        _page.getDataSource().bindPath(this,
-            $(this).attr('watch') || '*',
-            () => {
+        const path = $(this).attr('path');
+        const baseModel = _page.getDataSource().resolve(this);
+        baseModel.watch('path', () => {
                 render.bind(this)();
             });
-
+        const target = _page.getDataSource().resolve(this, path);
+        target.watch('*', () => {
+                render.bind(this)();
+            });
     };
 
     proto.detachedCallback = function() {
@@ -58,4 +60,4 @@ export default function render(inPage) {
     };
 
     document.registerElement('ae-render', { prototype: proto });
-};
+}
