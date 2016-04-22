@@ -132,7 +132,7 @@ class Page extends Component {
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }
-            component.onElementCreated(that);
+            component.onElementCreated && component.onElementCreated.call(component); //jshint ignore:line
 
             //let content = $(this).html();
 
@@ -148,11 +148,13 @@ class Page extends Component {
                 component.render.call(component);
             }
         };
- 
+
         proto.detachedCallback = function() {
-            let fn = _registry.get(this).onElementDetached;
+            const component = _registry.get(this);
+
+            let fn = component.onElementDetached;
             if (fn) {
-                fn(this);
+                fn.call(component);
             }
         };
 

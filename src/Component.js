@@ -125,17 +125,6 @@ class Component {
         }
     }
 
-    onElementCreated() {
-
-    }
-
-    onElementAttached() {
-
-    }
-
-    onElementDetached() {
-
-    }
 }
 
 export default Component;
