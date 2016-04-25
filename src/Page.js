@@ -133,9 +133,6 @@ class Page extends Component {
                 injector.call(that, component);
             }
             component.onElementCreated && component.onElementCreated.call(component); //jshint ignore:line
-
-            //let content = $(this).html();
-
         };
 
         proto.attachedCallback = function() {
@@ -159,11 +156,7 @@ class Page extends Component {
         };
 
         document.registerElement(inDefinition.config.name, { prototype: proto });
-
     }
-
-
-
 
 }
 

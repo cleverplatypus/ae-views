@@ -1,4 +1,3 @@
-
 import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
@@ -11,16 +10,16 @@ export default function bind(inPage) {
     const _private = new WeakSet();
 
     var proto = Object.create(Element.prototype);
-    
+
     proto.attachedCallback = function() {
-        if($(this).attr('path') && ($(this).attr('from') && $(this).attr('to'))) {
+        if ($(this).attr('path') && ($(this).attr('from') && $(this).attr('to'))) {
             console.warn('ae-bind attribute "path" is ignored when either "from" or "to" are specified: \nNode:');
             console.warn(this);
         }
         const valueMode = $(this).attr('value-mode') || 'property';
 
         let target;
-        if($(this).children().length) {
+        if ($(this).children().length) {
             target = $(this).children().get(0);
         } else {
             target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
@@ -37,14 +36,14 @@ export default function bind(inPage) {
         const fromAttr = usePath ? path : $(this).attr('from');
         let inAttr = $(this).attr('in');
         const isFormElement = valueChangeDelegate.canOutputValue(target);
-        if(!inAttr && isFormElement) {
+        if (!inAttr && isFormElement) {
             inAttr = 'form-element-value';
         };
         if (fromAttr) {
             let nodeAttr = inAttr.split(':');
             nodeAttr[0] = nodeAttr[0] || 'html';
 
-            if(nodeAttr[0] === 'html') {
+            if (nodeAttr[0] === 'html') {
                 $(target).attr('data-ae-bind-html', fromAttr);
             }
             let val = dataSource.resolve(this, fromAttr);
@@ -54,7 +53,6 @@ export default function bind(inPage) {
                     case 'html':
                         {
                             console.log('should modify html');
-
                             $(target).html(inValue);
                         }
                         break;
@@ -72,15 +70,15 @@ export default function bind(inPage) {
                         }
                         break;
                     case 'form-element-value':
-                        console.log('should set form element state');
-                        valueChangeDelegate.setValue(target, inValue);
+                            valueChangeDelegate.setValue(target, inValue, valueMode);
+                            console.log('should set form element state');
                         break;
-                    default: 
+                    default:
                         console.warn('I don\'t know how to bind value to element');
                 }
 
             };
-             dataSource.bindPath(this, fromAttr, function(inNewValue) {
+            dataSource.bindPath(this, fromAttr, function(inNewValue) {
                 valueResolver(inNewValue);
             });
             if (val instanceof Promise) {
@@ -89,35 +87,36 @@ export default function bind(inPage) {
                 valueResolver(val);
             }
 
-           
+
         }
 
-        if(toAttr) {
-            if(!isFormElement) {
+        if (toAttr) {
+            if (!isFormElement) {
                 throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
             const outOptions = {};
             _.each(this.attributes, (inAttribute) => {
-                if(/^out-/.test(inAttribute.name)) {
+                if (/^out-/.test(inAttribute.name)) {
                     outOptions[inAttribute.name.replace(/^out-/, '')] = inAttribute.value;
                 }
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
                 //TODO: manage collection element set
-                switch(valueMode) {
+                switch (valueMode) {
                     case 'property':
                         dataSource.setPath(this, toAttr, inValue.value || null);
                         break;
                     case 'collection':
+                        throw new Error('collection value-mode is not yet implemented');
                         break;
                     case 'hash':
-                        dataSource.setPath(this, toAttr + '.' +  inValue.key, !!inValue.value);
+                        dataSource.setPath(this, toAttr + '.' + inValue.key, !!inValue.value);
 
                         break;
                     default:
                         throw new Error('Value model can only be any of undefined, property, collection, hash');
                 }
-                
+
             });
         }
 

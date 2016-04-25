@@ -105,6 +105,16 @@ class ObservableObject extends Observable {
         }
     }
 
+    static prop(inBase, inPath) {
+        if(!inBase) {
+            return;
+        }
+        if(!(inBase instanceof ObservableObject)) {
+            return;
+        }
+        return inBase.prop(inPath);
+    }
+
     dummy() {
         return _private.get(this);
     }
