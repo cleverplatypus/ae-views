@@ -16,8 +16,7 @@ export default function bind(inPage) {
             console.warn('ae-bind attribute "path" is ignored when either "from" or "to" are specified: \nNode:');
             console.warn(this);
         }
-        const valueMode = $(this).attr('value-mode') || 'property';
-
+        
         let target;
         if ($(this).children().length) {
             target = $(this).children().get(0);
@@ -70,7 +69,7 @@ export default function bind(inPage) {
                         }
                         break;
                     case 'form-element-value':
-                            valueChangeDelegate.setValue(target, inValue, valueMode);
+                            valueChangeDelegate.setValue(target, inValue);
                             console.log('should set form element state');
                         break;
                     default:
@@ -101,22 +100,7 @@ export default function bind(inPage) {
                 }
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
-                //TODO: manage collection element set
-                switch (valueMode) {
-                    case 'property':
-                        dataSource.setPath(this, toAttr, inValue.value || null);
-                        break;
-                    case 'collection':
-                        throw new Error('collection value-mode is not yet implemented');
-                        break;
-                    case 'hash':
-                        dataSource.setPath(this, toAttr + '.' + inValue.key, !!inValue.value);
-
-                        break;
-                    default:
-                        throw new Error('Value model can only be any of undefined, property, collection, hash');
-                }
-
+                dataSource.setPath(this, toAttr, inValue.value == null ? null : inValue.value);
             });
         }
 
