@@ -70,18 +70,19 @@ class Page extends Component {
     }
 
     resolveNodeComponent(inNode) {
-        //let originalNode = $(inNode).get(0);
-        while (!_registry.get(inNode)) {
-            inNode = $(inNode).parent().get(0);
-            if (!inNode) {
+        let node = $(inNode).get(0);
+        ;
+        while (!_registry.get(node)) {
+            node = $(node).parent().get(0);
+            if (!node) {
                 break;
             }
         }
-        if (!_registry.get(inNode)) {
+        if (!_registry.get(node)) {
             console.debug('Could not find component in ancestry. Falling back to page component');
             return this;
         }
-        return _registry.get(inNode);
+        return _registry.get(node);
 
     }
 

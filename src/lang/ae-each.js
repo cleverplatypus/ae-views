@@ -67,7 +67,10 @@ export default function each(inPage) {
         dataSource.bindPath(this, path, (inNewValue) => {
             renderFn(inNewValue);
         });
-        renderFn(dataSource.resolve(this, path));
+        dataSource.resolve(this, path).then((inData) => {
+            renderFn(inData);    
+        })
+        
     };
 
     proto.detachedCallback = function() {

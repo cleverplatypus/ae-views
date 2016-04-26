@@ -5,7 +5,10 @@ import dust from 'ae-dustjs';
 import uuid from 'node-uuid';
 import ObservableCollection from '../ObservableCollection';
 import ObservableObject from '../ObservableObject';
+import Observable from '../Observable';
 
+import dustHelpers from './dust-helpers';
+dustHelpers(dust);
 const _templates = new Map();
 let evilFn;
 
@@ -22,13 +25,6 @@ class DustTemplatingDelegate extends TemplatingDelegate {
             return chunk;
         };
 
-        // const oldGt = dust.helpers.gt;
-        // dust.helpers.gt = function(chunk, context, bodies, params) {
-        //     console.log(oldGt);
-        //        debugger;
-        //         return chunk;
-        // };
-
         dust.collectionResolver = function(inCollection) {
             if (inCollection instanceof ObservableCollection) {
                 return inCollection.toNative();
@@ -39,13 +35,20 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 
         dust.propertyResolver = function(inBase, inPath) {
             if (inBase instanceof ObservableObject) {
-                return inBase.prop(inPath);
+                let prop = inBase.prop(inPath);
+                if(prop instanceof ObservableCollection) {
+                   return prop.toNative();
+                } else {
+                    return prop;
+                }
             } else if (inBase instanceof ObservableCollection && inPath === 'length') {
                 return inBase.length;
             } else {
                 return _.get(inBase, inPath);
             }
         };
+
+       
     }
 
     setCollectionResolver(inResolver) {

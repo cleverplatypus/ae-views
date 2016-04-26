@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Binds a Bus action to the parent node.
  *
@@ -21,11 +22,13 @@
   * separate async operations
   */ 
 
-'use strict';
+
 
 import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
+import {UNRESOLVED} from '../symbol/unresolved';
+
 let _page;
 
 
@@ -36,12 +39,21 @@ let _page;
  * hanled after returning
  */
 var typifyParams = function typifyParams(inActionNode, inParams) {
+
     var out = {};
     _.each(inParams, function(inParamValue, inParamKey) {
         if (!inParamValue) {
             out[inParamKey] = null;
         } else if (_.isString(inParamValue) && /^~/.test(inParamValue)) {
-            out[inParamKey] = _page.getDataSource().resolve(inActionNode, inParamValue.replace('~', ''));
+            let resolvedValue = UNRESOLVED;
+             _page.getDataSource()
+                .resolve(inActionNode, inParamValue.replace('~', '')).then((inValue) => {
+                    resolvedValue = inValue;
+                });
+            if(resolvedValue === UNRESOLVED) {
+                throw new Error('Action parameters must be resolved synchronously');
+            }
+            out[inParamKey] = resolvedValue;
         } else if (_.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
             out[inParamKey] = inParamValue.replace(/^`/, '').replace(/`$/, '');
         } else if (!isNaN(inParamValue)) {
@@ -68,6 +80,7 @@ var assembleParams = function(inActionNode) {
 
 
 export default function action(inPage) {
+
     _page = inPage;
 
     var proto = Object.create(Element.prototype);
@@ -83,7 +96,7 @@ export default function action(inPage) {
                 inEvent,
                 assembleParams(this)
             );
-        })
+        });
 
 
     };
@@ -97,4 +110,4 @@ export default function action(inPage) {
     };
 
     document.registerElement('ae-action', { prototype: proto });
-};
+}

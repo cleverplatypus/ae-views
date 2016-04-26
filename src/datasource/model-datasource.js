@@ -11,26 +11,29 @@ module.exports = function() {
             this.page = _page = inPage;
 
             this.resolve = function resolve(inNode, inPath) {
-                inPath = inPath || '';
-                if (!/^_/.test(inPath)) {
-                    inPath = 'data' + (inPath ? '.' + inPath : '');
-                }
-                return _page.resolveNodeModel(inNode, inPath).prop(inPath);
+                return new Promise((resolvePromise, rejectPromise) => {
+                    inPath = inPath || '';
+                    if (!/^_/.test(inPath)) {
+                        inPath = 'data' + (inPath ? '.' + inPath : '');
+                    }
+                    resolvePromise(_page.resolveNodeModel(inNode, inPath).prop(inPath));
+
+                });
             };
 
-            this.bindPath = function resolve(inNode, inPath, inHandler) {
+            this.bindPath = function bindPath(inNode, inPath, inHandler) {
                 if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
                 const model = _page.resolveNodeModel(inNode, inPath);
 
                 model.watch(inPath, function(inPath, inChanges) {
-                	inHandler(inChanges.newValue, inChanges.oldValue);
+                    inHandler(inChanges.newValue, inChanges.oldValue);
                 });
             };
 
             this.setPath = function setPath(inNode, inPath, inValue) {
-            	if (!/^_/.test(inPath)) {
+                if (!/^_/.test(inPath)) {
                     inPath = 'data.' + inPath;
                 }
                 const model = _page.resolveNodeModel(inNode, inPath);

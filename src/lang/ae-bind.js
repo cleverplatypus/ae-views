@@ -45,7 +45,7 @@ export default function bind(inPage) {
             if (nodeAttr[0] === 'html') {
                 $(target).attr('data-ae-bind-html', fromAttr);
             }
-            let val = dataSource.resolve(this, fromAttr);
+            
 
             const valueResolver = (inValue) => {
                 switch (nodeAttr[0]) {
@@ -80,12 +80,10 @@ export default function bind(inPage) {
             dataSource.bindPath(this, fromAttr, function(inNewValue) {
                 valueResolver(inNewValue);
             });
-            if (val instanceof Promise) {
-                val.then(valueResolver);
-            } else {
-                valueResolver(val);
-            }
-
+            
+            dataSource.resolve(this, fromAttr).then((inValue) => {
+                valueResolver(inValue);
+            });
 
         }
 
