@@ -8,16 +8,16 @@ export default function render(inPage) {
     var proto = Object.create(Element.prototype);
 
     var render = function render() {
-        const templateName = $(this).attr('template');
+        let templateName = $(this).attr('template')
+        
         const path = $(this).attr('path');
         _page.getDataSource().resolve(this, path).then((inValue) => {
             const attrs = _.transform(this.attributes, function(result, item) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
             }, {});
 
-
             factory.getTemplatingDelegate()
-                .render(templateName, inValue)
+                .render(templateName, inValue || {})
                 .then((inHtml) => {
                     $(this).find('>ae-managed').html(inHtml);
                 })
@@ -29,6 +29,18 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
+       
+        let templateName = $(this).attr('template')
+        if (!templateName) {
+            let template = $(this).find('>template');
+            if(!template) {
+                throw new Error($(this).getPath() + ' must have a template attribute or a template element');
+            }
+            templateName = factory.getTemplatingDelegate()
+                .registerTemplate(template.html())
+            $(this).attr('template', templateName);
+            $(this).empty();
+        }  
         $(this).append('<ae-managed></ae-managed>');
     };
 
@@ -47,22 +59,17 @@ export default function render(inPage) {
 
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
+
         const path = $(this).attr('path');
-        _page.getDataSource().resolve(this).then((inBaseModel) => {
+        _page.getDataSource().bindPath(this, path, (inBaseModel) => {
+            debugger;
             inBaseModel.watch(path, () => {
+                debugger;
                 render.bind(this)();
             });
+            render.call(this);
         });
 
-        _page.getDataSource().resolve(this, path).then((inTarget) => {
-            if (inTarget) {
-                inTarget.watch('*', () => {
-                    render.call(this);
-                });
-            }
-        }).catch((inError) => {
-            console.error(inError);
-        });
     };
 
     proto.detachedCallback = function() {

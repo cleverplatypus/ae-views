@@ -54,7 +54,7 @@ class Page extends Component {
         this.addDataSource('model', modelDataSource(this));
         inConstructor.bind(this)();
         this.currentState = this.states;
-
+        this.page = this;
         callNextInitializer.call(this);
 
     }

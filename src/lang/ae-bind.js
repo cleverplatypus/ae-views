@@ -33,7 +33,7 @@ export default function bind(inPage) {
         const usePath = path && !$(this).attr('from') && !$(this).attr('to');
         const toAttr = usePath ? path : $(this).attr('to');
         const fromAttr = usePath ? path : $(this).attr('from');
-        let inAttr = $(this).attr('in');
+        let inAttr = $(this).attr('in') || '';
         const isFormElement = valueChangeDelegate.canOutputValue(target);
         if (!inAttr && isFormElement) {
             inAttr = 'form-element-value';

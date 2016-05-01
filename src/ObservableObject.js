@@ -121,7 +121,7 @@ class ObservableObject extends Observable {
 
     prop(inPath, inValue, inSilent) {
         if (!inPath) {
-            throw new Error('ObservableObject.prototype.prop must be passed a valid path');
+            return this;
         }
         const _p = _private.get(this);
         const myProps = _p.props;

@@ -15,6 +15,7 @@ let evilFn;
 class DustTemplatingDelegate extends TemplatingDelegate {
     constructor(inEvilFn) {
         super();
+        window.ten = _templates;
         var n = 'EV' + 'a' + 'L';
         evilFn = inEvilFn || window[n.toLowerCase()];
         dust.helpers.nempty = function(chunk, context, bodies, params) {

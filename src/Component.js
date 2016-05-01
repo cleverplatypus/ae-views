@@ -113,7 +113,7 @@ class Component {
             const delegate = factory.getTemplatingDelegate();
             const model = inModel ?
                 ObservableObject.fromObject(inModel) :
-                this.model.prop('data');
+                this.page.resolveNodeModel(this.node);
 
             delegate.render(
                 '_default.' + this.name,

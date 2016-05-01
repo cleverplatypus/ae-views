@@ -12,8 +12,8 @@ module.exports = function() {
 
             this.resolve = function resolve(inNode, inPath) {
                 return new Promise((resolvePromise, rejectPromise) => {
-                    inPath = inPath || '';
-                    if (!/^_/.test(inPath)) {
+                    
+                    if (!/^_/.test(inPath) && inPath) {
                         inPath = 'data' + (inPath ? '.' + inPath : '');
                     }
                     resolvePromise(_page.resolveNodeModel(inNode, inPath).prop(inPath));
