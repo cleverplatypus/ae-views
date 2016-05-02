@@ -36,11 +36,11 @@ const _watchState = function _watchState() {
         };
         let currentState = this.currentState;
         if (currentState) {
-            currentState.leaving().then(() => {
-                nextState.entering().then(() => {
+            currentState.leaving(inChanges.newValue).then(() => {
+                nextState.entering(inChanges.oldValue).then(() => {
                     this.setState(nextState);
-                    currentState.left();
-                    nextState.entered();
+                    currentState.left(inChanges.newValue);
+                    nextState.entered(inChanges.oldValue);
                 }).catch(rollback);
             }).catch(rollback);
         }

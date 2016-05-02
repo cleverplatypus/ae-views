@@ -21,7 +21,17 @@ export default function bind(inPage) {
         if ($(this).children().length) {
             target = $(this).children().get(0);
         } else {
-            target = $(this).attr('target') === 'next' ? $(this).next() : $(this).parent();
+            const targetAttr = $(this).attr('target');
+            if(!targetAttr) {
+                target = $(this).parent();
+            } else if(targetAttr === 'next') {
+                target = $(this).next();
+            } else if(/^closest/.test(targetAttr)) {
+                const segs = targetAttr.split(/\s+/);
+                target = $(this).closest(segs[1]);
+            } else {
+                console.warn('Unknown ae-bind target: ' + targetAttr);
+            }
         }
 
         let dataSourceName = $(this).attr('source');
@@ -37,7 +47,7 @@ export default function bind(inPage) {
         const isFormElement = valueChangeDelegate.canOutputValue(target);
         if (!inAttr && isFormElement) {
             inAttr = 'form-element-value';
-        };
+        }
         if (fromAttr) {
             let nodeAttr = inAttr.split(':');
             nodeAttr[0] = nodeAttr[0] || 'html';
@@ -62,7 +72,14 @@ export default function bind(inPage) {
                     case 'class':
                         console.log('should add class: ' + nodeAttr[1]);
                         let condition = $(this).attr('if');
-                        if (!condition || condition === inValue) {
+                        let match = false;
+                        if(condition && /^\/.*\/$/.test(condition)) {
+                            condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
+                            match = condition.test(inValue);
+                        } else if(_.isString(condition)) {
+                            match = (condition === inValue);
+                        }
+                        if(match) {
                             $(target).addClass(nodeAttr[1]);
                         } else {
                             $(target).removeClass(nodeAttr[1]);

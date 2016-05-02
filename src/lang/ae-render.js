@@ -8,7 +8,7 @@ export default function render(inPage) {
     var proto = Object.create(Element.prototype);
 
     var render = function render() {
-        let templateName = $(this).attr('template')
+        let templateName = $(this).attr('template');
         
         const path = $(this).attr('path');
         _page.getDataSource().resolve(this, path).then((inValue) => {
@@ -29,15 +29,14 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
-       
-        let templateName = $(this).attr('template')
+        let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
             if(!template) {
                 throw new Error($(this).getPath() + ' must have a template attribute or a template element');
             }
             templateName = factory.getTemplatingDelegate()
-                .registerTemplate(template.html())
+                .registerTemplate(template.html());
             $(this).attr('template', templateName);
             $(this).empty();
         }  
@@ -62,11 +61,11 @@ export default function render(inPage) {
 
         const path = $(this).attr('path');
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
-            debugger;
-            inBaseModel.watch(path, () => {
-                debugger;
-                render.bind(this)();
-            });
+            if(inBaseModel) {
+                inBaseModel.watch(path, () => {
+                    render.bind(this)();
+                });
+            }
             render.call(this);
         });
 

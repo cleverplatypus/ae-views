@@ -128,7 +128,7 @@ class ObservableObject extends Observable {
         const path = inPath.split('.');
         var propName = path.shift();
         if (inValue === undefined) {
-            if (!myProps.prop(propName)) {
+            if (!myProps.prop(propName) === undefined) {
                 return undefined;
             } else {
                 if (path.length && !(myProps.prop(propName) instanceof Observable)) {

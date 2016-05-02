@@ -9,7 +9,7 @@ export default function state(inPage) {
 
     proto.createdCallback = function() {
         const component = _page.resolveNodeComponent(this);
-        const statePattern = new RegExp($(this).attr('pattern'));
+        const statePattern = new RegExp($(this).attr('pattern') || '^$');
         const watcher = (inState) => {
             if (statePattern.test(component.getCurrentState())) {
                 if (!$(this).prop('wasRendered')) {

@@ -119,9 +119,11 @@ class Page extends Component {
     registerComponentElement(inDefinition) {
         var proto = Object.create(HTMLDivElement.prototype);
         var that = this;
+        const name = inDefinition.config.name;
 
+        document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
         proto.createdCallback = function() {
-
+            
             let component = new Component(
                 inDefinition.config,
                 inDefinition.modelPrototype,
