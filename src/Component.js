@@ -7,6 +7,8 @@ import Bus from './Bus';
 import _ from 'lodash';
 import $ from 'jquery';
 import factory from './page-factory';
+import ComponentLifecycle from './ComponentLifecycle';
+const Signal = require('signals').Signal;
 
 const _findState = function _findState(inStateName) {
     if (!inStateName) {
@@ -54,9 +56,12 @@ const _private = new WeakMap();
 class Component {
 
     constructor(inConfig, inInitObj, inConstructor, inPage) {
+        
         _private.set(this, {
-            stateWatchers: new Set()
+            stateWatchers: new Set(),
+            lifecycle : new ComponentLifecycle(new Signal())
         });
+
         this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null);
@@ -83,6 +88,10 @@ class Component {
         this.currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
         
+    }
+
+    get lifecycle() {
+        return _private.get(this).lifecycle;
     }
 
     getCurrentState() {
@@ -119,6 +128,8 @@ class Component {
                 '_default.' + this.name,
                 model).then((inHtml) => {
                 $(this.node).html(inHtml);
+                this.afterRender && this.afterRender(); //jshint ignore:line
+                this.lifecycle.emit('rendered');
             }).catch((inError) => {
                 console.error(inError);
             });

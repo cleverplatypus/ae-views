@@ -70,7 +70,6 @@ export default function bind(inPage) {
                         $(target).attr(nodeAttr[1], inValue);
                         break;
                     case 'class':
-                        console.log('should add class: ' + nodeAttr[1]);
                         let condition = $(this).attr('if');
                         let match = false;
                         if(condition && /^\/.*\/$/.test(condition)) {
@@ -80,8 +79,10 @@ export default function bind(inPage) {
                             match = (condition === inValue);
                         }
                         if(match) {
+                        console.log('should add class: ' + nodeAttr[1]);
                             $(target).addClass(nodeAttr[1]);
                         } else {
+                        console.log('should remove class: ' + nodeAttr[1]);
                             $(target).removeClass(nodeAttr[1]);
                         }
                         break;

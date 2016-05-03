@@ -8,7 +8,7 @@ import modelDataSource from './datasource/model-datasource';
 const _dataSources = new Map();
 import lang from './lang/ae-lang';
 import factory from './page-factory';
-
+import ComponentLifecycle from './ComponentLifecycle';
 let _registry = new WeakMap();
 let _templatingDelegate;
 
@@ -119,12 +119,13 @@ class Page extends Component {
     registerComponentElement(inDefinition) {
         var proto = Object.create(HTMLDivElement.prototype);
         var that = this;
+        let component;
         const name = inDefinition.config.name;
 
         document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
+
         proto.createdCallback = function() {
-            
-            let component = new Component(
+            component = new Component(
                 inDefinition.config,
                 inDefinition.modelPrototype,
                 inDefinition.constructor,
@@ -135,27 +136,19 @@ class Page extends Component {
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }
-            component.onElementCreated && component.onElementCreated.call(component); //jshint ignore:line
+            component.lifecycle.emit('element-created');
         };
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-            let fn = component.onElementAttached;
-            if (fn) {
-                fn(this);
-            }
+           component.lifecycle.emit('element-attached');
             if (component.config.autoRender !== false) {
                 component.render.call(component);
             }
         };
 
         proto.detachedCallback = function() {
-            const component = _registry.get(this);
-
-            let fn = component.onElementDetached;
-            if (fn) {
-                fn.call(component);
-            }
+            component.lifecycle.emit('element-detached');
         };
 
         document.registerElement(inDefinition.config.name, { prototype: proto });
