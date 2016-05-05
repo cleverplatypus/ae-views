@@ -8,9 +8,10 @@ import _ from 'lodash';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
-const Signal = require('signals').Signal;
+import {Signal} from 'signals';
 
 const _findState = function _findState(inStateName) {
+
     if (!inStateName) {
         return this.states;
     }
@@ -35,6 +36,9 @@ const _watchState = function _watchState() {
             inReason && console.debug('Could not change state because: ' + inReason); //jshint ignore:line
             this.model.prop('_nextState', inChanges.oldValue, true);
             currentState.didntLeave();
+            for (let watcher of _private.get(this).stateWatchers) {
+                watcher(inChanges.newValue, inChanges.oldValue, inReason);
+            }
         };
         let currentState = this.currentState;
         if (currentState) {
@@ -43,6 +47,11 @@ const _watchState = function _watchState() {
                     this.setState(nextState);
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
+
+                    for (let watcher of _private.get(this).stateWatchers) {
+                        watcher(inChanges.newValue, inChanges.oldValue);
+                    }
+
                 }).catch(rollback);
             }).catch(rollback);
         }
@@ -56,10 +65,10 @@ const _private = new WeakMap();
 class Component {
 
     constructor(inConfig, inInitObj, inConstructor, inPage) {
-        
+
         _private.set(this, {
             stateWatchers: new Set(),
-            lifecycle : new ComponentLifecycle(new Signal())
+            lifecycle: new ComponentLifecycle(new Signal())
         });
 
         this.config = inConfig;
@@ -68,8 +77,8 @@ class Component {
         this.name = inConfig.name;
         let templates = inConfig.templates || {};
 
-        this.model = inInitObj instanceof Observable ? 
-            inInitObj : 
+        this.model = inInitObj instanceof Observable ?
+            inInitObj :
             ObservableObject.fromObject({
                 data: inInitObj,
                 _state: '',
@@ -87,7 +96,7 @@ class Component {
         this.states = this.states || new State();
         this.currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
-        
+
     }
 
     get lifecycle() {
@@ -99,18 +108,32 @@ class Component {
     }
 
     tryState(inStateName) {
-        if(inStateName === this.model.prop('_state')) {
+        if (inStateName === this.model.prop('_state')) {
             return;
         }
-        this.model.prop('_nextState', inStateName);
+
+        return new Promise((resolve, reject) => {
+            const watcher = (inNewState, inOldState, inError) => {
+                if (inError) {
+                    reject(inError);
+                } else {
+                    resolve(inNewState, inOldState);
+                }
+                this.unwatchState(watcher);
+            };
+            this.watchState(watcher);
+            this.model.prop('_nextState', inStateName);
+        });
+
     }
 
     setState(inState) {
         this.currentState = inState;
         this.model.prop('_state', this.model.prop('_nextState'));
-        for (let watcher of _private.get(this).stateWatchers) {
-            watcher(inState);
-        }
+    }
+
+    unwatchState(inWatcherFunction) {
+        _private.get(this).stateWatchers.delete(inWatcherFunction);
     }
 
     watchState(inWatcherFunction) {
