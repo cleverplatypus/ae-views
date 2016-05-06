@@ -20,21 +20,24 @@ class InputValueChangeDelegate {
     onValueChange(inElement, inConfig, inHandler) {
         const delay = !isNaN(inConfig.delay) ? Number(inConfig.delay) : null;
         const commitOnly = inConfig.commitOnly === true;
-        var eventName = null;
-        switch ($(inElement).get(0).nodeName.toUpperCase()) {
-            case 'INPUT':
-                if (_.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
-                    eventName = (commitOnly ? 'change' : 'keyup');
-                } else if (_.includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
-                    eventName = 'click';
-                }
-                break;
-            case 'SELECT':
-                eventName = 'change';
-                break;
-            default:
-                eventName = 'keydown';
-        }
+        let eventName = inConfig.event;
+        if(!eventName) {
+
+            switch ($(inElement).get(0).nodeName.toUpperCase()) {
+                case 'INPUT':
+                    if (_.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
+                        eventName = (commitOnly ? 'change' : 'keyup');
+                    } else if (_.includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
+                        eventName = 'click';
+                    }
+                    break;
+                case 'SELECT':
+                    eventName = 'change';
+                    break;
+                default:
+                    eventName = 'keydown';
+            }
+}
         let delayedTimeout;
 
         const defaultHandler = () => {
@@ -60,8 +63,8 @@ class InputValueChangeDelegate {
 
 
         const handler = (!isNaN(delay) ? delayedHandler : defaultHandler);
-        inHandler.handler = handler; //??? why this assignment?
-        $(inElement).off(eventName, inHandler.handler).on(eventName, handler);
+        
+        $(inElement).off(eventName, handler).on(eventName, handler);
     }
 
     setValue(inElement, inValue, inPropName) {
@@ -127,7 +130,8 @@ class InputValueChangeDelegate {
                     }
                     break;
             }
-
+        } else if($(inElement).get(0).nodeName.toUpperCase() === 'TEXTAREA') {
+            return $(inElement).val();
         } else if ($(inElement).get(0).nodeName.toUpperCase() === 'SELECT') {
             let out = [];
             $(inElement).find('option:selected').each(function() {

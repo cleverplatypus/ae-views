@@ -9,7 +9,7 @@ export default function render(inPage) {
 
     var render = function render() {
         let templateName = $(this).attr('template');
-        
+
         const path = $(this).attr('path');
         _page.getDataSource().resolve(this, path).then((inValue) => {
             const attrs = _.transform(this.attributes, function(result, item) {
@@ -32,14 +32,14 @@ export default function render(inPage) {
         let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
-            if(!template) {
+            if (!template) {
                 throw new Error($(this).getPath() + ' must have a template attribute or a template element');
             }
             templateName = factory.getTemplatingDelegate()
                 .registerTemplate(template.html());
             $(this).attr('template', templateName);
             $(this).empty();
-        }  
+        }
         $(this).append('<ae-managed></ae-managed>');
     };
 
@@ -61,13 +61,19 @@ export default function render(inPage) {
 
         const path = $(this).attr('path');
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
-            if(inBaseModel) {
+            if (inBaseModel) {
                 inBaseModel.watch(path, () => {
-                    render.bind(this)();
+                    render.call(this);
                 });
+
             }
             render.call(this);
         });
+        if ($(this).attr('watch')) {
+            _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
+                render.call(this);
+            });
+        }
 
     };
 
