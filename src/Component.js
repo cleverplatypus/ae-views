@@ -103,8 +103,12 @@ class Component {
         return _private.get(this).lifecycle;
     }
 
-    getCurrentState() {
-        return this.model.prop('_state');
+    getCurrentState(inReturnStateObj) {
+        if(inReturnStateObj) {
+            return this.currentState;
+        } else {
+            return this.model.prop('_state');
+        }
     }
 
     tryState(inStateName) {

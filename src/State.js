@@ -43,6 +43,11 @@ class State {
 
 	}
 
+	onRendered(inFn) {
+		this.rendered = inFn;
+		return this;
+	}
+
 	onEntering(inFn) {
 		this.entering = inFn;
 		return this;
@@ -55,6 +60,10 @@ class State {
 	onEntered(inFn) {
 		this.entered = inFn;
 		return this;
+	}
+
+	rendered() {
+
 	}
 	
 
