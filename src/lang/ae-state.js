@@ -10,8 +10,9 @@ export default function state(inPage) {
         const component = _page.resolveNodeComponent(this);
         const method = $(this).attr('method') || 'removal';
         const statePattern = new RegExp($(this).attr('pattern') || '^$');
-        const watcher = (inState) => {
-            if (statePattern.test(component.getCurrentState())) {
+        const watcher = () => {
+            const currentState = component.getCurrentState();
+            if (statePattern.test(currentState.getPath())) {
                 if (method === 'visibility') {
                     $(this).children().each(function() {
                         $(this).removeClass('is-hidden');
@@ -22,7 +23,7 @@ export default function state(inPage) {
                         $(this).prop('wasRendered', true);
                     }
                 }
-                component.getCurrentState(true).rendered();
+                currentState.rendered();
             } else {
                 if (method === 'visibility') {
                     $(this).children().each(function() {
@@ -37,7 +38,7 @@ export default function state(inPage) {
 
         component.watchState(watcher);
         this.content = $(this).html();
-        watcher(component.currentState);
+        watcher();
 
     };
 

@@ -53,10 +53,8 @@ class Page extends Component {
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
         inConstructor.bind(this)();
-        this.currentState = this.states;
         this.page = this;
         callNextInitializer.call(this);
-
     }
 
 

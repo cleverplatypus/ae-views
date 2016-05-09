@@ -33,7 +33,7 @@ export default class ComponentLifecycle {
 
 	elementDetached(inHandler) {
 		_private.get(this).signal.add((inType) => {
-			if(inType === 'element-removed') {
+			if(inType === 'element-detached') {
 				inHandler();
 			}
 		})

@@ -1,21 +1,35 @@
 'use strict';
-const _ = require('lodash');
+
+import _ from 'lodash';
 
 const _private = new WeakMap();
+
 class State {
-	constructor(...rest) {
+	constructor(...rest) {	
 		let name = _.find(rest, (param) => _.isString(param)) || '';
 		let children = _.find(rest, (param) => _.isArray(param));
-		children = _.map(children, function(inValue) {
-			return (inValue instanceof State ? inValue : new State(inValue))
+		let parent = _.find(rest, (param) => param instanceof State);
+
+		children = _.map(children, (inValue) => {
+			const state = (inValue instanceof State ? inValue : new State(inValue));
+			_private.get(state).parent = this;
+			return state;
 		});
+
 		_private.set(this, {
 			name : name,
-			children : children
+			children : children,
+			parent : parent
 		});
 		this.name = name;
 		this.children = children;
 	}
+
+	getPath() {
+		const parent =  _private.get(this).parent;
+		return (parent && parent.getName() ? parent.getPath() + '.' : '') + _private.get(this).name;
+	}
+
 
 	getName() {
 		return _private.get(this).name;

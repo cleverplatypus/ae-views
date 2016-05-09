@@ -40,11 +40,12 @@ const _watchState = function _watchState() {
                 watcher(inChanges.newValue, inChanges.oldValue, inReason);
             }
         };
-        let currentState = this.currentState;
+        let currentState = _private.get(this).currentState;
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    this.setState(nextState);
+                    _private.get(this).currentState = nextState;
+                    this.model.prop('_state', this.model.prop('_nextState'));
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
 
@@ -94,7 +95,7 @@ class Component {
         _private.get(this).hasDefaultTemplate = !!templates._default;
         _watchState.bind(this)();
         this.states = this.states || new State();
-        this.currentState = this.states;
+        _private.get(this).currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
     }
@@ -103,12 +104,8 @@ class Component {
         return _private.get(this).lifecycle;
     }
 
-    getCurrentState(inReturnStateObj) {
-        if(inReturnStateObj) {
-            return this.currentState;
-        } else {
-            return this.model.prop('_state');
-        }
+    getCurrentState() {
+        return _private.get(this).currentState;
     }
 
     tryState(inStateName) {
@@ -129,11 +126,6 @@ class Component {
             this.model.prop('_nextState', inStateName);
         });
 
-    }
-
-    setState(inState) {
-        this.currentState = inState;
-        this.model.prop('_state', this.model.prop('_nextState'));
     }
 
     unwatchState(inWatcherFunction) {
