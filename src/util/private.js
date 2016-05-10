@@ -2,7 +2,7 @@ const registry = new Map();
 
 export default function(inClass) {
     'use strict';
-    if (!registry.exists(inClass)) {
+    if (!registry.has(inClass)) {
         const map = new WeakMap();
         registry.set(inClass, map);
     }

@@ -9,6 +9,9 @@ import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
 import {Signal} from 'signals';
+import privateHash from './util/private';
+
+const _private = privateHash('component');
 
 const _findState = function _findState(inStateName) {
 
@@ -61,20 +64,25 @@ const _watchState = function _watchState() {
 
 
 
-const _private = new WeakMap();
-
 class Component {
 
     constructor(inConfig, inInitObj, inConstructor, inPage) {
-
+        const lifecycleSignal = new Signal();
+        const lifecycle = new ComponentLifecycle(lifecycleSignal);
         _private.set(this, {
             stateWatchers: new Set(),
-            lifecycle: new ComponentLifecycle(new Signal())
+            lifecycleSignal : lifecycleSignal
+        });
+
+        Object.defineProperty(this, 'lifecycle', { 
+            get : function() { 
+                return lifecycle;
+            }
         });
 
         this.config = inConfig;
         this.page = inPage;
-        this.bus = new Bus(inPage ? inPage.bus : null);
+        this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
         this.name = inConfig.name;
         let templates = inConfig.templates || {};
 
@@ -98,10 +106,6 @@ class Component {
         _private.get(this).currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
-    }
-
-    get lifecycle() {
-        return _private.get(this).lifecycle;
     }
 
     getCurrentState() {
@@ -148,7 +152,8 @@ class Component {
                 model).then((inHtml) => {
                 $(this.node).html(inHtml);
                 this.afterRender && this.afterRender(); //jshint ignore:line
-                this.lifecycle.emit('rendered');
+                _private.get(this)
+                    .lifecycleSignal.dispatch('rendered');
             }).catch((inError) => {
                 console.error(inError);
             });

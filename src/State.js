@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {Signal} from 'signals';
 
 const _private = new WeakMap();
 

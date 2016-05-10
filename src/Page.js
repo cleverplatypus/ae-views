@@ -9,6 +9,10 @@ const _dataSources = new Map();
 import lang from './lang/ae-lang';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
+import privateHash from './util/private';
+
+const _private = privateHash('component');
+
 let _registry = new WeakMap();
 let _templatingDelegate;
 
@@ -134,19 +138,22 @@ class Page extends Component {
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }
-            component.lifecycle.emit('element-created');
+            _private.get(component)
+                .lifecycleSignal.dispatch('element-created');
         };
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-           component.lifecycle.emit('element-attached');
+           _private.get(component)
+                .lifecycleSignal.dispatch('element-attached');
             if (component.config.autoRender !== false) {
                 component.render.call(component);
             }
         };
 
         proto.detachedCallback = function() {
-            component.lifecycle.emit('element-detached');
+            _private.get(component)
+                .lifecycleSignal.dispatch('element-detached');
         };
 
         document.registerElement(inDefinition.config.name, { prototype: proto });
