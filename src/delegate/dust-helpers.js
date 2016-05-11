@@ -1,7 +1,164 @@
 /*! dustjs-helpers - v1.7.3
 * http://dustjs.com/
 * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
+import Observable from '../Observable';
 export default function(dust) {
+
+
+
+
+
+dust.filters.https = function(inUrl) {
+  if(!inUrl) {
+    return '';
+  }
+  return inUrl.toString().replace(/^(http(?:s)?):/, 'https:');
+};
+
+
+dust.filters.obscuredcreditcardnumber = function(inValue) {
+    if(!_.isString(inValue)) {
+        return;
+    }
+    inValue = inValue.replace(/\D/g, '');
+    if(/\d+\d{4}/.test(inValue)) {
+        var match = inValue.match(/(\d+)(\d{4})$/);
+        return match[1].replace(/(.)/g, 'x') + '-' + match[2];
+    }
+    return '';
+};
+
+dust.filters.tolower = function(inValue) {
+    return _.isString(inValue) ? inValue.toLowerCase() : inValue;
+};
+
+
+dust.filters.money = function(inValue) {
+    var sValue = Number(inValue).toFixed(2).replace('.', ',');
+
+    var sRegExp = new RegExp('(-?[0-9]+)([0-9]{3})');
+    while(sRegExp.test(sValue))
+    {
+        sValue = sValue.replace(sRegExp, '$1' + '.' + '$2');
+    }
+    return sValue;
+};
+
+    dust.helpers.iterate = function(chunk, context, bodies, params) {
+        var body = bodies.block,
+            sort,
+            arr,
+            i,
+            k,
+            obj,
+            compareFn;
+
+        params = params || {};
+
+        function desc(a, b) {
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            }
+            return 0;
+        }
+
+        function processBody(key, value) {
+            return body(chunk, context.push({
+                $key: key,
+                $value: value,
+                $type: typeof value
+            }));
+        }
+
+        if (params.key) {
+            obj = context.resolve(params.key);
+
+            if(obj instanceof Observable) {
+              obj = obj.toNative();
+            }
+
+            if (body) {
+                if (!!params.sort) {
+                    sort = dust.helpers.tap(params.sort, chunk, context);
+                    arr = [];
+                    for (k in obj) {
+                        if (obj.hasOwnProperty(k)) {
+                            arr.push(k);
+                        }
+                    }
+                    compareFn = context.global[sort];
+                    if (!compareFn && sort === 'desc') {
+                        compareFn = desc;
+                    }
+                    if (compareFn) {
+                        arr.sort(compareFn);
+                    } else {
+                        arr.sort();
+                    }
+                    for (i = 0; i < arr.length; i++) {
+                        chunk = processBody(arr[i], obj[arr[i]]);
+                    }
+                } else {
+                    for (k in obj) {
+                        if (obj.hasOwnProperty(k)) {
+                            chunk = processBody(k, obj[k]);
+                        }
+                    }
+                }
+            } else {
+                console.log('Missing body block in the iter helper.');
+            }
+        } else {
+            console.log('Missing parameter \'key\' in the iter helper.');
+        }
+        return chunk;
+
+    };
+
+    dust.helpers.length = function(chunk, context, bodies, params) {
+      if(!params.key) {
+        chunk.write(0);
+      } else if(params.key.constructor === String || params.key.constructor === Array) {
+        chunk.write(params.key.length);
+      } else if(params.key.constructor === Object) {
+        chunk.write(_.keys(params.key.constructor).length);
+      }
+      return chunk;
+    };
+
+    dust.helpers.calc = function(chunk, context, bodies, params) {
+        var result;
+        if(_.get(window, 'math.eval')) {
+            result = _.get(window, 'math').eval(context.resolve(bodies.block));
+        } else {
+            result = context.resolve(bodies.block);
+        }
+        if (params.format) {
+            switch (params.format) {
+                case 'money':
+                    result = result.toFixed(2).replace('.', ',');
+                    break;
+                case 'integer':
+                    result = Math.round(result);
+                    break;
+            }
+        }
+        if (params.var && params.var.length) {
+            context.global[params.var] = result;
+            chunk.write('');
+        } else {
+            chunk.write(result);
+        }
+        return chunk;
+    };
+
+
+
+
+
+
 
 function log(helper, msg, level) {
   level = level || "INFO";
