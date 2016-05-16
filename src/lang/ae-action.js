@@ -28,6 +28,7 @@ import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
 import {UNRESOLVED} from '../symbol/unresolved';
+import {includes} from 'lodash';
 
 let _page;
 
@@ -86,11 +87,54 @@ export default function action(inPage) {
     var proto = Object.create(Element.prototype);
 
     proto.createdCallback = function() {
-        const target = $(this).parent();
-        $(target).attr('onclick', 'return false');
+        let target;
+        if ($(this).children().length) {
+            target = $(this).children().get(0);
+        } else {
+            const targetAttr = $(this).attr('target');
+            if(!targetAttr) {
+                target = $(this).parent();
+            } else if(targetAttr === 'next') {
+                target = $(this).next();
+            } else if(/^closest/.test(targetAttr)) {
+                const segs = targetAttr.split(/\s+/);
+                target = $(this).closest(segs[1]);
+            } else if(/^(\.|\#)/.test(targetAttr)) {
+                target = $(this).parent().find(targetAttr);
+            } else {
+                console.warn('Unknown ae-bind target: ' + targetAttr);
+            }
+        }
         const actionName = $(this).attr('name');
         const component = _page.resolveNodeComponent(target);
-        $(target).click((inEvent) => {
+        let event;
+
+        let trigger = $(this).attr('trigger') || '';
+        switch(trigger) {
+            case 'enter':
+            case 'esc':
+                event = 'keyup';
+                break;
+            case '':
+                event = 'click';
+                break;
+            default:
+                if(/^\w+:/.test(trigger)) {
+                    event = trigger.match(/^(\w+)/)[0];
+                } else {
+                    event = trigger;
+                }
+        }
+
+        const nodeName = $(target).get(0).nodeName.toUpperCase();
+
+        $(target)[event]((inEvent) => {
+            if(trigger === 'enter' && inEvent.keyCode !== 13 ) {
+                return;
+            }
+            if(trigger === 'esc' && inEvent.keyCode !== 27 ) {
+                return;
+            }
             component.bus.triggerAction(
                 actionName,
                 inEvent,

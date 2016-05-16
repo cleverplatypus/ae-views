@@ -29,6 +29,8 @@ export default function bind(inPage) {
             } else if(/^closest/.test(targetAttr)) {
                 const segs = targetAttr.split(/\s+/);
                 target = $(this).closest(segs[1]);
+            } else if(/^(\.|\#)/.test(targetAttr)) {
+                target = $(this).parent().find(targetAttr);
             } else {
                 console.warn('Unknown ae-bind target: ' + targetAttr);
             }

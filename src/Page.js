@@ -38,6 +38,10 @@ const callNextInitializer = function() {
             $(() => {
                 this.node = $(this.mountPoint);
                 lang(this);
+                _private.get(this)
+                    .lifecycleSignal.dispatch('element-created');
+                _private.get(this)
+                    .lifecycleSignal.dispatch('element-attached');
                 this.render();
             });
         }
