@@ -16,20 +16,20 @@ export default function bind(inPage) {
             console.warn('ae-bind attribute "path" is ignored when either "from" or "to" are specified: \nNode:');
             console.warn(this);
         }
-        
+
         let target;
         if ($(this).children().length) {
             target = $(this).children().get(0);
         } else {
             const targetAttr = $(this).attr('target');
-            if(!targetAttr) {
+            if (!targetAttr) {
                 target = $(this).parent();
-            } else if(targetAttr === 'next') {
+            } else if (targetAttr === 'next') {
                 target = $(this).next();
-            } else if(/^closest/.test(targetAttr)) {
+            } else if (/^closest/.test(targetAttr)) {
                 const segs = targetAttr.split(/\s+/);
                 target = $(this).closest(segs[1]);
-            } else if(/^(\.|\#)/.test(targetAttr)) {
+            } else if (/^(\.|\#)/.test(targetAttr)) {
                 target = $(this).parent().find(targetAttr);
             } else {
                 console.warn('Unknown ae-bind target: ' + targetAttr);
@@ -47,6 +47,7 @@ export default function bind(inPage) {
         const fromAttr = usePath ? path : $(this).attr('from');
         let inAttr = $(this).attr('in') || '';
         const isFormElement = valueChangeDelegate.canOutputValue(target);
+
         if (!inAttr && isFormElement) {
             inAttr = 'form-element-value';
         }
@@ -57,50 +58,59 @@ export default function bind(inPage) {
             if (nodeAttr[0] === 'html') {
                 $(target).attr('data-ae-bind-html', fromAttr);
             }
-            
 
             const valueResolver = (inValue) => {
+                let condition = $(this).attr('if');
+                let conditionMet = true;
+                if (condition) {
+
+                    let negate =
+                        (!!condition && /^!/.test(condition));
+
+                    condition = condition.replace(/^!/, '');
+
+                    if (condition && /^\/.*\/$/.test(condition)) {
+                        condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
+                        conditionMet = condition.test(inValue);
+                    } else if (_.isString(condition)) {
+                        conditionMet = (condition === inValue);
+                    }
+                    conditionMet = conditionMet && !negate;
+                }
+
                 switch (nodeAttr[0]) {
                     case 'html':
-                        {
-                            console.log('should modify html');
+                        if (conditionMet) {
                             $(target).html(inValue);
                         }
                         break;
                     case 'attr':
-                        console.log('should modify attribute: ' + nodeAttr[1]);
-                        $(target).attr(nodeAttr[1], inValue);
+                        if (conditionMet) {
+                            $(target).attr(nodeAttr[1], inValue);
+                        }
                         break;
                     case 'class':
-                        let condition = $(this).attr('if');
-                        let match = false;
-                        if(condition && /^\/.*\/$/.test(condition)) {
-                            condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
-                            match = condition.test(inValue);
-                        } else if(_.isString(condition)) {
-                            match = (condition === inValue);
-                        }
-                        if(match) {
-                        console.log('should add class: ' + nodeAttr[1]);
+                        if (conditionMet) {
                             $(target).addClass(nodeAttr[1]);
                         } else {
-                        console.log('should remove class: ' + nodeAttr[1]);
                             $(target).removeClass(nodeAttr[1]);
                         }
                         break;
                     case 'form-element-value':
+                        if (conditionMet) {
                             valueChangeDelegate.setValue(target, inValue);
-                            console.log('should set form element state');
+                        }
                         break;
                     default:
                         console.warn('I don\'t know how to bind value to element');
                 }
 
             };
+
             dataSource.bindPath(this, fromAttr, function(inNewValue) {
                 valueResolver(inNewValue);
             });
-            
+
             dataSource.resolve(this, fromAttr).then((inValue) => {
                 valueResolver(inValue);
             });

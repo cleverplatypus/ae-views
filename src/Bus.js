@@ -30,7 +30,9 @@ class Bus {
     }
 
     addAction(inName, inHandler, inOnce) {
-        this.signals[inName] = new Signal();
+        if(!this.signals[inName]) {
+            this.signals[inName] = new Signal();
+        }
         if (inHandler) {
             this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);
         }
@@ -40,14 +42,17 @@ class Bus {
         //TODO: to be implemented
     }
 
-    onAction(inName, inHandler) {
+    onAction(inName, inHandler, inOnce) {
         if (!this.signals[inName]) {
             if (this.parent()) {
-                this.parent().onAction(inName, inHandler);
+                this.parent().onAction(inName, inHandler, inOnce);
             } else {
-                console.warn('Registering listener to non existing action: ' + inName);
+                this.addAction(inName, inHandler, inOnce);
+                console.warn('Possibly registering listener to non existing action: ' + inName);
+                console.warn('You might want to use addAction or publishAction');
             }
-
+        } else {
+            this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);
         }
     }
 

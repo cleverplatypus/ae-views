@@ -2,7 +2,6 @@
 import factory from '../page-factory';
 import $ from 'jquery';
 import Element from './ae-element';
-import ObservableCollection from '../ObservableCollection';
 
 export default function each(inPage) {
     const _page = inPage;
@@ -51,7 +50,7 @@ export default function each(inPage) {
 
         const renderFn = (inData) => {
             $(this).find('>ae-managed').empty();
-            if (inData instanceof ObservableCollection) {
+            if (inData instanceof ObservableObject ) {
                 for (let instance of inData) {
                     _templatingDelegate.render(templateName, instance)
                         .then(appendFn)

@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import Element from './ae-element';
 import factory from '../page-factory';
+import Observable from '../Observable';
 
 export default function render(inPage) {
     'use strict';
@@ -61,11 +62,13 @@ export default function render(inPage) {
 
         const path = $(this).attr('path');
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
-            if (inBaseModel) {
+
+            if (inBaseModel instanceof Observable) {
                 inBaseModel.watch(path, () => {
                     render.call(this);
                 });
-
+            } else {
+                render.call(this);
             }
             render.call(this);
         });

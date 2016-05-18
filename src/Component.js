@@ -27,6 +27,24 @@ const _findState = function _findState(inStateName) {
     return currentState;
 };
 
+const _conformsToComponentModel = function _conformsToComponentModel(inOrig) {
+    if(!inOrig) {
+        return false;
+    }
+    if(inOrig instanceof Observable) {
+        return inOrig.prop('data') !== undefined &&
+            inOrig.prop('_state') !== undefined &&
+            inOrig.prop('_nextState') !== undefined;
+    } else {
+        return _.isPlainObject(inOrig) &&
+            inOrig.data !== undefined &&
+            inOrig._state !== undefined &&
+            inOrig._nextState !== undefined;
+    }
+
+};
+
+
 const _watchState = function _watchState() {
     this.model.watch('_nextState', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
@@ -84,10 +102,33 @@ class Component {
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
         this.name = inConfig.name;
+        _.each(inConfig.actions, (inAction) => {
+            if(!inAction) {
+                console.error('Passed a null action to component config');
+                return;
+            }
+            const actionName = _.isString(inAction) ? inAction : inAction.name;
+            if(!actionName) {
+                console.error('Passed an object with no action name as action in component config');
+                return;
+            }
+            const handler = _.isPlainObject(inAction) ? inAction.handler : undefined;
+
+            if(handler && !_.isFunction(handler)) {
+                console.error('Passed a non-function action handler in component config');
+                return;
+            }
+            if(_.isPlainObject(inAction) && inAction.publish === true) {
+                this.bus.publishAction(actionName, handler);
+            } else {
+                this.bus.addAction(actionName, handler);
+            }
+            
+        });
         let templates = inConfig.templates || {};
 
-        this.model = inInitObj instanceof Observable ?
-            inInitObj :
+        this.model = _conformsToComponentModel(inInitObj) ?
+            ObservableObject.fromObject(inInitObj) :
             ObservableObject.fromObject({
                 data: inInitObj,
                 _state: '',

@@ -2,7 +2,6 @@
 import Observer from './Observer';
 import _ from 'lodash';
 import Observable from './Observable';
-import ObservableCollection from './ObservableCollection';
 
 
 
@@ -10,8 +9,8 @@ const _private = new WeakMap();
 
 
 class Dummy {
-    constructor() {
-        this._obj = {};
+    constructor(inIsCollection) {
+        this._obj = inIsCollection ? [] : {};
         _private.set(this, {
 
         });
@@ -27,16 +26,20 @@ class Dummy {
 
 class ObservableObject extends Observable {
 
-    constructor() {
+    constructor(inConfig) {
         super();
+        const isCollection = (_.get(inConfig, 'isCollection') === true);
         _private.set(this, {
             isSilent: false,
+            isCollection: isCollection,
             changesQueue: [],
             observer: new Observer(),
-            props: new Dummy(),
+            props: new Dummy(isCollection),
             setProp: function(inPath, inValue, inBackPath, inAlreadyFoundChange) {
-                const path = inPath.split('.');
-                const localProp = path.shift();
+
+                const path = !isNaN(inPath) ? [inPath] : inPath.split('.');
+                var localProp = path.shift();
+
                 inBackPath = inBackPath || [];
                 inBackPath.push(localProp);
                 let out;
@@ -53,8 +56,8 @@ class ObservableObject extends Observable {
                             newValue: _private.get(this).props.prop(localProp)
                         }
                     };
-                } else if (val !== undefined && !(val instanceof ObservableObject)) {
-                    throw new Error('trying to set a value through a branch with a non Object node');
+                } else if (val !== undefined && !(val instanceof Observable)) {
+                    throw new Error('trying to set a value through a branch with a non Observable node');
                 } else {
                     let alreadyFound = false;
                     if (val === undefined) {
@@ -78,8 +81,43 @@ class ObservableObject extends Observable {
 
     }
 
+    * [Symbol.iterator]() {
+        const src = _private.get(this).props._obj;
+        if(this.isCollection) {
+            for (var item of src) {
+                yield item;
+            }
+        } else {
+            for(let key in src) {
+                const out = {};
+                out[key] = src[key];
+                yield out;
+            }
+        }
+    }
+
+
     fill(inData, inSilent) {
-        if(!_.isPlainObject(inData)) {
+        const _p = _private.get(this);
+        _p.props._obj = this.isCollection ? [] : {};
+        if (_.keys(inData).length) {
+            this.merge(inData, inSilent);
+        } else {
+            if (!inSilent) {
+                _p.changesQueue.push({
+                    path: '',
+                    type: 'emptied'
+                });
+                ObservableObject.notifyWatchers(_p);
+            }
+        }
+
+
+    }
+
+    merge(inData, inSilent) {
+
+        if (!_.isPlainObject(inData) && !_.isArray(inData)) {
             throw new Error('ObservableObject.fill() must be passed a plain object');
         }
         _.each(inData, (inValue, inKey) => {
@@ -88,10 +126,10 @@ class ObservableObject extends Observable {
     }
 
     static fromObject(inData) {
-        if (_.isArray(inData)) {
-            let a = new ObservableCollection();
+        if (_.isArray(inData)) { //REFACTOR: duplicated code?
+            let a = new ObservableObject({ isCollection: true });
             _.each(inData, function(inVal, inKey) {
-                a.setItemAt(inKey, ObservableObject.fromObject(inVal));
+                a.prop(inKey, ObservableObject.fromObject(inVal));
             });
             return a;
         } else if (_.isPlainObject(inData)) {
@@ -106,10 +144,10 @@ class ObservableObject extends Observable {
     }
 
     static prop(inBase, inPath) {
-        if(!inBase) {
+        if (!inBase) {
             return;
         }
-        if(!(inBase instanceof ObservableObject)) {
+        if (!(inBase instanceof ObservableObject)) {
             return;
         }
         return inBase.prop(inPath);
@@ -119,16 +157,36 @@ class ObservableObject extends Observable {
         return _private.get(this);
     }
 
+    get isCollection() {
+        return _private.get(this).isCollection;
+    }
+
+    get length() {
+        const _p = _private.get(this);
+        if (_p.isCollection) {
+            return _.keys(_p.props._obj).length;
+        }
+        return undefined;
+    }
+
     prop(inPath, inValue, inSilent) {
-        if (!inPath) {
+        if (inPath !== 0 && !inPath) { //path can be an index. !inPath would ignore zero as a property
             return this;
         }
         const _p = _private.get(this);
         const myProps = _p.props;
-        const path = inPath.split('.');
+        const path = !isNaN(inPath) ? [inPath] : inPath.split('.');
         var propName = path.shift();
+        if (_p.isCollection && isNaN(propName) && propName !== 'length') {
+            throw new Error('Collection ObservableObject can only have numbers as keys');
+        } else if (_p.isCollection) {
+            propName = !isNaN(propName) ? parseInt(propName) : propName;
+            if (isNaN(propName)) {
+                return this.length;
+            }
+        }
         if (inValue === undefined) {
-            if (!myProps.prop(propName) === undefined) {
+            if (myProps.prop(propName) === undefined) {
                 return undefined;
             } else {
                 if (path.length && !(myProps.prop(propName) instanceof Observable)) {
@@ -156,7 +214,7 @@ class ObservableObject extends Observable {
     }
 
     toNative(inDeep) {
-        var out = {};
+        var out = _private.get(this).isCollection ? [] : {};
         _.each(_private.get(this).props._obj, (inVal, inKey) => {
             let isObservable = inVal instanceof Observable;
             out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
@@ -175,8 +233,8 @@ class ObservableObject extends Observable {
 
     }
 
-    empty() {
-
+    empty(inSilent) {
+        this.fill(null, inSilent);
     }
 }
 export default ObservableObject;

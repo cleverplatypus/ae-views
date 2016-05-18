@@ -7,7 +7,6 @@ export pagefactory from './page-factory';
 export TemplatingDelegate from './delegate/TemplatingDelegate';
 export MasterPage from './MasterPage';
 export ObservableObject from './ObservableObject';
-export ObservableCollection from './ObservableCollection';
 export UNRESOLVED from './symbol/unresolved';
 
 

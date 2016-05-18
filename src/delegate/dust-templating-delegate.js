@@ -3,7 +3,6 @@
 import TemplatingDelegate from './TemplatingDelegate';
 import dust from 'ae-dustjs';
 import uuid from 'node-uuid';
-import ObservableCollection from '../ObservableCollection';
 import ObservableObject from '../ObservableObject';
 import Observable from '../Observable';
 
@@ -17,16 +16,9 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         super();
         var n = 'EV' + 'a' + 'L';
         evilFn = inEvilFn || window[n.toLowerCase()];
-        dust.helpers.nempty = function(chunk, context, bodies, params) {
-            if (context.stack.head instanceof ObservableCollection && context.stack.head.length) {
-                chunk.render(bodies.block, context);
-            }
-
-            return chunk;
-        };
 
         dust.collectionResolver = function(inCollection) {
-            if (inCollection instanceof ObservableCollection) {
+            if (inCollection instanceof ObservableObject && inCollection.isCollection) {
                 return inCollection.toNative();
             } else {
                 return inCollection;
@@ -35,14 +27,11 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 
         dust.propertyResolver = function(inBase, inPath) {
             if (inBase instanceof ObservableObject) {
-                let prop = inBase.prop(inPath);
-                if(prop instanceof ObservableCollection) {
-                   return prop.toNative();
+                if(inBase.isCollection && inPath === 'length') {
+                    return inBase.length;
                 } else {
-                    return prop;
+                    return inBase.prop(inPath);
                 }
-            } else if (inBase instanceof ObservableCollection && inPath === 'length') {
-                return inBase.length;
             } else {
                 return _.get(inBase, inPath);
             }
@@ -60,7 +49,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
     }
 
     register(inName, inTemplate) {
-        _templates.set(inName, inTemplate)
+        _templates.set(inName, inTemplate);
         dust.register(inName, inTemplate);
     }
 
