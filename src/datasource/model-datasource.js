@@ -5,7 +5,7 @@ const $ = require('jquery');
 let _page = null;
 
 
-module.exports = function() {
+export default function() {
     return function(inPage) {
         return new(function(inPage) {
             this.page = _page = inPage;
@@ -38,10 +38,10 @@ module.exports = function() {
                 }
                 const model = _page.resolveNodeModel(inNode, inPath);
                 model.prop(inPath, inValue);
-            }
+            };
 
 
         })(inPage);
     };
 
-};
+}

@@ -1,5 +1,4 @@
 
-(function(root){
     "use strict";
 
     try {root = global;} catch(e){ try {root = window;} catch(e){} };
@@ -56,7 +55,4 @@
         }
     }
     
-    if(typeof module != 'undefined' && module.exports) module.exports = microtask;
-    else if(typeof define ==='function' && define.amd) define(microtask); 
-    else root.microtask = microtask;
-}(this));
+export default microtask;

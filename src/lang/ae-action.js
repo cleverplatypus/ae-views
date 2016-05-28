@@ -27,7 +27,7 @@
 import $ from 'jquery';
 import Element from './ae-element';
 import _ from 'lodash';
-import {UNRESOLVED} from '../symbol/unresolved';
+import UNRESOLVED from '../symbol/unresolved';
 import {includes} from 'lodash';
 
 let _page;
