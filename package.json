@@ -57,7 +57,7 @@
     "signals": "^1.0.0"
   },
   "scripts" : {
-    "post-install" : "rollup src/ae.js --format cjs > dist/bundle.js"
+    "postinstall" : "rollup src/ae.js --format cjs > dist/bundle.js"
   },
   "devDependencies": {
     "rollup": "^0.26.3",
