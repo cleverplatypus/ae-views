@@ -119,9 +119,9 @@ class Component {
                 return;
             }
             if(_.isPlainObject(inAction) && inAction.publish === true) {
-                this.bus.publishAction(actionName, handler);
+                this.bus.publishAction(actionName, handler ? handler.bind(this) : null);
             } else {
-                this.bus.addAction(actionName, handler);
+                this.bus.addAction(actionName, handler ? handler.bind(this) : null);
             }
             
         });
