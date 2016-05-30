@@ -106,7 +106,10 @@ class ObservableObject extends Observable {
             if (!inSilent) {
                 _p.changesQueue.push({
                     path: '',
-                    type: 'emptied'
+                    change : {
+                        type: 'emptied',
+                        newValue : _p.props._obj
+                    }
                 });
                 ObservableObject.notifyWatchers(_p);
             }
@@ -232,6 +235,36 @@ class ObservableObject extends Observable {
         inInstance.changesQueue = [];
 
     }
+
+    static fill(inTarget, inPath, inContent, inSilent) {
+        if(!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new error('fill() can only be invoked on an ObservableObject');
+        }
+        let dest = inTarget;
+        if(_.isString(inPath) && inPath.length) {
+            dest = inTarget.prop(inPath);
+
+        }
+        if(!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new error('Cannot resolve ObservableObject to fill');
+        }
+
+        dest.fill(inContent);
+        const _p = _private.get(inTarget);
+        if (!inSilent) {
+            _p.changesQueue.push({
+                path: inPath,
+                change : {
+                    type: 'filled',
+                    newValue : inContent
+                }
+            });
+            ObservableObject.notifyWatchers(_p);
+        }
+    
+        
+    }
+
 
     empty(inSilent) {
         this.fill(null, inSilent);

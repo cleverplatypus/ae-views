@@ -11,7 +11,7 @@ export default function render(inPage) {
     var render = function render() {
         let templateName = $(this).attr('template');
 
-        const path = $(this).attr('path');
+        const path = $(this).attr('from');
         _page.getDataSource().resolve(this, path).then((inValue) => {
             const attrs = _.transform(this.attributes, function(result, item) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
@@ -60,7 +60,7 @@ export default function render(inPage) {
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
 
-        const path = $(this).attr('path');
+        const path = $(this).attr('from');
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
 
             if (inBaseModel instanceof Observable) {
@@ -74,6 +74,8 @@ export default function render(inPage) {
         });
         if ($(this).attr('watch')) {
             _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
+                console.log('should render now');
+                console.log(inBaseModel instanceof Observable ? inBaseModel.toNative(true) : inBaseModel);
                 render.call(this);
             });
         }
