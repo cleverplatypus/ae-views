@@ -38,7 +38,7 @@ import aeAction from './ae-action';
 import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
-
+import aeTextInput from './ae-text-input';
 
 export default function(inPage) {
 
@@ -51,5 +51,6 @@ export default function(inPage) {
     aeBind(inPage);
     aeRender(inPage);
     aeSwitch(inPage);
+    aeTextInput(inPage);
 };
 
