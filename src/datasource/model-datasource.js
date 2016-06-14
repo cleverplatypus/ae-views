@@ -16,7 +16,8 @@ export default function() {
                     if (!/^_/.test(inPath) && inPath) {
                         inPath = 'data' + (inPath ? '.' + inPath : '');
                     }
-                    resolvePromise(_page.resolveNodeModel(inNode, inPath).prop(inPath));
+                    const model = _page.resolveNodeModel(inNode, inPath);
+                    resolvePromise(inPath ? model.prop(inPath) : model);
 
                 });
             };

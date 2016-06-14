@@ -23,140 +23,11 @@
  */
 
 
-
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
-import UNRESOLVED from '../symbol/unresolved';
-import { includes } from 'lodash';
+import attachAction from '../delegate/action-trigger-delegate';
 
 let _page;
-
-
-/* 
- * REFACTOR: move this to library. 
- * Typification should be html node agnostic therefore some kind
- * of delegation should be used or the tilde string handling has to be
- * hanled after returning
- */
-var typifyParams = function typifyParams(inActionNode, inParams) {
-    var out = {};
-    _.each(inParams, function(inParamValue, inParamKey) {
-        if (!inParamValue) {
-            out[inParamKey] = null;
-        } else if (_.isString(inParamValue) && /^~/.test(inParamValue)) {
-            let resolvedValue = UNRESOLVED;
-            _page.getDataSource()
-                .resolve(inActionNode, inParamValue.replace('~', '')).then((inValue) => {
-                    resolvedValue = inValue;
-                });
-            if (resolvedValue === UNRESOLVED) {
-                throw new Error('Action parameters must be resolved synchronously');
-            }
-            out[inParamKey] = resolvedValue;
-        } else if (_.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
-            out[inParamKey] = inParamValue.replace(/^`/, '').replace(/`$/, '');
-        } else if (!isNaN(inParamValue)) {
-            out[inParamKey] = Number(inParamValue);
-        } else if (/^(true|false)$/.test(inParamValue)) {
-            out[inParamKey] = (inParamValue === 'true');
-        } else {
-            console.warn('using deprecated signal string param format');
-            out[inParamKey] = inParamValue; //is a string
-        }
-    });
-    return out;
-};
-
-var assembleParams = function(inActionNode) {
-    let params = {};
-    $($(inActionNode).get(0).attributes).each(function() {
-        if (/^param-/.test(this.name)) {
-            params[this.name.replace('param-', '')] = this.value;
-        }
-    });
-    return typifyParams(inActionNode, params);
-};
-
-const _resolveTargets = function _resolveTargets() {
-    let target = {};
-    if ($(this).children().length) {
-        target.node = $(this).children().get(0);
-    } else {
-        const targetAttr = $(this).attr('target');
-        if (!targetAttr) {
-            target.node = $(this).parent();
-        } else if (targetAttr === 'next') {
-            target.node = $(this).next();
-        } else if (/^closest/.test(targetAttr)) {
-            const segs = targetAttr.split(/\s+/);
-            target.node = $(this).closest(segs[1]);
-        } else if (/^(\.|\#)/.test(targetAttr)) {
-            target.node = $(this).parent().find(targetAttr);
-        } else {
-            console.warn('Unknown ae-bind target: ' + targetAttr);
-        }
-    }
-    if (target.node && target.node.length) {
-        return target;
-    } else if (target.node && !target.node.length) {
-        target.pending = true;
-        return target;
-    }
-    return;
-};
-
-const _attachAction = function _attachAction() {
-    let target = _resolveTargets.call(this);
-    if (_.get(target, 'pending') === true) {
-        const observer = new MutationObserver((mutations) => {
-            _attachAction.call(this);
-        });
-        var observerConfig = {
-            subtree: true,
-            childList : true
-        };
-        observer.observe(this.parentNode, observerConfig);
-    } else {
-        const actionName = $(this).attr('name');
-        _.each(target.node, (inTargetNode) => {
-            const component = _page.resolveNodeComponent(inTargetNode);
-            let event;
-
-            let trigger = $(this).attr('trigger') || '';
-            switch (trigger) {
-                case 'enter':
-                case 'esc':
-                    event = 'keyup';
-                    break;
-                case '':
-                    event = 'click';
-                    break;
-                default:
-                    if (/^\w+:/.test(trigger)) {
-                        event = trigger.match(/^(\w+)/)[0];
-                    } else {
-                        event = trigger;
-                    }
-            }
-
-
-            $(inTargetNode).off(event).on(event, (inEvent) => {
-                if (trigger === 'enter' && inEvent.keyCode !== 13) {
-                    return;
-                }
-                if (trigger === 'esc' && inEvent.keyCode !== 27) {
-                    return;
-                }
-                component.bus.triggerAction(
-                    actionName,
-                    inEvent,
-                    assembleParams(this)
-                );
-            });
-        });
-    }
-};
 
 
 export default function action(inPage) {
@@ -166,11 +37,24 @@ export default function action(inPage) {
     var proto = Object.create(Element.prototype);
 
     proto.createdCallback = function() {
-       
+
     };
 
     proto.attachedCallback = function() {
- _attachAction.call(this);
+        attachAction.call(this, _page, {
+            name: $(this).attr('name'),
+            trigger: $(this).attr('trigger'),
+            target: $(this).attr('target'),
+            params: (() => {
+                const params = {};
+                $($(this).get(0).attributes).each(function() {
+                    if (/^param-/.test(this.name)) {
+                        params[this.name.replace('param-', '')] = this.value;
+                    }
+                });
+                return params;
+            })()
+        });
     };
 
     proto.detachedCallback = function() {

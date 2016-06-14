@@ -10,11 +10,20 @@ import dustTemplatingDelegate from './delegate/dust-templating-delegate';
 
 
 let _templatingDelegate;
+let _componentConfigPreprocessor;
 
 class PageFactory {
     
     getTemplatingDelegate() {
         return _templatingDelegate;
+    }
+
+    setComponentConfigPreProcessor(inFn) {
+    	Object.defineProperty(this, 'componentConfigPreprocessor', { 
+            get : function() { 
+                return inFn;
+            }
+        });
     }
 
     page(inConfig, inModel, inSetupFunction) {

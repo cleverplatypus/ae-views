@@ -488,6 +488,21 @@ class State {
 		return _$1.find(_private$3.get(this).children, (inChild) => inChild.getName() === inName);
 	}
 
+	resolve(inPath) {
+		if(!inPath) {
+			return;
+		}
+		const segs = inPath.split('.');
+		const child = this.child(segs.shift());
+		if(!child) {
+			return;
+		} else if(segs.length) {
+			return child.resolve(segs.join('.'));
+		} else {
+			return child;
+		}
+	}
+
 	onLeaving(inFn) {
 		this.leaving = inFn;
 		return this;
@@ -751,6 +766,10 @@ class Component$1 {
             }
         });
 
+
+        if(pageFactory.componentConfigPreprocessor) {
+            pageFactory.componentConfigPreprocessor(inConfig);
+        }
         this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
@@ -799,6 +818,16 @@ class Component$1 {
         this.states = this.states || new State();
         _private$5.get(this).currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
+
+        microtask(this.initState.bind(this));
+    }
+
+    data(inPath, inValue) {
+        const path = 'data.' + inPath;
+        this.page.resolveNodeModel(this.node, path).prop(path, inValue);
+    }
+
+    initState() {
 
     }
 
@@ -926,6 +955,221 @@ function action(inPage) {
 
     document.registerElement('ae-managed', { prototype: proto });
 };
+
+var UNRESOLVED = Symbol('unresolved');
+
+const typifyParams = function typifyParams(inPage, inParams) {
+    const out = {};
+    _.each(inParams, function(inParamValue, inParamKey) {
+        if (!inParamValue) {
+            out[inParamKey] = null;
+        } else if (_.isString(inParamValue) && /^~/.test(inParamValue)) {
+            let resolvedValue = UNRESOLVED;
+            inPage.getDataSource()
+                .resolve(this, inParamValue.replace('~', '')).then((inValue) => {
+                    resolvedValue = inValue;
+                });
+            if (resolvedValue === UNRESOLVED) {
+                throw new Error('Action parameters must be resolved synchronously');
+            }
+            out[inParamKey] = resolvedValue;
+        } else if (_.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
+            out[inParamKey] = inParamValue.replace(/^`/, '').replace(/`$/, '');
+        } else if (!isNaN(inParamValue)) {
+            out[inParamKey] = Number(inParamValue);
+        } else if (/^(true|false)$/.test(inParamValue)) {
+            out[inParamKey] = (inParamValue === 'true');
+        } else {
+            console.warn('using deprecated signal string param format');
+            out[inParamKey] = inParamValue; //is a string
+        }
+    });
+    return out;
+};
+
+
+const _resolveTargets = function _resolveTargets(inPage, inConfig) {
+    let target = {};
+    if ($(this).children().length) {
+        target.node = $(this).children().get(0);
+    } else {
+        const targetAttr = inConfig.target;
+        if (!targetAttr) {
+            target.node = $(this).parent();
+        } else if (targetAttr === 'next') {
+            target.node = $(this).next();
+        } else if (/^closest/.test(targetAttr)) {
+            const segs = targetAttr.split(/\s+/);
+            target.node = $(this).closest(segs[1]);
+        } else if (/^(\.|\#)/.test(targetAttr)) {
+            target.node = $(this).parent().find(targetAttr);
+        } else if (/^self$/.test(targetAttr)) {
+            target.node = this;
+        } else {
+            console.warn('Unknown ae-bind target: ' + targetAttr);
+        }
+    }
+    if (target.node && target.node.length) {
+        return target;
+    } else if (target.node && !target.node.length) {
+        target.pending = true;
+        return target;
+    }
+    return;
+};
+
+
+
+
+function _attachAction(inPage, inConfig) {
+
+    let target = _resolveTargets.call(this, inPage, inConfig);
+    if (_.get(this, 'pending') === true) {
+        const observer = new MutationObserver((mutations) => {
+            _attachAction.call(this);
+        });
+        const observerConfig = {
+            subtree: true,
+            childList: true
+        };
+        observer.observe(this.parentNode, observerConfig);
+    } else {
+        const actionName = inConfig.name;
+        _.each(target.node, (inTargetNode) => {
+            const component = inPage.resolveNodeComponent(inTargetNode);
+            let event;
+
+            let trigger = inConfig.trigger || '';
+            switch (trigger) {
+                case 'enter':
+                case 'esc':
+                    event = 'keyup';
+                    break;
+                case '':
+                    event = 'click';
+                    break;
+                default:
+                    if (/^\w+:/.test(trigger)) {
+                        event = trigger.match(/^(\w+)/)[0];
+                    } else {
+                        event = trigger;
+                    }
+            }
+
+
+            $(inTargetNode).off(event).on(event, (inEvent) => {
+                if (trigger === 'enter' && inEvent.keyCode !== 13) {
+                    return;
+                }
+                if (trigger === 'esc' && inEvent.keyCode !== 27) {
+                    return;
+                }
+                component.bus.triggerAction(
+                    actionName,
+                    inEvent,
+                    typifyParams(inConfig.params)
+                );
+            });
+        });
+    }
+
+}
+
+function aeButton(inPage) {
+    const _page = inPage;
+    let observer;
+
+    var proto = Object.create(HTMLButtonElement.prototype);
+    proto.createdCallback = function() {
+        debugger;
+        observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                switch (mutation.attributeName) {
+                    case 'label':
+                        $(mutation.target).text($(mutation.target).attr('label'));
+                        break;
+                }
+            });
+        });
+        console.log(this);
+        // configuration of the observer:
+        var config = { attributes: true };
+
+        // pass in the target node, as well as the observer options
+        observer.observe(this, config);
+
+
+        if ($(this).attr('bind-label')) {
+            const path = $(this).attr('bind-label');
+            const source = $(this).attr('source');
+
+            _page
+                .getDataSource(source)
+                .bindPath(this, path, (inNewValue) => {
+                    $(this).text(inNewValue);
+                });
+            _page
+                .getDataSource(source)
+                .resolve(this, path)
+                .then((inValue) => {
+                    $(this).text(inValue);
+                });
+        }
+
+        if ($(this).attr('bind-enabled')) {
+            const path = $(this).attr('bind-enabled');
+            const source = $(this).attr('source');
+            const setValue = (inValue) => {
+                $(this).attr('disabled', inValue === 'false' ? '' : null);
+            };
+
+            _page
+                .getDataSource(source)
+                .bindPath(this, path, (inNewValue) => {
+                    setValue(inNewValue);
+                });
+            _page
+                .getDataSource(source)
+                .resolve(this, path)
+                .then((inValue) => {
+                    setValue(inValue);
+                });
+        }
+
+        if ($(this).attr('action')) {
+            _attachAction.call(this, _page, {
+                name: $(this).attr('action'),
+                trigger: 'click',
+                target: 'self',
+                params: (() => {
+                    const params = {};
+                    $($(this).get(0).attributes).each(function() {
+                        if (/^param-/.test(this.name)) {
+                            params[this.name.replace('param-', '')] = this.value;
+                        }
+                    });
+                    return params;
+                })
+            });
+        }
+
+
+
+    };
+
+    proto.attachedCallback = function() {
+        if ($(this).attr('label')) {
+            $(this).html($(this).attr('label'));
+        }
+
+    };
+
+    proto.detachedCallback = function() {
+        observer.disconnect();
+    };
+
+    document.registerElement('ae-button', { prototype: proto});
+}
 
 function each(inPage) {
     const _page = inPage;
@@ -1170,8 +1414,6 @@ function radio(inPage) {
     document.registerElement('ae-radio', { prototype: proto });
 }
 
-var UNRESOLVED = Symbol('unresolved');
-
 let _page$1;
 
 
@@ -1181,7 +1423,7 @@ let _page$1;
  * of delegation should be used or the tilde string handling has to be
  * hanled after returning
  */
-var typifyParams = function typifyParams(inActionNode, inParams) {
+var typifyParams$1 = function typifyParams(inActionNode, inParams) {
     var out = {};
     _$1.each(inParams, function(inParamValue, inParamKey) {
         if (!inParamValue) {
@@ -1217,10 +1459,10 @@ var assembleParams = function(inActionNode) {
             params[this.name.replace('param-', '')] = this.value;
         }
     });
-    return typifyParams(inActionNode, params);
+    return typifyParams$1(inActionNode, params);
 };
 
-const _resolveTargets = function _resolveTargets() {
+const _resolveTargets$1 = function _resolveTargets() {
     let target = {};
     if ($(this).children().length) {
         target.node = $(this).children().get(0);
@@ -1248,8 +1490,8 @@ const _resolveTargets = function _resolveTargets() {
     return;
 };
 
-const _attachAction = function _attachAction() {
-    let target = _resolveTargets.call(this);
+const _attachAction$1 = function _attachAction() {
+    let target = _resolveTargets$1.call(this);
     if (_$1.get(target, 'pending') === true) {
         const observer = new MutationObserver((mutations) => {
             _attachAction.call(this);
@@ -1312,7 +1554,7 @@ function action$1(inPage) {
     };
 
     proto.attachedCallback = function() {
- _attachAction.call(this);
+ _attachAction$1.call(this);
     };
 
     proto.detachedCallback = function() {
@@ -1744,9 +1986,10 @@ function aeTextInput(inPage) {
     'use strict';
     const _page = inPage;
     let observer;
-
+    document.styleSheets[0].insertRule('ae-text-input' + '{ display: block;}', 1);
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
+
         observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {
@@ -1828,6 +2071,7 @@ $.fn.extend({
 
 function lang(inPage) {
 
+    aeButton(inPage);
     action(inPage);
     each(inPage);
     state(inPage);
@@ -1838,7 +2082,7 @@ function lang(inPage) {
     render(inPage);
     aeSwitch(inPage);
     aeTextInput(inPage);
-};
+}
 
 const _dataSources = new Map();
 const _private$4 = privateHash('component');
@@ -1905,7 +2149,6 @@ class Page extends Component$1 {
 
     resolveNodeComponent(inNode) {
         let node = $(inNode).get(0);
-        ;
         while (!_registry.get(node)) {
             node = $(node).parent().get(0);
             if (!node) {
@@ -1950,12 +2193,22 @@ class Page extends Component$1 {
         });
     }
 
+    initState() {
+        let hash = window.location.hash;
+        if (/^#>[\w\-]/.test(hash)) {
+            hash = hash.replace(/^#>/, '');
+            if (this.states.getPath(hash)) {
+                this.tryState(hash);
+            }
+        }
+    }
+
     registerComponentElement(inDefinition) {
         var proto = Object.create(HTMLDivElement.prototype);
         var that = this;
         let component;
         const name = inDefinition.config.name;
-
+        console.info('registering component: ' + name);
         document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
 
         proto.createdCallback = function() {
@@ -1976,7 +2229,7 @@ class Page extends Component$1 {
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-           _private$4.get(component)
+            _private$4.get(component)
                 .lifecycleSignal.dispatch('element-attached');
             if (component.config.autoRender !== false) {
                 component.render.call(component);
@@ -2008,13 +2261,17 @@ function dustHelpers(dust) {
 
 
     dust.helpers.re = function(chunk, context, bodies, params) {
+        console.warn('params:');
+        console.warn(params);
         if (!params.key || !params.match) {
             chunk.write('');
+            console.warn('writing empty string');
         } else {
+            console.warn('writing bodies');
             var re = new RegExp(params.match);
             if (re.test(params.key)) {
-                if (body) {
-                    chunk = chunk.render(body, context);
+                if (bodies) {
+                    chunk = chunk.render(bodies, context);
                 }
             }
 
@@ -2714,11 +2971,18 @@ function dustTemplatingDelegate(inEvilFn) {
 }
 
 let _templatingDelegate;
-
 class PageFactory {
     
     getTemplatingDelegate() {
         return _templatingDelegate;
+    }
+
+    setComponentConfigPreProcessor(inFn) {
+    	Object.defineProperty(this, 'componentConfigPreprocessor', { 
+            get : function() { 
+                return inFn;
+            }
+        });
     }
 
     page(inConfig, inModel, inSetupFunction) {
@@ -2818,6 +3082,10 @@ class Component {
             }
         });
 
+
+        if(pageFactory.componentConfigPreprocessor) {
+            pageFactory.componentConfigPreprocessor(inConfig);
+        }
         this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
@@ -2866,6 +3134,16 @@ class Component {
         this.states = this.states || new State();
         _private.get(this).currentState = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
+
+        microtask(this.initState.bind(this));
+    }
+
+    data(inPath, inValue) {
+        const path = 'data.' + inPath;
+        this.page.resolveNodeModel(this.node, path).prop(path, inValue);
+    }
+
+    initState() {
 
     }
 

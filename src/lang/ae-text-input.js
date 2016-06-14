@@ -7,9 +7,10 @@ export default function aeTextInput(inPage) {
     'use strict';
     const _page = inPage;
     let observer;
-
+    document.styleSheets[0].insertRule('ae-text-input' + '{ display: block;}', 1);
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
+
         observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {
@@ -42,10 +43,14 @@ export default function aeTextInput(inPage) {
         });
         const bindingNode = bindingAttrName ? `<ae-bind target="next" ${bindingAttrName}="${$(this).attr(bindingAttrName)}"></ae-bind>` : '';
         const labelText = $(this).attr('label');
+        const autocomplete = $(this).attr('autocomplete') ? 
+            ' autocomplete="' + $(this).attr('autocomplete') + '"' : 
+            '';
         const placeholder = $(this).attr('placeholder') || '';
+        const inputClass = $(this).attr('input-class') || '';
         const inputName = $(this).attr('name') || 'ae-' + uuid.v4();
         const valueAttr = $(this).attr('value') ? `value="${$(this).attr('value')}` : '';
-        const input = `<input name="${inputName}" type="${inputType}" placeholder="${placeholder}" class="${$(this).attr('input-class') || ''}" ${valueAttr}>`;
+        const input = `<input name="${inputName}" type="${inputType}" ${autocomplete} class="${inputClass}" placeholder="${placeholder}" ${valueAttr}>`;
         const label = labelText ? `<label for="${inputName}" class="${$(this).attr('label-class') || ''}">${labelText}</label>` : '';
 
         $(this).append(`${label}${bindingNode}${input}`);

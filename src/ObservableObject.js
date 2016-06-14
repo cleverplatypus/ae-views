@@ -1,6 +1,6 @@
 'use strict';
 import Observer from './Observer';
-import _ from 'lodash';
+import {isPlainObject, keys, each, isString, get, isArray} from 'lodash';
 import Observable from './Observable';
 
 
@@ -28,7 +28,7 @@ class ObservableObject extends Observable {
 
     constructor(inConfig) {
         super();
-        const isCollection = (_.get(inConfig, 'isCollection') === true);
+        const isCollection = (get(inConfig, 'isCollection') === true);
         _private.set(this, {
             isSilent: false,
             isCollection: isCollection,
@@ -100,7 +100,7 @@ class ObservableObject extends Observable {
     fill(inData, inSilent) {
         const _p = _private.get(this);
         _p.props._obj = this.isCollection ? [] : {};
-        if (_.keys(inData).length) {
+        if (keys(inData).length) {
             this.merge(inData, inSilent);
         } else {
             if (!inSilent) {
@@ -120,24 +120,24 @@ class ObservableObject extends Observable {
 
     merge(inData, inSilent) {
 
-        if (!_.isPlainObject(inData) && !_.isArray(inData)) {
+        if (!isPlainObject(inData) && !isArray(inData)) {
             throw new Error('ObservableObject.fill() must be passed a plain object');
         }
-        _.each(inData, (inValue, inKey) => {
+        each(inData, (inValue, inKey) => {
             this.prop(inKey, ObservableObject.fromObject(inValue), inSilent);
         });
     }
 
     static fromObject(inData) {
-        if (_.isArray(inData)) { //REFACTOR: duplicated code?
+        if (isArray(inData)) { //REFACTOR: duplicated code?
             let a = new ObservableObject({ isCollection: true });
-            _.each(inData, function(inVal, inKey) {
+            each(inData, function(inVal, inKey) {
                 a.prop(inKey, ObservableObject.fromObject(inVal));
             });
             return a;
-        } else if (_.isPlainObject(inData)) {
+        } else if (isPlainObject(inData)) {
             let o = new ObservableObject();
-            _.each(inData, function(inVal, inKey) {
+            each(inData, function(inVal, inKey) {
                 o.prop(inKey, ObservableObject.fromObject(inVal));
             });
             return o;
@@ -167,7 +167,7 @@ class ObservableObject extends Observable {
     get length() {
         const _p = _private.get(this);
         if (_p.isCollection) {
-            return _.keys(_p.props._obj).length;
+            return keys(_p.props._obj).length;
         }
         return undefined;
     }
@@ -218,7 +218,7 @@ class ObservableObject extends Observable {
 
     toNative(inDeep) {
         var out = _private.get(this).isCollection ? [] : {};
-        _.each(_private.get(this).props._obj, (inVal, inKey) => {
+        each(_private.get(this).props._obj, (inVal, inKey) => {
             let isObservable = inVal instanceof Observable;
             out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
         });
@@ -241,8 +241,12 @@ class ObservableObject extends Observable {
             throw new error('fill() can only be invoked on an ObservableObject');
         }
         let dest = inTarget;
-        if(_.isString(inPath) && inPath.length) {
+        if(isString(inPath) && inPath.length) {
             dest = inTarget.prop(inPath);
+            if(!dest) {
+                inTarget.prop(inPath, isPlainObject(inContent) ? {} : []);
+                dest = inTarget.prop(inPath);
+            }
 
         }
         if(!inTarget || !(inTarget instanceof ObservableObject)) {

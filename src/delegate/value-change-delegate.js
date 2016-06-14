@@ -1,7 +1,7 @@
 'use strict';
 
 import $ from 'jquery';
-import _ from 'lodash';
+import {each, includes} from 'lodash';
 import ObservableObject from '../ObservableObject';
 
 class InputValueChangeDelegate {
@@ -20,22 +20,22 @@ class InputValueChangeDelegate {
     onValueChange(inElement, inConfig, inHandler) {
         const delay = !isNaN(inConfig.delay) ? Number(inConfig.delay) : null;
         const commitOnly = inConfig.commitOnly === true;
-        let eventName = inConfig.event;
-        if(!eventName) {
+        let events = inConfig.event;
+        if(!events) {
 
             switch ($(inElement).get(0).nodeName.toUpperCase()) {
                 case 'INPUT':
-                    if (_.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
-                        eventName = (commitOnly ? 'change' : 'keyup');
-                    } else if (_.includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
-                        eventName = 'click';
+                    if (includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
+                        events = 'change,keyup';
+                    } else if (includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
+                        events = 'click';
                     }
                     break;
                 case 'SELECT':
-                    eventName = 'change';
+                    events = 'change';
                     break;
                 default:
-                    eventName = 'keydown';
+                    events = 'keydown';
             }
 }
         let delayedTimeout;
@@ -63,8 +63,10 @@ class InputValueChangeDelegate {
 
 
         const handler = (!isNaN(delay) ? delayedHandler : defaultHandler);
-        
-        $(inElement).off(eventName, handler).on(eventName, handler);
+
+        each(events.split(','), (eventName) => {
+            $(inElement).off(eventName, handler).on(eventName, handler);
+        });
     }
 
     setValue(inElement, inValue, inPropName) {
@@ -79,7 +81,9 @@ class InputValueChangeDelegate {
                 case 'email':
                 case 'tel':
                 case 'password':
-                    $(inElement).val(inValue);
+                    if($(inElement).val() !== inValue) {
+                        $(inElement).val(inValue);
+                    }
                     break;
                 case 'checkbox':
                     $(inElement).prop('checked', inValue === true|| 

@@ -13,6 +13,9 @@ export default function render(inPage) {
 
         const path = $(this).attr('from');
         _page.getDataSource().resolve(this, path).then((inValue) => {
+            if(templateName === 'checkout-page/nav-buttons') {
+                console.log('_state = ' + inValue);
+            }
             const attrs = _.transform(this.attributes, function(result, item) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
             }, {});

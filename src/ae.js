@@ -10,7 +10,7 @@ import TemplatingDelegate from './delegate/TemplatingDelegate';
 import MasterPage from './MasterPage';
 import ObservableObject from './ObservableObject';
 import UNRESOLVED from './symbol/unresolved';
+import ComponentModel from './ComponentModel';
 
 
-
-export {Component, Page, State, pagefactory, TemplatingDelegate, MasterPage, ObservableObject, UNRESOLVED};
+export {ComponentModel, Component, Page, State, pagefactory, TemplatingDelegate, MasterPage, ObservableObject, UNRESOLVED};

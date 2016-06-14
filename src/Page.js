@@ -68,7 +68,7 @@ class Page extends Component {
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);
-        if (inPath && !/^(_state|_nextState)/.test(inPath.split('.')[0]) &&
+        if (inPath && !(/^(_state|_nextState)/.test(inPath.split('.')[0])) &&
             !component.model.prop('data')) {
             return this.resolveNodeModel($(component.node).parent(), inPath);
         }
@@ -77,7 +77,6 @@ class Page extends Component {
 
     resolveNodeComponent(inNode) {
         let node = $(inNode).get(0);
-        ;
         while (!_registry.get(node)) {
             node = $(node).parent().get(0);
             if (!node) {
@@ -122,12 +121,22 @@ class Page extends Component {
         });
     }
 
+    initState() {
+        let hash = window.location.hash;
+        if (/^#>[\w\-]/.test(hash)) {
+            hash = hash.replace(/^#>/, '');
+            if (this.states.getPath(hash)) {
+                this.tryState(hash);
+            }
+        }
+    }
+
     registerComponentElement(inDefinition) {
         var proto = Object.create(HTMLDivElement.prototype);
         var that = this;
         let component;
         const name = inDefinition.config.name;
-
+        console.info('registering component: ' + name);
         document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
 
         proto.createdCallback = function() {
@@ -148,7 +157,7 @@ class Page extends Component {
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-           _private.get(component)
+            _private.get(component)
                 .lifecycleSignal.dispatch('element-attached');
             if (component.config.autoRender !== false) {
                 component.render.call(component);

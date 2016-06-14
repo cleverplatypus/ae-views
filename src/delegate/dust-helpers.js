@@ -7,13 +7,17 @@ export default function(dust) {
 
 
     dust.helpers.re = function(chunk, context, bodies, params) {
+        console.warn('params:');
+        console.warn(params);
         if (!params.key || !params.match) {
             chunk.write('');
+            console.warn('writing empty string');
         } else {
+            console.warn('writing bodies');
             var re = new RegExp(params.match);
             if (re.test(params.key)) {
-                if (body) {
-                    chunk = chunk.render(body, context);
+                if (bodies) {
+                    chunk = chunk.render(bodies, context);
                 }
             }
 

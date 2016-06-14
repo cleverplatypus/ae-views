@@ -107,8 +107,10 @@ export default function bind(inPage) {
 
             };
 
-            dataSource.bindPath(this, fromAttr, function(inNewValue) {
-                valueResolver(inNewValue);
+            dataSource.bindPath(this, fromAttr, function(inNewValue, inOldValue) {
+                if(inNewValue !== inOldValue) {
+                    valueResolver(inNewValue);
+                }
             });
 
             dataSource.resolve(this, fromAttr).then((inValue) => {

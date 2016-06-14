@@ -39,6 +39,21 @@ class State {
 		return _.find(_private.get(this).children, (inChild) => inChild.getName() === inName);
 	}
 
+	resolve(inPath) {
+		if(!inPath) {
+			return;
+		}
+		const segs = inPath.split('.');
+		const child = this.child(segs.shift());
+		if(!child) {
+			return;
+		} else if(segs.length) {
+			return child.resolve(segs.join('.'));
+		} else {
+			return child;
+		}
+	}
+
 	onLeaving(inFn) {
 		this.leaving = inFn;
 		return this;

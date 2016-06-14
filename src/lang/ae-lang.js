@@ -30,6 +30,7 @@ $.fn.extend({
 });
 
 import aeManaged from './ae-managed';
+import aeButton from './ae-button';
 import aeEach from './ae-each';
 import aeState from './ae-state';
 import aeCheckbox from './ae-checkbox';
@@ -42,6 +43,7 @@ import aeTextInput from './ae-text-input';
 
 export default function(inPage) {
 
+    aeButton(inPage);
     aeManaged(inPage);
     aeEach(inPage);
     aeState(inPage);
@@ -52,5 +54,5 @@ export default function(inPage) {
     aeRender(inPage);
     aeSwitch(inPage);
     aeTextInput(inPage);
-};
+}
 

@@ -14,13 +14,17 @@ export default function aeSwitch(inPage) {
 
     const selectHandler = function selectHandler(inSelectedElement) {
         const _p = _private.get(this);
-        const state = $(inSelectedElement).data('ae-switch-value');
+        const val = $(inSelectedElement).data('ae-switch-value');
         $(this).children().removeClass(_p.selectedClass);
         $(inSelectedElement).addClass(_p.selectedClass);
         if(_p.source === '_state') {
-            _p.target.tryState(state);
+            _p.target.tryState(val);
+        } else {
+            _page.resolveNodeComponent(this);
+            _page.getDataSource().setPath(this, _p.source, val);
+
         }
-        console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
+        //console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
     };
     
     var proto = Object.create(Element.prototype);
