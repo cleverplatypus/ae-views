@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
+import {isString, each} from 'lodash';
 import valueChangeDelegate from '../delegate/value-change-delegate';
 
 
@@ -72,7 +72,10 @@ export default function bind(inPage) {
                     if (condition && /^\/.*\/$/.test(condition)) {
                         condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
                         conditionMet = condition.test(inValue);
-                    } else if (_.isString(condition)) {
+                    } else if (isString(condition)) {
+                        if(/^(true|false)$/.test(condition)) {
+                            condition = Boolean(condition);
+                        }
                         conditionMet = (condition === inValue);
                     }
                     conditionMet = conditionMet && !negate;
@@ -124,7 +127,7 @@ export default function bind(inPage) {
                 throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
             const outOptions = {};
-            _.each(this.attributes, (inAttribute) => {
+            each(this.attributes, (inAttribute) => {
                 if (/^out-/.test(inAttribute.name)) {
                     outOptions[inAttribute.name.replace(/^out-/, '')] = inAttribute.value;
                 }

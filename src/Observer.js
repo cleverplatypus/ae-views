@@ -2,7 +2,7 @@
 import microtask from './microtask';
 
 const _queue = new Map();
-import _ from 'lodash';
+import {has} from 'lodash';
 let _willNotify = false;
 
 const _private = new WeakMap();
@@ -80,7 +80,7 @@ class Observer {
             _queue.get(fn).push({ path: inPath, changes: inChanges });
         };
         if (propName) {
-            if (_.has(_p.children, propName) && segs.length) {
+            if (has(_p.children, propName) && segs.length) {
                 _p.children[propName].notify(segs.join('.'), inChanges);
             }
             if (!segs.length) {

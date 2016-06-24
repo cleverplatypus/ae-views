@@ -2,14 +2,14 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
+import {isFunction} from 'lodash';
 
 export default function checkbox(inPage) {
     const _page = inPage;
-
+    let observer;
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
-        var observer = new MutationObserver(function(mutations) {
+        observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {
                     case 'label':
@@ -44,7 +44,7 @@ export default function checkbox(inPage) {
         const handler = function() {
             inHandler($(this).find('input').attr('value'));
         };
-        if (_.isFunction(inHandler)) {
+        if (isFunction(inHandler)) {
             $(this).find('input').off('click', handler).on('click', handler);
         }
 

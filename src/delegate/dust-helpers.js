@@ -2,8 +2,10 @@
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
 import Observable from '../Observable';
+import { isString, keys, get } from 'lodash';
+
 export default function(dust) {
-  'use strict';
+    'use strict';
 
 
     dust.helpers.re = function(chunk, context, bodies, params) {
@@ -36,19 +38,29 @@ export default function(dust) {
 
 
     dust.filters.obscuredcreditcardnumber = function(inValue) {
-        if (!_.isString(inValue)) {
+        if (!isString(inValue)) {
             return;
         }
-        inValue = inValue.replace(/\D/g, '');
-        if (/\d+\d{4}/.test(inValue)) {
-            var match = inValue.match(/(\d+)(\d{4})$/);
-            return match[1].replace(/(.)/g, 'x') + '-' + match[2];
+        var split = inValue.split('').reverse();
+        var tail = split.splice(0, 4);
+        tail.unshift('-');
+
+        while (split.length) {
+            if(!(split.length % 4)) {
+                tail.unshift('-');
+            }
+            tail.unshift('*');
+            split.pop();
         }
-        return '';
+        return tail.join('').replace(/--/, '-');
     };
 
     dust.filters.tolower = function(inValue) {
-        return _.isString(inValue) ? inValue.toLowerCase() : inValue;
+        return isString(inValue) ? inValue.toLowerCase() : inValue;
+    };
+
+    dust.filters.toupper = function(inValue) {
+        return isString(inValue) ? inValue.toUpperCase() : inValue;
     };
 
 
@@ -141,15 +153,15 @@ export default function(dust) {
         } else if (params.key.constructor === String || params.key.constructor === Array) {
             chunk.write(params.key.length);
         } else if (params.key.constructor === Object) {
-            chunk.write(_.keys(params.key.constructor).length);
+            chunk.write(keys(params.key.constructor).length);
         }
         return chunk;
     };
 
     dust.helpers.calc = function(chunk, context, bodies, params) {
         var result;
-        if (_.get(window, 'math.eval')) {
-            result = _.get(window, 'math').eval(context.resolve(bodies.block));
+        if (get(window, 'math.eval')) {
+            result = get(window, 'math').eval(context.resolve(bodies.block));
         } else {
             result = context.resolve(bodies.block);
         }
@@ -179,7 +191,7 @@ export default function(dust) {
 
 
     function log(helper, msg, level) {
-        level = level || "INFO";
+        level = level || 'INFO';
         helper = helper ? '{@' + helper + '}: ' : '';
         dust.log(helper + msg, level);
     }
@@ -190,15 +202,15 @@ export default function(dust) {
         if (_deprecatedCache[target]) {
             return;
         }
-        log(target, "Deprecation warning: " + target + " is deprecated and will be removed in a future version of dustjs-helpers", "WARN");
-        log(null, "For help and a deprecation timeline, see https://github.com/linkedin/dustjs-helpers/wiki/Deprecated-Features#" + target.replace(/\W+/g, ""), "WARN");
+        log(target, 'Deprecation warning: ' + target + ' is deprecated and will be removed in a future version of dustjs-helpers', 'WARN');
+        log(null, 'For help and a deprecation timeline, see https://github.com/linkedin/dustjs-helpers/wiki/Deprecated-Features#' + target.replace(/\W+/g, ''), 'WARN');
         _deprecatedCache[target] = true;
     }
 
     function isSelect(context) {
         return context.stack.tail &&
             context.stack.tail.head &&
-            typeof context.stack.tail.head.__select__ !== "undefined";
+            typeof context.stack.tail.head.__select__ !== 'undefined';
     }
 
     function getSelectState(context) {
@@ -232,7 +244,7 @@ export default function(dust) {
         }
 
         return newContext
-            .push({ "__select__": state })
+            .push({ '__select__': state })
             .push(head, context.stack.index, context.stack.of);
     }
 
@@ -255,7 +267,7 @@ export default function(dust) {
      * Used by {@contextDump}
      */
     function jsonFilter(key, value) {
-        if (typeof value === "function") {
+        if (typeof value === 'function') {
             return value.toString()
                 .replace(/(^\s+|\s+$)/mg, '')
                 .replace(/\n/mg, '')
@@ -294,7 +306,7 @@ export default function(dust) {
         } else if (selectState.hasOwnProperty('key')) {
             key = selectState.key;
         } else {
-            log(helperName, "No key specified", "WARN");
+            log(helperName, 'No key specified', 'WARN');
             return chunk;
         }
 
@@ -304,7 +316,7 @@ export default function(dust) {
         value = coerce(context.resolve(params.value), type);
 
         if (test(key, value)) {
-            // Once a truth test passes, put the select into "pending" state. Now we can render the body of
+            // Once a truth test passes, put the select into 'pending' state. Now we can render the body of
             // the truth test (which may contain truth tests) without altering the state of the select.
             if (!selectState.isPending) {
                 willResolve = true;
@@ -345,13 +357,13 @@ export default function(dust) {
 
         // Utility helping to resolve dust references in the given chunk
         // uses native Dust Context#resolve (available since Dust 2.6.2)
-        "tap": function(input, chunk, context) {
+        'tap': function(input, chunk, context) {
             // deprecated for removal in 1.8
-            _deprecated("tap");
+            _deprecated('tap');
             return context.resolve(input);
         },
 
-        "sep": function(chunk, context, bodies) {
+        'sep': function(chunk, context, bodies) {
             var body = bodies.block;
             if (context.stack.index === context.stack.of - 1) {
                 return chunk;
@@ -363,14 +375,14 @@ export default function(dust) {
             }
         },
 
-        "first": function(chunk, context, bodies) {
+        'first': function(chunk, context, bodies) {
             if (context.stack.index === 0) {
                 return bodies.block(chunk, context);
             }
             return chunk;
         },
 
-        "last": function(chunk, context, bodies) {
+        'last': function(chunk, context, bodies) {
             if (context.stack.index === context.stack.of - 1) {
                 return bodies.block(chunk, context);
             }
@@ -379,10 +391,10 @@ export default function(dust) {
 
         /**
          * {@contextDump}
-         * @param key {String} set to "full" to the full context stack, otherwise the current context is dumped
-         * @param to {String} set to "console" to log to console, otherwise outputs to the chunk
+         * @param key {String} set to 'full' to the full context stack, otherwise the current context is dumped
+         * @param to {String} set to 'console' to log to console, otherwise outputs to the chunk
          */
-        "contextDump": function(chunk, context, bodies, params) {
+        'contextDump': function(chunk, context, bodies, params) {
             var to = context.resolve(params.to),
                 key = context.resolve(params.key),
                 target, output;
@@ -412,7 +424,7 @@ export default function(dust) {
          * @param operand second value (not required for operations like `abs`)
          * @param round if truthy, round() the result
          */
-        "math": function(chunk, context, bodies, params) {
+        'math': function(chunk, context, bodies, params) {
             var key = params.key,
                 method = params.method,
                 operand = params.operand,
@@ -420,7 +432,7 @@ export default function(dust) {
                 output, state, x, len;
 
             if (!params.hasOwnProperty('key') || !params.method) {
-                log("math", "`key` or `method` was not provided", "ERROR");
+                log('math', '`key` or `method` was not provided', 'ERROR');
                 return chunk;
             }
 
@@ -428,38 +440,38 @@ export default function(dust) {
             operand = parseFloat(context.resolve(operand));
 
             switch (method) {
-                case "mod":
+                case 'mod':
                     if (operand === 0) {
-                        log("math", "Division by 0", "ERROR");
+                        log('math', 'Division by 0', 'ERROR');
                     }
                     output = key % operand;
                     break;
-                case "add":
+                case 'add':
                     output = key + operand;
                     break;
-                case "subtract":
+                case 'subtract':
                     output = key - operand;
                     break;
-                case "multiply":
+                case 'multiply':
                     output = key * operand;
                     break;
-                case "divide":
+                case 'divide':
                     if (operand === 0) {
-                        log("math", "Division by 0", "ERROR");
+                        log('math', 'Division by 0', 'ERROR');
                     }
                     output = key / operand;
                     break;
-                case "ceil":
-                case "floor":
-                case "round":
-                case "abs":
+                case 'ceil':
+                case 'floor':
+                case 'round':
+                case 'abs':
                     output = Math[method](key);
                     break;
-                case "toint":
+                case 'toint':
                     output = parseInt(key, 10);
                     break;
                 default:
-                    log("math", "Method `" + method + "` is not supported", "ERROR");
+                    log('math', 'Method `' + method + '` is not supported', 'ERROR');
             }
 
             if (typeof output !== 'undefined') {
@@ -485,7 +497,7 @@ export default function(dust) {
          * @param key a value or reference to use as the left-hand side of comparisons
          * @param type coerce all truth test keys without an explicit type to this type
          */
-        "select": function(chunk, context, bodies, params) {
+        'select': function(chunk, context, bodies, params) {
             var body = bodies.block,
                 state = {};
 
@@ -501,7 +513,7 @@ export default function(dust) {
                 chunk = chunk.render(body, context);
                 resolveSelectDeferreds(getSelectState(context));
             } else {
-                log("select", "Missing body block", "WARN");
+                log('select', 'Missing body block', 'WARN');
             }
             return chunk;
         },
@@ -512,22 +524,22 @@ export default function(dust) {
          * @param value a value or reference to use as the right-hand side of comparisons
          * @param type if specified, `key` and `value` will be forcibly cast to this type
          */
-        "eq": truthTest('eq', function(left, right) {
+        'eq': truthTest('eq', function(left, right) {
             return left === right;
         }),
-        "ne": truthTest('ne', function(left, right) {
+        'ne': truthTest('ne', function(left, right) {
             return left !== right;
         }),
-        "lt": truthTest('lt', function(left, right) {
+        'lt': truthTest('lt', function(left, right) {
             return left < right;
         }),
-        "lte": truthTest('lte', function(left, right) {
+        'lte': truthTest('lte', function(left, right) {
             return left <= right;
         }),
-        "gt": truthTest('gt', function(left, right) {
+        'gt': truthTest('gt', function(left, right) {
             return left > right;
         }),
-        "gte": truthTest('gte', function(left, right) {
+        'gte': truthTest('gte', function(left, right) {
             return left >= right;
         }),
 
@@ -537,14 +549,14 @@ export default function(dust) {
          * Must be contained inside a {@select} block.
          * The passing truth test can be before or after the {@any} block.
          */
-        "any": function(chunk, context, bodies, params) {
+        'any': function(chunk, context, bodies, params) {
             var selectState = getSelectState(context);
 
             if (!selectState) {
-                log("any", "Must be used inside a {@select} block", "ERROR");
+                log('any', 'Must be used inside a {@select} block', 'ERROR');
             } else {
                 if (selectState.isDeferredComplete) {
-                    log("any", "Must not be nested inside {@any} or {@none} block", "ERROR");
+                    log('any', 'Must not be nested inside {@any} or {@none} block', 'ERROR');
                 } else {
                     chunk = chunk.map(function(chunk) {
                         selectState.deferreds.push(function() {
@@ -565,14 +577,14 @@ export default function(dust) {
          * Must be contained inside a {@select} block.
          * The position of the helper does not matter.
          */
-        "none": function(chunk, context, bodies, params) {
+        'none': function(chunk, context, bodies, params) {
             var selectState = getSelectState(context);
 
             if (!selectState) {
-                log("none", "Must be used inside a {@select} block", "ERROR");
+                log('none', 'Must be used inside a {@select} block', 'ERROR');
             } else {
                 if (selectState.isDeferredComplete) {
-                    log("none", "Must not be nested inside {@any} or {@none} block", "ERROR");
+                    log('none', 'Must not be nested inside {@any} or {@none} block', 'ERROR');
                 } else {
                     chunk = chunk.map(function(chunk) {
                         selectState.deferreds.push(function() {
@@ -598,7 +610,7 @@ export default function(dust) {
          * Functions are evaluated and the length of their return value is evaluated
          * @param key find the size of this value or reference
          */
-        "size": function(chunk, context, bodies, params) {
+        'size': function(chunk, context, bodies, params) {
             var key = params.key,
                 value, k;
 
@@ -609,7 +621,7 @@ export default function(dust) {
                 value = key.length;
             } else if (!isNaN(parseFloat(key)) && isFinite(key)) {
                 value = key;
-            } else if (typeof key === "object") {
+            } else if (typeof key === 'object') {
                 value = 0;
                 for (k in key) {
                     if (key.hasOwnProperty(k)) {
@@ -630,4 +642,4 @@ export default function(dust) {
 
     return dust;
 
-};
+}

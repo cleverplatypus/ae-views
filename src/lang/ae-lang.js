@@ -7,15 +7,17 @@ $.fn.extend({
         var path, node = this;
         while (node.length) {
             var realNode = node[0], name = realNode.localName;
-            if (!name) break;
+            if (!name) {
+                break;
+            }
             name = name.toLowerCase();
 
             var parent = node.parent();
 
             var sameTagSiblings = parent.children(name);
             if (sameTagSiblings.length > 1) { 
-                allSiblings = parent.children();
-                var index = allSiblings.index(realNode) + 1;
+                let allSiblings = parent.children();
+                let index = allSiblings.index(realNode) + 1;
                 if (index > 1) {
                     name += ':nth-child(' + index + ')';
                 }
@@ -39,7 +41,7 @@ import aeAction from './ae-action';
 import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
-import aeTextInput from './ae-text-input';
+import aeTextInput from './ae-input';
 
 export default function(inPage) {
 

@@ -7,6 +7,7 @@ import _ from 'lodash';
 /**
 *   A container for element that change the value of a property based on 
 *   selection of its children. It behaves like a radio group.
+*   if no path attribute is found, the switch targets the component's state
 */
 export default function aeSwitch(inPage) {
     const _page = inPage;
@@ -17,7 +18,7 @@ export default function aeSwitch(inPage) {
         const val = $(inSelectedElement).data('ae-switch-value');
         $(this).children().removeClass(_p.selectedClass);
         $(inSelectedElement).addClass(_p.selectedClass);
-        if(_p.source === '_state') {
+        if(!_p.source) {
             _p.target.tryState(val);
         } else {
             _page.resolveNodeComponent(this);
@@ -31,7 +32,7 @@ export default function aeSwitch(inPage) {
     proto.createdCallback = function() {
         _private.set(this, {
             selectedClass: $(this).attr('selected-class') || 'selected',
-            source : $(this).attr('path') || '_state'
+            source : $(this).attr('path') || null
         });
     };
     
@@ -44,7 +45,6 @@ export default function aeSwitch(inPage) {
             if($(this).data('ae-switch-value') === $(that).attr('default-value')) {
                 defaultSwitch = $(this);
             }
-            //TODO: register click handlers
             $(this).off('click', selectHandler).on('click', () => {
                 selectHandler.call(that, this);
             });

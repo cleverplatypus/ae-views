@@ -5,6 +5,7 @@ import dust from 'ae-dustjs';
 import uuid from 'node-uuid';
 import ObservableObject from '../ObservableObject';
 import Observable from '../Observable';
+import {get} from 'lodash';
 
 import dustHelpers from './dust-helpers';
 dustHelpers(dust);
@@ -33,7 +34,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
                     return inBase.prop(inPath);
                 }
             } else {
-                return _.get(inBase, inPath);
+                return get(inBase, inPath);
             }
         };
 

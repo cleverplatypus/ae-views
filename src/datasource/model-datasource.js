@@ -12,9 +12,13 @@ export default function() {
 
             this.resolve = function resolve(inNode, inPath) {
                 return new Promise((resolvePromise, rejectPromise) => {
-                    
+
                     if (!/^_/.test(inPath) && inPath) {
-                        inPath = 'data' + (inPath ? '.' + inPath : '');
+                        if (inPath === '.') {
+                            inPath = 'data';
+                        } else {
+                            inPath = 'data' + (inPath ? '.' + inPath : '');
+                        }
                     }
                     const model = _page.resolveNodeModel(inNode, inPath);
                     resolvePromise(inPath ? model.prop(inPath) : model);
@@ -23,8 +27,12 @@ export default function() {
             };
 
             this.bindPath = function bindPath(inNode, inPath, inHandler) {
-                if (!/^_/.test(inPath)) {
-                    inPath = 'data.' + inPath;
+                if (!/^_/.test(inPath) && inPath) {
+                    if (inPath === '.') {
+                        inPath = 'data';
+                    } else {
+                        inPath = 'data' + (inPath ? '.' + inPath : '');
+                    }
                 }
                 const model = _page.resolveNodeModel(inNode, inPath);
 

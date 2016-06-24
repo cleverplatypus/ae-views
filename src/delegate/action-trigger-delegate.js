@@ -39,7 +39,7 @@ const resolveTargets = function resolveTargets(inPage, inConfig) {
 
 export default function attachAction(inPage, inConfig) {
     let target = resolveTargets.call(this, inPage, inConfig);
-    if (_.get(this, 'pending') === true) {
+    if (get(this, 'pending') === true) {
         const observer = new MutationObserver((mutations) => {
             attachAction.call(this);
         });
@@ -50,7 +50,7 @@ export default function attachAction(inPage, inConfig) {
         observer.observe(this.parentNode, observerConfig);
     } else {
         const actionName = inConfig.name;
-        _.each(target.node, (inTargetNode) => {
+        each(target.node, (inTargetNode) => {
             const component = inPage.resolveNodeComponent(inTargetNode);
             let event;
 

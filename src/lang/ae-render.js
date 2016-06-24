@@ -2,7 +2,7 @@ import $ from 'jquery';
 import Element from './ae-element';
 import factory from '../page-factory';
 import Observable from '../Observable';
-
+import {transform} from 'lodash';
 export default function render(inPage) {
     'use strict';
     const _page = inPage;
@@ -11,12 +11,9 @@ export default function render(inPage) {
     var render = function render() {
         let templateName = $(this).attr('template');
 
-        const path = $(this).attr('from');
+        const path = $(this).attr('from') || '.';
         _page.getDataSource().resolve(this, path).then((inValue) => {
-            if(templateName === 'checkout-page/nav-buttons') {
-                console.log('_state = ' + inValue);
-            }
-            const attrs = _.transform(this.attributes, function(result, item) {
+            const attrs = transform(this.attributes, function(result, item) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
             }, {});
 

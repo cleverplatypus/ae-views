@@ -2,7 +2,7 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
+import {isFunction} from 'lodash';
 
 export default function radio(inPage) {
     const _page = inPage;
@@ -13,7 +13,7 @@ export default function radio(inPage) {
         const handler = function() {
             inHandler($(this).attr('value'));
         };
-        if (_.isFunction(inHandler)) {
+        if (isFunction(inHandler)) {
             $(this).find('input').off('click', handler).on('click', handler);
         }
 

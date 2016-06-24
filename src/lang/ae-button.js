@@ -46,10 +46,15 @@ export default function aeButton(inPage) {
         }
 
         if ($(this).attr('bind-enabled')) {
-            const path = $(this).attr('bind-enabled');
+            let path = $(this).attr('bind-enabled');
+            let strictBoolean = false;
+            if(/!$/.test(path)) {
+                path = path.replace(/!$/, '');
+                strictBoolean = true;
+            }
             const source = $(this).attr('source');
             const setValue = (inValue) => {
-                $(this).prop('disabled', inValue === false);
+                $(this).prop('disabled', strictBoolean ? inValue !== true : !inValue);
             };
 
             _page

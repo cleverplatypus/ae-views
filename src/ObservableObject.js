@@ -1,6 +1,6 @@
 'use strict';
 import Observer from './Observer';
-import {isPlainObject, keys, each, isString, get, isArray} from 'lodash';
+import { isPlainObject, keys, each, isString, get, isArray } from 'lodash';
 import Observable from './Observable';
 
 
@@ -83,12 +83,12 @@ class ObservableObject extends Observable {
 
     * [Symbol.iterator]() {
         const src = _private.get(this).props._obj;
-        if(this.isCollection) {
+        if (this.isCollection) {
             for (var item of src) {
                 yield item;
             }
         } else {
-            for(let key in src) {
+            for (let key in src) {
                 const out = {};
                 out[key] = src[key];
                 yield out;
@@ -97,18 +97,23 @@ class ObservableObject extends Observable {
     }
 
 
-    fill(inData, inSilent) {
+    fill(inData, inPath, inSilent) {
         const _p = _private.get(this);
-        _p.props._obj = this.isCollection ? [] : {};
+        if (!inPath) {
+            _p.props._obj = this.isCollection ? [] : {};
+        } else if (this.prop(inPath) instanceof ObservableObject) {
+            this.prop(inPath).empty();
+        }
+
         if (keys(inData).length) {
-            this.merge(inData, inSilent);
+            this.merge(inData, inPath, inSilent);
         } else {
             if (!inSilent) {
                 _p.changesQueue.push({
                     path: '',
-                    change : {
+                    change: {
                         type: 'emptied',
-                        newValue : _p.props._obj
+                        newValue: _p.props._obj
                     }
                 });
                 ObservableObject.notifyWatchers(_p);
@@ -118,13 +123,14 @@ class ObservableObject extends Observable {
 
     }
 
-    merge(inData, inSilent) {
+    merge(inData, inPath, inSilent) {
 
         if (!isPlainObject(inData) && !isArray(inData)) {
             throw new Error('ObservableObject.fill() must be passed a plain object');
         }
         each(inData, (inValue, inKey) => {
-            this.prop(inKey, ObservableObject.fromObject(inValue), inSilent);
+            const path = (inPath ? inPath + '.' : '') + inKey;
+            this.prop(path, ObservableObject.fromObject(inValue), inSilent);
         });
     }
 
@@ -207,6 +213,7 @@ class ObservableObject extends Observable {
                 _p.changesQueue.push(change);
                 ObservableObject.notifyWatchers(_p);
             }
+            return inValue;
         }
     }
 
@@ -237,36 +244,49 @@ class ObservableObject extends Observable {
     }
 
     static fill(inTarget, inPath, inContent, inSilent) {
-        if(!inTarget || !(inTarget instanceof ObservableObject)) {
-            throw new error('fill() can only be invoked on an ObservableObject');
+        if (!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new Error('fill() can only be invoked on an ObservableObject');
         }
-        let dest = inTarget;
-        if(isString(inPath) && inPath.length) {
-            dest = inTarget.prop(inPath);
-            if(!dest) {
-                inTarget.prop(inPath, isPlainObject(inContent) ? {} : []);
-                dest = inTarget.prop(inPath);
-            }
-
-        }
-        if(!inTarget || !(inTarget instanceof ObservableObject)) {
-            throw new error('Cannot resolve ObservableObject to fill');
+        if (!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new Error('Cannot resolve ObservableObject to fill');
         }
 
-        dest.fill(inContent);
+        inTarget.fill(inContent, inPath, inSilent);
         const _p = _private.get(inTarget);
         if (!inSilent) {
             _p.changesQueue.push({
                 path: inPath,
-                change : {
+                change: {
                     type: 'filled',
-                    newValue : inContent
+                    newValue: inContent
                 }
             });
             ObservableObject.notifyWatchers(_p);
         }
-    
-        
+    }
+
+    static merge(inTarget, inPath, inContent, inSilent) {
+        if (!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new Error('merge () can only be invoked on an ObservableObject');
+        }
+
+        if (!inTarget || !(inTarget instanceof ObservableObject)) {
+            throw new Error('Cannot resolve ObservableObject to merge');
+        }
+
+        inTarget.merge(inContent, inPath);
+        const _p = _private.get(inTarget);
+        if (!inSilent) {
+            _p.changesQueue.push({
+                path: inPath,
+                change: {
+                    type: 'merged',
+                    newValue: inContent
+                }
+            });
+            ObservableObject.notifyWatchers(_p);
+        }
+
     }
 
 
@@ -274,4 +294,5 @@ class ObservableObject extends Observable {
         this.fill(null, inSilent);
     }
 }
+window.ObservableObject = ObservableObject;
 export default ObservableObject;

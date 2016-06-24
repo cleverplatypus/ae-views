@@ -1,5 +1,5 @@
 'use strict';
-import _ from 'lodash';
+import {isArray, mergeWith, merge} from 'lodash';
 import pageFactory from './page-factory';
 let _config, _model, _constructorFn
 
@@ -15,16 +15,16 @@ class MasterPage {
         //TODO: merge params with template params. wrap constructor
 
         function customizer(objValue, srcValue) {
-            if (_.isArray(objValue)) {
+            if (isArray(objValue)) {
                 return objValue.concat(srcValue);
             }
         }
 
         const config = {};
-        _.mergeWith(config, _config, inConfig, customizer);
+        mergeWith(config, _config, inConfig, customizer);
 
         const model = {};
-        _.merge(model, _model, inModel);
+        merge(model, _model, inModel);
 
         const constructorFn = function() {
             _constructorFn.call(this);

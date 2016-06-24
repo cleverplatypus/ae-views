@@ -4,7 +4,7 @@ import ObservableObject from './ObservableObject';
 import Observable from './Observable';
 import State from './State';
 import Bus from './Bus';
-import _ from 'lodash';
+import {isString, isFunction, isPlainObject, each} from 'lodash';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
@@ -12,6 +12,31 @@ import { Signal } from 'signals';
 import privateHash from './util/private';
 
 const _private = privateHash('component');
+
+const _setupModel = function _setupModel(inModelInitObj) {
+
+    const _p = _private.get(this);
+
+    let getter;
+
+    if(!inModelInitObj) {
+        getter = () => {
+            return this.page.resolveNodeModel(this.node);
+        };
+    } else {
+        _p.model = ObservableObject.fromObject(inModelInitObj);
+        getter = () => {
+            return _p.model;
+        };
+    }
+
+    Object.defineProperty(this, 'model', {
+            get: getter
+        });
+    Object.defineProperty(this, 'hasModel', {
+            get: () => !!inModelInitObj
+        });
+};
 
 const _findState = function _findState(inStateName) {
 
@@ -27,26 +52,11 @@ const _findState = function _findState(inStateName) {
     return currentState;
 };
 
-const _conformsToComponentModel = function _conformsToComponentModel(inOrig) {
-    if (!inOrig) {
-        return false;
-    }
-    if (inOrig instanceof Observable) {
-        return inOrig.prop('data') !== undefined &&
-            inOrig.prop('_state') !== undefined &&
-            inOrig.prop('_nextState') !== undefined;
-    } else {
-        return _.isPlainObject(inOrig) &&
-            inOrig.data !== undefined &&
-            inOrig._state !== undefined &&
-            inOrig._nextState !== undefined;
-    }
-
-};
-
 
 const _watchState = function _watchState() {
-    this.model.watch('_nextState', (inPath, inChanges) => {
+    const _p = _private.get(this);
+
+    _p.stateInfo.watch('nextState', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
         if (!nextState) {
             console.warn('Changing to unknown state: ' +
@@ -55,18 +65,18 @@ const _watchState = function _watchState() {
         }
         const rollback = (inReason) => {
             inReason && console.debug('Could not change state because: ' + inReason); //jshint ignore:line
-            this.model.prop('_nextState', inChanges.oldValue, true);
+            _p.stateInfo.prop('nextState', inChanges.oldValue, true);
             currentState.didntLeave();
             for (let watcher of _private.get(this).stateWatchers) {
                 watcher(inChanges.newValue, inChanges.oldValue, inReason);
             }
         };
-        let currentState = _private.get(this).currentState;
+        let currentState = _private.get(this).stateInfo.currentStateObject;
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    _private.get(this).currentState = nextState;
-                    this.model.prop('_state', this.model.prop('_nextState'));
+                    _private.get(this).stateInfo.currentStateObject = nextState;
+                    _private.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
 
@@ -89,7 +99,8 @@ class Component {
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
         _private.set(this, {
             stateWatchers: new Set(),
-            lifecycleSignal: lifecycleSignal
+            lifecycleSignal: lifecycleSignal,
+            stateInfo : new ObservableObject()
         });
 
         Object.defineProperty(this, 'lifecycle', {
@@ -106,23 +117,23 @@ class Component {
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
         this.name = inConfig.name;
-        _.each(inConfig.actions, (inAction) => {
+        each(inConfig.actions, (inAction) => {
             if (!inAction) {
                 console.error('Passed a null action to component config');
                 return;
             }
-            const actionName = _.isString(inAction) ? inAction : inAction.name;
+            const actionName = isString(inAction) ? inAction : inAction.name;
             if (!actionName) {
                 console.error('Passed an object with no action name as action in component config');
                 return;
             }
-            const handler = _.isPlainObject(inAction) ? inAction.handler : undefined;
+            const handler = isPlainObject(inAction) ? inAction.handler : undefined;
 
-            if (handler && !_.isFunction(handler)) {
+            if (handler && !isFunction(handler)) {
                 console.error('Passed a non-function action handler in component config');
                 return;
             }
-            if (_.isPlainObject(inAction) && inAction.publish === true) {
+            if (isPlainObject(inAction) && inAction.publish === true) {
                 this.bus.publishAction(actionName, handler ? handler.bind(this) : null);
             } else {
                 this.bus.addAction(actionName, handler ? handler.bind(this) : null);
@@ -130,13 +141,8 @@ class Component {
 
         });
         let templates = inConfig.templates || {};
-        this.model = _conformsToComponentModel(inInitObj) ?
-            ObservableObject.fromObject(inInitObj) :
-            ObservableObject.fromObject({
-                data: inInitObj,
-                _state: '',
-                _nextState: ''
-            });
+
+        _setupModel.call(this, inInitObj);
 
         for (let templateName in templates) {
             let actualTemplateName = templateName === '_default' ?
@@ -148,15 +154,15 @@ class Component {
         _private.get(this).hasDefaultTemplate = !!templates._default;
         _watchState.bind(this)();
         this.states = this.states || new State();
-        _private.get(this).currentState = this.states;
+        _private.get(this).stateInfo.currentStateObject = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
         microtask(this.initState.bind(this));
     }
 
-    data(inPath, inValue) {
+    data(inPath, inValue, inSilent) {
         const path = 'data.' + inPath;
-        return this.page.resolveNodeModel(this.node, path).prop(path, inValue);
+        return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
     }
 
     initState() {
@@ -164,11 +170,11 @@ class Component {
     }
 
     getCurrentState() {
-        return _private.get(this).currentState;
+        return _private.get(this).stateInfo.currentStateObject;
     }
 
     tryState(inStateName) {
-        if (inStateName === this.model.prop('_state')) {
+        if (inStateName === _private.get(this).stateInfo.prop('state')) {
             return;
         }
 
@@ -182,7 +188,7 @@ class Component {
                 this.unwatchState(watcher);
             };
             this.watchState(watcher);
-            this.model.prop('_nextState', inStateName);
+            _private.get(this).stateInfo.prop('nextState', inStateName);
         });
 
     }
