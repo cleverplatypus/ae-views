@@ -75,7 +75,7 @@
   },
   "gitHead": "4cfcfef5cf88ab00c6e05ec24093f96bd6404d27",
   "license": "ISC",
-  "main": "src/ae.js",
+  "main": "dist/bundle.js",
   "jsnext:main": "src/ae.js",
   "name": "ae-views",
   "optionalDependencies": {},
@@ -84,5 +84,5 @@
     "prepublish": "rm -rf dist && mkdir dist && rollup src/ae.js --format cjs  > dist/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.0.0"
+  "version": "0.5.0"
 }

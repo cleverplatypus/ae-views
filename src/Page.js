@@ -107,8 +107,8 @@ class Page extends Component {
         _componentInjectors.push(inInjectorFn);
     }
 
-    render() {
-        super.render();
+    render(inModel) {
+        super.render(inModel);
         $(this.mountPoint).css('display', '');
     }
 

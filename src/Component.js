@@ -161,7 +161,7 @@ class Component {
     }
 
     data(inPath, inValue, inSilent) {
-        const path = 'data.' + inPath;
+        const path =  'data' + (inPath ? '.' + inPath : '') ;
         return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
     }
 
@@ -201,13 +201,18 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
+    shouldRender() {
+        _private.get(this).shouldRender = true;
+        microtask(this.render.bind(this));
+    }
+
     render(inModel) {
+        _private.get(this).shouldRender = false;   
         if (_private.get(this).hasDefaultTemplate) {
             const delegate = factory.getTemplatingDelegate();
             const model = inModel ?
                 ObservableObject.fromObject(inModel) :
                 this.page.resolveNodeModel(this.node);
-
             delegate.render(
                 '_default.' + this.name,
                 model).then((inHtml) => {

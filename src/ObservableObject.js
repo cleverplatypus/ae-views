@@ -218,11 +218,12 @@ class ObservableObject extends Observable {
     }
 
 
-    watch(inPath, inHandler) {
+//TODO: implement event-specific watch
+    watch(inPath, inHandler, inEvent) {
         const _p = _private.get(this);
-        _p.observer.listen(inPath, inHandler);
+        _p.observer.listen(inPath, inHandler, inEvent);
     }
-
+    
     toNative(inDeep) {
         var out = _private.get(this).isCollection ? [] : {};
         each(_private.get(this).props._obj, (inVal, inKey) => {
@@ -230,6 +231,13 @@ class ObservableObject extends Observable {
             out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
         });
         return out;
+    }
+
+    sort(inComparator) {
+        if(_private.get(this).isCollection) {
+            _private.get(this).props._obj.sort(inComparator);
+        }
+        return this;
     }
 
     static notifyWatchers(inInstance) {

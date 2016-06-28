@@ -62,7 +62,30 @@ export default function(dust) {
     dust.filters.toupper = function(inValue) {
         return isString(inValue) ? inValue.toUpperCase() : inValue;
     };
+    dust.helpers.sort = function(chunk, context, bodies, params) {
+        var sort = JSON.parse(params.sort);
+        var body = bodies.block;
+        var sortkey;
 
+        function isEmpty(o) {
+            for (var p in o) {
+                if (o.hasOwnProperty(p)) return false;
+            }
+            return true;
+        }
+
+        if (sort) delete params.sort;
+        if (body) {
+            function cmp(a, b) {
+                return (a[sortkey] < b[sortkey]) ? -1 : ((a[sortkey] > b[sortkey]) ? 1 : 0);
+            }
+            while (sort.length) {
+                sortkey = sort.pop().key;
+                context.stack.head.sort(cmp);
+            }
+            return chunk.section(context.getPath(true, []), context, bodies, isEmpty(params) ? null : params);
+        }
+    }
 
     dust.filters.money = function(inValue) {
         var sValue = Number(inValue).toFixed(2).replace('.', ',');

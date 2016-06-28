@@ -8,10 +8,10 @@ import typifyParams from '../util/typify-parameters';
 
 const resolveTargets = function resolveTargets(inPage, inConfig) {
     let target = {};
-    if ($(this).children().length) {
+        const targetAttr = inConfig.target;
+    if ($(this).children().length && targetAttr !== 'self') {
         target.node = $(this).children().get(0);
     } else {
-        const targetAttr = inConfig.target;
         if (!targetAttr) {
             target.node = $(this).parent();
         } else if (targetAttr === 'next') {
