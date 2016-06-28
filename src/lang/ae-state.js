@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import Element from './ae-element';
+import microtask from '../microtask';
 
 export default function state(inPage) {
     'use strict';
@@ -11,6 +12,7 @@ export default function state(inPage) {
         const method = $(this).attr('method') || 'removal';
         const statePattern = new RegExp($(this).attr('pattern') || '^$');
         const watcher = () => {
+            $(this).prop('willRender', false);
             const currentState = component.getCurrentState();
             if (statePattern.test(currentState.getPath())) {
                 if (method === 'visibility') {
@@ -37,7 +39,12 @@ export default function state(inPage) {
             }
         };
 
-        component.watchState(watcher);
+        component.watchState(() => {
+            if(!$(this).prop('willRender')) {
+                $(this).prop('willRender', true);
+                microtask(watcher);
+            }
+        });
         this.content = $(this).html();
         watcher();
 

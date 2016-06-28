@@ -1,14 +1,28 @@
 import $ from 'jquery';
+import microtask from '../microtask';
 import Element from './ae-element';
 import factory from '../page-factory';
 import Observable from '../Observable';
-import {transform} from 'lodash';
+import { transform } from 'lodash';
 export default function render(inPage) {
     'use strict';
+    const _private = new WeakMap();
     const _page = inPage;
     var proto = Object.create(Element.prototype);
 
+    const invalidate = function invalidate() {
+        if (!_private.get(this).willRender) {
+            _private.get(this).willRender = true;
+            microtask(render.bind(this));
+        }
+    };
+
     var render = function render() {
+        _private.get(this).willRender = false;
+        if ($(this).attr('debug-name')) {
+            console.info($(this).attr('debug-name') + ' will render');
+        }
+
         let templateName = $(this).attr('template');
 
         const path = $(this).attr('from') || '.';
@@ -30,6 +44,7 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
+        _private.set(this, { willRender: true });
         let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
@@ -45,11 +60,12 @@ export default function render(inPage) {
     };
 
     proto.attachedCallback = function() {
-        render.bind(this)();
+
+        invalidate.call(this);
         var observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (/^param-/.test(mutation.attributeName)) {
-                    render.bind(this)();
+                    invalidate.call(this);
                 }
             });
         });
@@ -65,18 +81,18 @@ export default function render(inPage) {
 
             if (inBaseModel instanceof Observable) {
                 inBaseModel.watch(path, () => {
-                    render.call(this);
+                    invalidate.call(this);
                 });
             } else {
-                render.call(this);
+                invalidate.call(this);
             }
-            render.call(this);
+            invalidate.call(this);
         });
         if ($(this).attr('watch')) {
             _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
-                console.log('should render now');
+
                 console.log(inBaseModel instanceof Observable ? inBaseModel.toNative(true) : inBaseModel);
-                render.call(this);
+                invalidate.call(this);
             });
         }
 
