@@ -4,7 +4,7 @@ import ObservableObject from './ObservableObject';
 import Observable from './Observable';
 import State from './State';
 import Bus from './Bus';
-import {isString, isFunction, isPlainObject, each} from 'lodash';
+import { isString, isFunction, isPlainObject, each } from 'lodash';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
@@ -19,7 +19,7 @@ const _setupModel = function _setupModel(inModelInitObj) {
 
     let getter;
 
-    if(!inModelInitObj) {
+    if (!inModelInitObj) {
         getter = () => {
             return this.page.resolveNodeModel(this.node);
         };
@@ -31,11 +31,11 @@ const _setupModel = function _setupModel(inModelInitObj) {
     }
 
     Object.defineProperty(this, 'model', {
-            get: getter
-        });
+        get: getter
+    });
     Object.defineProperty(this, 'hasModel', {
-            get: () => !!inModelInitObj
-        });
+        get: () => !!inModelInitObj
+    });
 };
 
 const _findState = function _findState(inStateName) {
@@ -100,7 +100,7 @@ class Component {
         _private.set(this, {
             stateWatchers: new Set(),
             lifecycleSignal: lifecycleSignal,
-            stateInfo : new ObservableObject()
+            stateInfo: new ObservableObject()
         });
 
         Object.defineProperty(this, 'lifecycle', {
@@ -161,7 +161,7 @@ class Component {
     }
 
     data(inPath, inValue, inSilent) {
-        const path =  'data' + (inPath ? '.' + inPath : '') ;
+        const path = 'data' + (inPath ? '.' + inPath : '');
         return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
     }
 
@@ -201,13 +201,15 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
-    shouldRender() {
-        _private.get(this).shouldRender = true;
-        microtask(this.render.bind(this));
+    invalidate() {
+        if (!_private.get(this).willRender) {
+            _private.get(this).willRender = true;
+            microtask(this.render.bind(this));
+        }
     }
 
     render(inModel) {
-        _private.get(this).shouldRender = false;   
+        _private.get(this).willRender = false;
         if (_private.get(this).hasDefaultTemplate) {
             const delegate = factory.getTemplatingDelegate();
             const model = inModel ?

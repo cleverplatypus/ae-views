@@ -2,7 +2,7 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var _$1 = _interopDefault(require('lodash'));
+var lodash = require('lodash');
 var $ = _interopDefault(require('jquery'));
 var signals = require('signals');
 var uuid = _interopDefault(require('node-uuid'));
@@ -141,7 +141,7 @@ class Observer {
             _queue.get(fn).push({ path: inPath, changes: inChanges });
         };
         if (propName) {
-            if (_$1.has(_p.children, propName) && segs.length) {
+            if (lodash.has(_p.children, propName) && segs.length) {
                 _p.children[propName].notify(segs.join('.'), inChanges);
             }
             if (!segs.length) {
@@ -208,7 +208,7 @@ class ObservableObject$1 extends Observable {
 
     constructor(inConfig) {
         super();
-        const isCollection = (_$1.get(inConfig, 'isCollection') === true);
+        const isCollection = (lodash.get(inConfig, 'isCollection') === true);
         _private$1.set(this, {
             isSilent: false,
             isCollection: isCollection,
@@ -263,12 +263,12 @@ class ObservableObject$1 extends Observable {
 
     * [Symbol.iterator]() {
         const src = _private$1.get(this).props._obj;
-        if(this.isCollection) {
+        if (this.isCollection) {
             for (var item of src) {
                 yield item;
             }
         } else {
-            for(let key in src) {
+            for (let key in src) {
                 const out = {};
                 out[key] = src[key];
                 yield out;
@@ -277,18 +277,23 @@ class ObservableObject$1 extends Observable {
     }
 
 
-    fill(inData, inSilent) {
+    fill(inData, inPath, inSilent) {
         const _p = _private$1.get(this);
-        _p.props._obj = this.isCollection ? [] : {};
-        if (_$1.keys(inData).length) {
-            this.merge(inData, inSilent);
+        if (!inPath) {
+            _p.props._obj = this.isCollection ? [] : {};
+        } else if (this.prop(inPath) instanceof ObservableObject$1) {
+            this.prop(inPath).empty();
+        }
+
+        if (lodash.keys(inData).length) {
+            this.merge(inData, inPath, inSilent);
         } else {
             if (!inSilent) {
                 _p.changesQueue.push({
                     path: '',
-                    change : {
+                    change: {
                         type: 'emptied',
-                        newValue : _p.props._obj
+                        newValue: _p.props._obj
                     }
                 });
                 ObservableObject$1.notifyWatchers(_p);
@@ -298,26 +303,27 @@ class ObservableObject$1 extends Observable {
 
     }
 
-    merge(inData, inSilent) {
+    merge(inData, inPath, inSilent) {
 
-        if (!_$1.isPlainObject(inData) && !_$1.isArray(inData)) {
+        if (!lodash.isPlainObject(inData) && !lodash.isArray(inData)) {
             throw new Error('ObservableObject.fill() must be passed a plain object');
         }
-        _$1.each(inData, (inValue, inKey) => {
-            this.prop(inKey, ObservableObject$1.fromObject(inValue), inSilent);
+        lodash.each(inData, (inValue, inKey) => {
+            const path = (inPath ? inPath + '.' : '') + inKey;
+            this.prop(path, ObservableObject$1.fromObject(inValue), inSilent);
         });
     }
 
     static fromObject(inData) {
-        if (_$1.isArray(inData)) { //REFACTOR: duplicated code?
+        if (lodash.isArray(inData)) { //REFACTOR: duplicated code?
             let a = new ObservableObject$1({ isCollection: true });
-            _$1.each(inData, function(inVal, inKey) {
+            lodash.each(inData, function(inVal, inKey) {
                 a.prop(inKey, ObservableObject$1.fromObject(inVal));
             });
             return a;
-        } else if (_$1.isPlainObject(inData)) {
+        } else if (lodash.isPlainObject(inData)) {
             let o = new ObservableObject$1();
-            _$1.each(inData, function(inVal, inKey) {
+            lodash.each(inData, function(inVal, inKey) {
                 o.prop(inKey, ObservableObject$1.fromObject(inVal));
             });
             return o;
@@ -347,7 +353,7 @@ class ObservableObject$1 extends Observable {
     get length() {
         const _p = _private$1.get(this);
         if (_p.isCollection) {
-            return _$1.keys(_p.props._obj).length;
+            return lodash.keys(_p.props._obj).length;
         }
         return undefined;
     }
@@ -387,22 +393,31 @@ class ObservableObject$1 extends Observable {
                 _p.changesQueue.push(change);
                 ObservableObject$1.notifyWatchers(_p);
             }
+            return inValue;
         }
     }
 
 
-    watch(inPath, inHandler) {
+//TODO: implement event-specific watch
+    watch(inPath, inHandler, inEvent) {
         const _p = _private$1.get(this);
-        _p.observer.listen(inPath, inHandler);
+        _p.observer.listen(inPath, inHandler, inEvent);
     }
-
+    
     toNative(inDeep) {
         var out = _private$1.get(this).isCollection ? [] : {};
-        _$1.each(_private$1.get(this).props._obj, (inVal, inKey) => {
+        lodash.each(_private$1.get(this).props._obj, (inVal, inKey) => {
             let isObservable = inVal instanceof Observable;
             out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
         });
         return out;
+    }
+
+    sort(inComparator) {
+        if(_private$1.get(this).isCollection) {
+            _private$1.get(this).props._obj.sort(inComparator);
+        }
+        return this;
     }
 
     static notifyWatchers(inInstance) {
@@ -417,32 +432,49 @@ class ObservableObject$1 extends Observable {
     }
 
     static fill(inTarget, inPath, inContent, inSilent) {
-        if(!inTarget || !(inTarget instanceof ObservableObject$1)) {
-            throw new error('fill() can only be invoked on an ObservableObject');
+        if (!inTarget || !(inTarget instanceof ObservableObject$1)) {
+            throw new Error('fill() can only be invoked on an ObservableObject');
         }
-        let dest = inTarget;
-        if(_$1.isString(inPath) && inPath.length) {
-            dest = inTarget.prop(inPath);
-
-        }
-        if(!inTarget || !(inTarget instanceof ObservableObject$1)) {
-            throw new error('Cannot resolve ObservableObject to fill');
+        if (!inTarget || !(inTarget instanceof ObservableObject$1)) {
+            throw new Error('Cannot resolve ObservableObject to fill');
         }
 
-        dest.fill(inContent);
+        inTarget.fill(inContent, inPath, inSilent);
         const _p = _private$1.get(inTarget);
         if (!inSilent) {
             _p.changesQueue.push({
                 path: inPath,
-                change : {
+                change: {
                     type: 'filled',
-                    newValue : inContent
+                    newValue: inContent
                 }
             });
             ObservableObject$1.notifyWatchers(_p);
         }
-    
-        
+    }
+
+    static merge(inTarget, inPath, inContent, inSilent) {
+        if (!inTarget || !(inTarget instanceof ObservableObject$1)) {
+            throw new Error('merge () can only be invoked on an ObservableObject');
+        }
+
+        if (!inTarget || !(inTarget instanceof ObservableObject$1)) {
+            throw new Error('Cannot resolve ObservableObject to merge');
+        }
+
+        inTarget.merge(inContent, inPath);
+        const _p = _private$1.get(inTarget);
+        if (!inSilent) {
+            _p.changesQueue.push({
+                path: inPath,
+                change: {
+                    type: 'merged',
+                    newValue: inContent
+                }
+            });
+            ObservableObject$1.notifyWatchers(_p);
+        }
+
     }
 
 
@@ -450,16 +482,17 @@ class ObservableObject$1 extends Observable {
         this.fill(null, inSilent);
     }
 }
+window.ObservableObject = ObservableObject$1;
 
 const _private$3 = new WeakMap();
 
 class State {
 	constructor(...rest) {	
-		let name = _$1.find(rest, (param) => _$1.isString(param)) || '';
-		let children = _$1.find(rest, (param) => _$1.isArray(param));
-		let parent = _$1.find(rest, (param) => param instanceof State);
+		let name = lodash.find(rest, (param) => lodash.isString(param)) || '';
+		let children = lodash.find(rest, (param) => lodash.isArray(param));
+		let parent = lodash.find(rest, (param) => param instanceof State);
 
-		children = _$1.map(children, (inValue) => {
+		children = lodash.map(children, (inValue) => {
 			const state = (inValue instanceof State ? inValue : new State(inValue));
 			_private$3.get(state).parent = this;
 			return state;
@@ -485,7 +518,7 @@ class State {
 	}
 
 	child(inName) {
-		return _$1.find(_private$3.get(this).children, (inChild) => inChild.getName() === inName);
+		return lodash.find(_private$3.get(this).children, (inChild) => inChild.getName() === inName);
 	}
 
 	resolve(inPath) {
@@ -681,6 +714,31 @@ function privateHash(inClass) {
 
 const _private$5 = privateHash('component');
 
+const _setupModel$1 = function _setupModel(inModelInitObj) {
+
+    const _p = _private$5.get(this);
+
+    let getter;
+
+    if (!inModelInitObj) {
+        getter = () => {
+            return this.page.resolveNodeModel(this.node);
+        };
+    } else {
+        _p.model = ObservableObject$1.fromObject(inModelInitObj);
+        getter = () => {
+            return _p.model;
+        };
+    }
+
+    Object.defineProperty(this, 'model', {
+        get: getter
+    });
+    Object.defineProperty(this, 'hasModel', {
+        get: () => !!inModelInitObj
+    });
+};
+
 const _findState$1 = function _findState(inStateName) {
 
     if (!inStateName) {
@@ -695,26 +753,11 @@ const _findState$1 = function _findState(inStateName) {
     return currentState;
 };
 
-const _conformsToComponentModel$1 = function _conformsToComponentModel(inOrig) {
-    if(!inOrig) {
-        return false;
-    }
-    if(inOrig instanceof Observable) {
-        return inOrig.prop('data') !== undefined &&
-            inOrig.prop('_state') !== undefined &&
-            inOrig.prop('_nextState') !== undefined;
-    } else {
-        return _$1.isPlainObject(inOrig) &&
-            inOrig.data !== undefined &&
-            inOrig._state !== undefined &&
-            inOrig._nextState !== undefined;
-    }
-
-};
-
 
 const _watchState$1 = function _watchState() {
-    this.model.watch('_nextState', (inPath, inChanges) => {
+    const _p = _private$5.get(this);
+
+    _p.stateInfo.watch('nextState', (inPath, inChanges) => {
         let nextState = _findState$1.bind(this)(inChanges.newValue);
         if (!nextState) {
             console.warn('Changing to unknown state: ' +
@@ -723,18 +766,18 @@ const _watchState$1 = function _watchState() {
         }
         const rollback = (inReason) => {
             inReason && console.debug('Could not change state because: ' + inReason); //jshint ignore:line
-            this.model.prop('_nextState', inChanges.oldValue, true);
+            _p.stateInfo.prop('nextState', inChanges.oldValue, true);
             currentState.didntLeave();
             for (let watcher of _private$5.get(this).stateWatchers) {
                 watcher(inChanges.newValue, inChanges.oldValue, inReason);
             }
         };
-        let currentState = _private$5.get(this).currentState;
+        let currentState = _private$5.get(this).stateInfo.currentStateObject;
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    _private$5.get(this).currentState = nextState;
-                    this.model.prop('_state', this.model.prop('_nextState'));
+                    _private$5.get(this).stateInfo.currentStateObject = nextState;
+                    _private$5.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
 
@@ -757,55 +800,51 @@ class Component$1 {
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
         _private$5.set(this, {
             stateWatchers: new Set(),
-            lifecycleSignal : lifecycleSignal
+            lifecycleSignal: lifecycleSignal,
+            stateInfo: new ObservableObject$1()
         });
 
-        Object.defineProperty(this, 'lifecycle', { 
-            get : function() { 
+        Object.defineProperty(this, 'lifecycle', {
+            get: function() {
                 return lifecycle;
             }
         });
 
 
-        if(pageFactory.componentConfigPreprocessor) {
+        if (pageFactory.componentConfigPreprocessor) {
             pageFactory.componentConfigPreprocessor(inConfig);
         }
         this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
         this.name = inConfig.name;
-        _$1.each(inConfig.actions, (inAction) => {
-            if(!inAction) {
+        lodash.each(inConfig.actions, (inAction) => {
+            if (!inAction) {
                 console.error('Passed a null action to component config');
                 return;
             }
-            const actionName = _$1.isString(inAction) ? inAction : inAction.name;
-            if(!actionName) {
+            const actionName = lodash.isString(inAction) ? inAction : inAction.name;
+            if (!actionName) {
                 console.error('Passed an object with no action name as action in component config');
                 return;
             }
-            const handler = _$1.isPlainObject(inAction) ? inAction.handler : undefined;
+            const handler = lodash.isPlainObject(inAction) ? inAction.handler : undefined;
 
-            if(handler && !_$1.isFunction(handler)) {
+            if (handler && !lodash.isFunction(handler)) {
                 console.error('Passed a non-function action handler in component config');
                 return;
             }
-            if(_$1.isPlainObject(inAction) && inAction.publish === true) {
+            if (lodash.isPlainObject(inAction) && inAction.publish === true) {
                 this.bus.publishAction(actionName, handler ? handler.bind(this) : null);
             } else {
                 this.bus.addAction(actionName, handler ? handler.bind(this) : null);
             }
-            
+
         });
         let templates = inConfig.templates || {};
 
-        this.model = _conformsToComponentModel$1(inInitObj) ?
-            ObservableObject$1.fromObject(inInitObj) :
-            ObservableObject$1.fromObject({
-                data: inInitObj,
-                _state: '',
-                _nextState: ''
-            });
+        _setupModel$1.call(this, inInitObj);
+
         for (let templateName in templates) {
             let actualTemplateName = templateName === '_default' ?
                 '_default.' + this.name :
@@ -816,15 +855,15 @@ class Component$1 {
         _private$5.get(this).hasDefaultTemplate = !!templates._default;
         _watchState$1.bind(this)();
         this.states = this.states || new State();
-        _private$5.get(this).currentState = this.states;
+        _private$5.get(this).stateInfo.currentStateObject = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
         microtask(this.initState.bind(this));
     }
 
-    data(inPath, inValue) {
-        const path = 'data.' + inPath;
-        this.page.resolveNodeModel(this.node, path).prop(path, inValue);
+    data(inPath, inValue, inSilent) {
+        const path = 'data' + (inPath ? '.' + inPath : '');
+        return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
     }
 
     initState() {
@@ -832,11 +871,11 @@ class Component$1 {
     }
 
     getCurrentState() {
-        return _private$5.get(this).currentState;
+        return _private$5.get(this).stateInfo.currentStateObject;
     }
 
     tryState(inStateName) {
-        if (inStateName === this.model.prop('_state')) {
+        if (inStateName === _private$5.get(this).stateInfo.prop('state')) {
             return;
         }
 
@@ -850,7 +889,7 @@ class Component$1 {
                 this.unwatchState(watcher);
             };
             this.watchState(watcher);
-            this.model.prop('_nextState', inStateName);
+            _private$5.get(this).stateInfo.prop('nextState', inStateName);
         });
 
     }
@@ -863,13 +902,20 @@ class Component$1 {
         _private$5.get(this).stateWatchers.add(inWatcherFunction);
     }
 
+    invalidate() {
+        if (!_private$5.get(this).willRender) {
+            _private$5.get(this).willRender = true;
+            microtask(this.render.bind(this));
+        }
+    }
+
     render(inModel) {
+        _private$5.get(this).willRender = false;
         if (_private$5.get(this).hasDefaultTemplate) {
             const delegate = pageFactory.getTemplatingDelegate();
             const model = inModel ?
                 ObservableObject$1.fromObject(inModel) :
                 this.page.resolveNodeModel(this.node);
-
             delegate.render(
                 '_default.' + this.name,
                 model).then((inHtml) => {
@@ -897,18 +943,27 @@ function modelDataSource() {
 
             this.resolve = function resolve(inNode, inPath) {
                 return new Promise((resolvePromise, rejectPromise) => {
-                    
+
                     if (!/^_/.test(inPath) && inPath) {
-                        inPath = 'data' + (inPath ? '.' + inPath : '');
+                        if (inPath === '.') {
+                            inPath = 'data';
+                        } else {
+                            inPath = 'data' + (inPath ? '.' + inPath : '');
+                        }
                     }
-                    resolvePromise(_page.resolveNodeModel(inNode, inPath).prop(inPath));
+                    const model = _page.resolveNodeModel(inNode, inPath);
+                    resolvePromise(inPath ? model.prop(inPath) : model);
 
                 });
             };
 
             this.bindPath = function bindPath(inNode, inPath, inHandler) {
-                if (!/^_/.test(inPath)) {
-                    inPath = 'data.' + inPath;
+                if (!/^_/.test(inPath) && inPath) {
+                    if (inPath === '.') {
+                        inPath = 'data';
+                    } else {
+                        inPath = 'data' + (inPath ? '.' + inPath : '');
+                    }
                 }
                 const model = _page.resolveNodeModel(inNode, inPath);
 
@@ -958,12 +1013,12 @@ function action(inPage) {
 
 var UNRESOLVED = Symbol('unresolved');
 
-const typifyParams = function typifyParams(inPage, inParams) {
+function typifyParams(inPage, inParams) {
     const out = {};
-    _.each(inParams, function(inParamValue, inParamKey) {
+    lodash.each(inParams, function(inParamValue, inParamKey) {
         if (!inParamValue) {
             out[inParamKey] = null;
-        } else if (_.isString(inParamValue) && /^~/.test(inParamValue)) {
+        } else if (lodash.isString(inParamValue) && /^~/.test(inParamValue)) {
             let resolvedValue = UNRESOLVED;
             inPage.getDataSource()
                 .resolve(this, inParamValue.replace('~', '')).then((inValue) => {
@@ -973,7 +1028,7 @@ const typifyParams = function typifyParams(inPage, inParams) {
                 throw new Error('Action parameters must be resolved synchronously');
             }
             out[inParamKey] = resolvedValue;
-        } else if (_.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
+        } else if (lodash.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
             out[inParamKey] = inParamValue.replace(/^`/, '').replace(/`$/, '');
         } else if (!isNaN(inParamValue)) {
             out[inParamKey] = Number(inParamValue);
@@ -985,15 +1040,15 @@ const typifyParams = function typifyParams(inPage, inParams) {
         }
     });
     return out;
-};
 
+}
 
-const _resolveTargets = function _resolveTargets(inPage, inConfig) {
+const resolveTargets = function resolveTargets(inPage, inConfig) {
     let target = {};
-    if ($(this).children().length) {
+        const targetAttr = inConfig.target;
+    if ($(this).children().length && targetAttr !== 'self') {
         target.node = $(this).children().get(0);
     } else {
-        const targetAttr = inConfig.target;
         if (!targetAttr) {
             target.node = $(this).parent();
         } else if (targetAttr === 'next') {
@@ -1004,7 +1059,7 @@ const _resolveTargets = function _resolveTargets(inPage, inConfig) {
         } else if (/^(\.|\#)/.test(targetAttr)) {
             target.node = $(this).parent().find(targetAttr);
         } else if (/^self$/.test(targetAttr)) {
-            target.node = this;
+            target.node = $(this);
         } else {
             console.warn('Unknown ae-bind target: ' + targetAttr);
         }
@@ -1019,14 +1074,11 @@ const _resolveTargets = function _resolveTargets(inPage, inConfig) {
 };
 
 
-
-
-function _attachAction(inPage, inConfig) {
-
-    let target = _resolveTargets.call(this, inPage, inConfig);
-    if (_.get(this, 'pending') === true) {
+function attachAction(inPage, inConfig) {
+    let target = resolveTargets.call(this, inPage, inConfig);
+    if (lodash.get(this, 'pending') === true) {
         const observer = new MutationObserver((mutations) => {
-            _attachAction.call(this);
+            attachAction.call(this);
         });
         const observerConfig = {
             subtree: true,
@@ -1035,41 +1087,50 @@ function _attachAction(inPage, inConfig) {
         observer.observe(this.parentNode, observerConfig);
     } else {
         const actionName = inConfig.name;
-        _.each(target.node, (inTargetNode) => {
+        lodash.each(target.node, (inTargetNode) => {
             const component = inPage.resolveNodeComponent(inTargetNode);
             let event;
 
-            let trigger = inConfig.trigger || '';
-            switch (trigger) {
-                case 'enter':
-                case 'esc':
-                    event = 'keyup';
-                    break;
-                case '':
-                    event = 'click';
-                    break;
-                default:
-                    if (/^\w+:/.test(trigger)) {
-                        event = trigger.match(/^(\w+)/)[0];
-                    } else {
-                        event = trigger;
-                    }
-            }
-
-
-            $(inTargetNode).off(event).on(event, (inEvent) => {
-                if (trigger === 'enter' && inEvent.keyCode !== 13) {
+            const handler = (inEvent, inTrigger) => {
+                if (inTrigger === 'enter' && inEvent.keyCode !== 13) {
                     return;
                 }
-                if (trigger === 'esc' && inEvent.keyCode !== 27) {
+                if (inTrigger === 'esc' && inEvent.keyCode !== 27) {
                     return;
                 }
                 component.bus.triggerAction(
                     actionName,
                     inEvent,
-                    typifyParams(inConfig.params)
+                    typifyParams(inPage, inConfig.params)
                 );
-            });
+            };
+
+
+            for (let trigger of(inConfig.trigger || '').split(',')) {
+                switch (trigger) {
+                    case 'enter':
+                    case 'esc':
+                        event = 'keyup';
+                        break;
+                    case '':
+                        event = 'click';
+                        break;
+                    default:
+                        if (/^\w+:/.test(trigger)) {
+                            event = trigger.match(/^(\w+)/)[0];
+                        } else {
+                            event = trigger;
+                        }
+                }
+
+                const caller = (inEvent) => { //jshint ignore:line
+                    handler(inEvent, trigger);
+                };
+
+                $(inTargetNode).off(event, caller).on(event, caller);
+            }
+
+
         });
     }
 
@@ -1081,7 +1142,7 @@ function aeButton(inPage) {
 
     var proto = Object.create(HTMLButtonElement.prototype);
     proto.createdCallback = function() {
-        debugger;
+        console.log('created ae-button');
         observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {
@@ -1091,7 +1152,6 @@ function aeButton(inPage) {
                 }
             });
         });
-        console.log(this);
         // configuration of the observer:
         var config = { attributes: true };
 
@@ -1117,10 +1177,15 @@ function aeButton(inPage) {
         }
 
         if ($(this).attr('bind-enabled')) {
-            const path = $(this).attr('bind-enabled');
+            let path = $(this).attr('bind-enabled');
+            let strictBoolean = false;
+            if(/!$/.test(path)) {
+                path = path.replace(/!$/, '');
+                strictBoolean = true;
+            }
             const source = $(this).attr('source');
             const setValue = (inValue) => {
-                $(this).attr('disabled', inValue === 'false' ? '' : null);
+                $(this).prop('disabled', strictBoolean ? inValue !== true : !inValue);
             };
 
             _page
@@ -1137,7 +1202,7 @@ function aeButton(inPage) {
         }
 
         if ($(this).attr('action')) {
-            _attachAction.call(this, _page, {
+            attachAction.call(this, _page, {
                 name: $(this).attr('action'),
                 trigger: 'click',
                 target: 'self',
@@ -1149,7 +1214,7 @@ function aeButton(inPage) {
                         }
                     });
                     return params;
-                })
+                })()
             });
         }
 
@@ -1168,10 +1233,10 @@ function aeButton(inPage) {
         observer.disconnect();
     };
 
-    document.registerElement('ae-button', { prototype: proto});
+    document.registerElement('ae-button', { prototype: proto, extends : 'button'});
 }
 
-function each(inPage) {
+function each$1(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
     const _templatingDelegate = pageFactory.getTemplatingDelegate();
@@ -1303,10 +1368,10 @@ function state(inPage) {
 
 function checkbox(inPage) {
     const _page = inPage;
-
+    let observer;
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
-        var observer = new MutationObserver(function(mutations) {
+        observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {
                     case 'label':
@@ -1341,7 +1406,7 @@ function checkbox(inPage) {
         const handler = function() {
             inHandler($(this).find('input').attr('value'));
         };
-        if (_$1.isFunction(inHandler)) {
+        if (lodash.isFunction(inHandler)) {
             $(this).find('input').off('click', handler).on('click', handler);
         }
 
@@ -1367,7 +1432,7 @@ function radio(inPage) {
         const handler = function() {
             inHandler($(this).attr('value'));
         };
-        if (_$1.isFunction(inHandler)) {
+        if (lodash.isFunction(inHandler)) {
             $(this).find('input').off('click', handler).on('click', handler);
         }
 
@@ -1417,132 +1482,6 @@ function radio(inPage) {
 let _page$1;
 
 
-/* 
- * REFACTOR: move this to library. 
- * Typification should be html node agnostic therefore some kind
- * of delegation should be used or the tilde string handling has to be
- * hanled after returning
- */
-var typifyParams$1 = function typifyParams(inActionNode, inParams) {
-    var out = {};
-    _$1.each(inParams, function(inParamValue, inParamKey) {
-        if (!inParamValue) {
-            out[inParamKey] = null;
-        } else if (_$1.isString(inParamValue) && /^~/.test(inParamValue)) {
-            let resolvedValue = UNRESOLVED;
-            _page$1.getDataSource()
-                .resolve(inActionNode, inParamValue.replace('~', '')).then((inValue) => {
-                    resolvedValue = inValue;
-                });
-            if (resolvedValue === UNRESOLVED) {
-                throw new Error('Action parameters must be resolved synchronously');
-            }
-            out[inParamKey] = resolvedValue;
-        } else if (_$1.isString(inParamValue) && /^`.*`$/.test(inParamValue)) {
-            out[inParamKey] = inParamValue.replace(/^`/, '').replace(/`$/, '');
-        } else if (!isNaN(inParamValue)) {
-            out[inParamKey] = Number(inParamValue);
-        } else if (/^(true|false)$/.test(inParamValue)) {
-            out[inParamKey] = (inParamValue === 'true');
-        } else {
-            console.warn('using deprecated signal string param format');
-            out[inParamKey] = inParamValue; //is a string
-        }
-    });
-    return out;
-};
-
-var assembleParams = function(inActionNode) {
-    let params = {};
-    $($(inActionNode).get(0).attributes).each(function() {
-        if (/^param-/.test(this.name)) {
-            params[this.name.replace('param-', '')] = this.value;
-        }
-    });
-    return typifyParams$1(inActionNode, params);
-};
-
-const _resolveTargets$1 = function _resolveTargets() {
-    let target = {};
-    if ($(this).children().length) {
-        target.node = $(this).children().get(0);
-    } else {
-        const targetAttr = $(this).attr('target');
-        if (!targetAttr) {
-            target.node = $(this).parent();
-        } else if (targetAttr === 'next') {
-            target.node = $(this).next();
-        } else if (/^closest/.test(targetAttr)) {
-            const segs = targetAttr.split(/\s+/);
-            target.node = $(this).closest(segs[1]);
-        } else if (/^(\.|\#)/.test(targetAttr)) {
-            target.node = $(this).parent().find(targetAttr);
-        } else {
-            console.warn('Unknown ae-bind target: ' + targetAttr);
-        }
-    }
-    if (target.node && target.node.length) {
-        return target;
-    } else if (target.node && !target.node.length) {
-        target.pending = true;
-        return target;
-    }
-    return;
-};
-
-const _attachAction$1 = function _attachAction() {
-    let target = _resolveTargets$1.call(this);
-    if (_$1.get(target, 'pending') === true) {
-        const observer = new MutationObserver((mutations) => {
-            _attachAction.call(this);
-        });
-        var observerConfig = {
-            subtree: true,
-            childList : true
-        };
-        observer.observe(this.parentNode, observerConfig);
-    } else {
-        const actionName = $(this).attr('name');
-        _$1.each(target.node, (inTargetNode) => {
-            const component = _page$1.resolveNodeComponent(inTargetNode);
-            let event;
-
-            let trigger = $(this).attr('trigger') || '';
-            switch (trigger) {
-                case 'enter':
-                case 'esc':
-                    event = 'keyup';
-                    break;
-                case '':
-                    event = 'click';
-                    break;
-                default:
-                    if (/^\w+:/.test(trigger)) {
-                        event = trigger.match(/^(\w+)/)[0];
-                    } else {
-                        event = trigger;
-                    }
-            }
-
-
-            $(inTargetNode).off(event).on(event, (inEvent) => {
-                if (trigger === 'enter' && inEvent.keyCode !== 13) {
-                    return;
-                }
-                if (trigger === 'esc' && inEvent.keyCode !== 27) {
-                    return;
-                }
-                component.bus.triggerAction(
-                    actionName,
-                    inEvent,
-                    assembleParams(this)
-                );
-            });
-        });
-    }
-};
-
-
 function action$1(inPage) {
 
     _page$1 = inPage;
@@ -1550,11 +1489,24 @@ function action$1(inPage) {
     var proto = Object.create(Element.prototype);
 
     proto.createdCallback = function() {
-       
+
     };
 
     proto.attachedCallback = function() {
- _attachAction$1.call(this);
+        attachAction.call(this, _page$1, {
+            name: $(this).attr('name'),
+            trigger: $(this).attr('trigger'),
+            target: $(this).attr('target'),
+            params: (() => {
+                const params = {};
+                $($(this).get(0).attributes).each(function() {
+                    if (/^param-/.test(this.name)) {
+                        params[this.name.replace('param-', '')] = this.value;
+                    }
+                });
+                return params;
+            })()
+        });
     };
 
     proto.detachedCallback = function() {
@@ -1580,22 +1532,22 @@ class InputValueChangeDelegate {
     onValueChange(inElement, inConfig, inHandler) {
         const delay = !isNaN(inConfig.delay) ? Number(inConfig.delay) : null;
         const commitOnly = inConfig.commitOnly === true;
-        let eventName = inConfig.event;
-        if(!eventName) {
+        let events = inConfig.event;
+        if(!events) {
 
             switch ($(inElement).get(0).nodeName.toUpperCase()) {
                 case 'INPUT':
-                    if (_$1.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
-                        eventName = (commitOnly ? 'change' : 'keyup');
-                    } else if (_$1.includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
-                        eventName = 'click';
+                    if (lodash.includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
+                        events = 'change,keyup';
+                    } else if (lodash.includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
+                        events = 'click';
                     }
                     break;
                 case 'SELECT':
-                    eventName = 'change';
+                    events = 'change';
                     break;
                 default:
-                    eventName = 'keydown';
+                    events = 'keydown';
             }
 }
         let delayedTimeout;
@@ -1623,8 +1575,10 @@ class InputValueChangeDelegate {
 
 
         const handler = (!isNaN(delay) ? delayedHandler : defaultHandler);
-        
-        $(inElement).off(eventName, handler).on(eventName, handler);
+
+        lodash.each(events.split(','), (eventName) => {
+            $(inElement).off(eventName, handler).on(eventName, handler);
+        });
     }
 
     setValue(inElement, inValue, inPropName) {
@@ -1639,7 +1593,9 @@ class InputValueChangeDelegate {
                 case 'email':
                 case 'tel':
                 case 'password':
-                    $(inElement).val(inValue);
+                    if($(inElement).val() !== inValue) {
+                        $(inElement).val(inValue);
+                    }
                     break;
                 case 'checkbox':
                     $(inElement).prop('checked', inValue === true|| 
@@ -1773,7 +1729,10 @@ function bind(inPage) {
                     if (condition && /^\/.*\/$/.test(condition)) {
                         condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
                         conditionMet = condition.test(inValue);
-                    } else if (_$1.isString(condition)) {
+                    } else if (lodash.isString(condition)) {
+                        if(/^(true|false)$/.test(condition)) {
+                            condition = Boolean(condition);
+                        }
                         conditionMet = (condition === inValue);
                     }
                     conditionMet = conditionMet && !negate;
@@ -1808,8 +1767,10 @@ function bind(inPage) {
 
             };
 
-            dataSource.bindPath(this, fromAttr, function(inNewValue) {
-                valueResolver(inNewValue);
+            dataSource.bindPath(this, fromAttr, function(inNewValue, inOldValue) {
+                if(inNewValue !== inOldValue) {
+                    valueResolver(inNewValue);
+                }
             });
 
             dataSource.resolve(this, fromAttr).then((inValue) => {
@@ -1823,7 +1784,7 @@ function bind(inPage) {
                 throw new Error('Element ' + $(target).get(0).nodeName + ' cannot be used as a source of binding output');
             }
             const outOptions = {};
-            _$1.each(this.attributes, (inAttribute) => {
+            lodash.each(this.attributes, (inAttribute) => {
                 if (/^out-/.test(inAttribute.name)) {
                     outOptions[inAttribute.name.replace(/^out-/, '')] = inAttribute.value;
                 }
@@ -1851,9 +1812,9 @@ function render(inPage) {
     var render = function render() {
         let templateName = $(this).attr('template');
 
-        const path = $(this).attr('from');
+        const path = $(this).attr('from') || '.';
         _page.getDataSource().resolve(this, path).then((inValue) => {
-            const attrs = _.transform(this.attributes, function(result, item) {
+            const attrs = lodash.transform(this.attributes, function(result, item) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
             }, {});
 
@@ -1932,6 +1893,7 @@ function render(inPage) {
 /**
 *   A container for element that change the value of a property based on 
 *   selection of its children. It behaves like a radio group.
+*   if no path attribute is found, the switch targets the component's state
 */
 function aeSwitch(inPage) {
     const _page = inPage;
@@ -1939,20 +1901,24 @@ function aeSwitch(inPage) {
 
     const selectHandler = function selectHandler(inSelectedElement) {
         const _p = _private.get(this);
-        const state = $(inSelectedElement).data('ae-switch-value');
+        const val = $(inSelectedElement).data('ae-switch-value');
         $(this).children().removeClass(_p.selectedClass);
         $(inSelectedElement).addClass(_p.selectedClass);
-        if(_p.source === '_state') {
-            _p.target.tryState(state);
+        if(!_p.source) {
+            _p.target.tryState(val);
+        } else {
+            _page.resolveNodeComponent(this);
+            _page.getDataSource().setPath(this, _p.source, val);
+
         }
-        console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
+        //console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
     };
     
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
         _private.set(this, {
             selectedClass: $(this).attr('selected-class') || 'selected',
-            source : $(this).attr('path') || '_state'
+            source : $(this).attr('path') || null
         });
     };
     
@@ -1965,7 +1931,6 @@ function aeSwitch(inPage) {
             if($(this).data('ae-switch-value') === $(that).attr('default-value')) {
                 defaultSwitch = $(this);
             }
-            //TODO: register click handlers
             $(this).off('click', selectHandler).on('click', () => {
                 selectHandler.call(that, this);
             });
@@ -1986,7 +1951,7 @@ function aeTextInput(inPage) {
     'use strict';
     const _page = inPage;
     let observer;
-    document.styleSheets[0].insertRule('ae-text-input' + '{ display: block;}', 1);
+    document.styleSheets[0].insertRule('ae-input' + '{ display: block;}', 1);
     var proto = Object.create(Element.prototype);
     proto.createdCallback = function() {
 
@@ -2009,26 +1974,71 @@ function aeTextInput(inPage) {
             });
         });
 
+        if ($(this).attr('bind-enabled')) {
+            const path = $(this).attr('bind-enabled').replace('!', '');
+            const negate = /^!/.test($(this).attr('bind-enabled'));
+            const source = $(this).attr('source');
+            const setValue = (inValue) => {
+                $(this).find('input').prop('disabled',
+                    ((inValue === false) && !negate) ||
+                    ((inValue !== false) && negate));
+            };
+
+            _page
+                .getDataSource(source)
+                .bindPath(this, path, (inNewValue) => {
+                    setValue(inNewValue);
+                });
+            _page
+                .getDataSource(source)
+                .resolve(this, path)
+                .then((inValue) => {
+                    setValue(inValue);
+                });
+        }
+
+
         // configuration of the observer:
         const config = { attributes: true };
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
         const inputType = $(this).attr('type') || 'text';
+        if (/^(checkbox|radio)$/.test(inputType.toLowerCase())) {
+            const actionName = $(this).attr('action');
+            if (actionName) {
+                attachAction.call(this, _page, {
+                    name: actionName,
+                    trigger: 'click',
+                    target: 'self'
+                });
+
+            }
+        }
         let bindingAttrName;
-        _$1.each($(this.attributes), (inAttribute) => {
+        lodash.each($(this.attributes), (inAttribute) => {
             if (['from', 'to', 'path'].indexOf(inAttribute.name) !== -1) {
                 bindingAttrName = inAttribute.name;
             }
         });
-        const bindingNode = bindingAttrName ? `<ae-bind target="next" ${bindingAttrName}="${$(this).attr(bindingAttrName)}"></ae-bind>` : '';
+        let bindingNode = '';
+        if (bindingAttrName) {
+            const delayAttr = $(this).attr('out-delay') ? `out-delay="${$(this).attr('out-delay')}"` : '';
+            bindingNode = bindingAttrName ? `<ae-bind ${delayAttr} target="next" ${bindingAttrName}="${$(this).attr(bindingAttrName)}"></ae-bind>` : '';
+        }
+        const labelPlacement = $(this).attr('label-placement') || 'left';
         const labelText = $(this).attr('label');
+        const autocomplete = $(this).attr('autocomplete') ?
+            ' autocomplete="' + $(this).attr('autocomplete') + '"' :
+            '';
         const placeholder = $(this).attr('placeholder') || '';
+        const inputClass = $(this).attr('input-class') || '';
+        const disabled = !($(this).attr('enabled') !== 'false' && true) ? 'disabled' : '';
         const inputName = $(this).attr('name') || 'ae-' + uuid.v4();
         const valueAttr = $(this).attr('value') ? `value="${$(this).attr('value')}` : '';
-        const input = `<input name="${inputName}" type="${inputType}" placeholder="${placeholder}" class="${$(this).attr('input-class') || ''}" ${valueAttr}>`;
+        const input = `<input name="${inputName}" ${disabled} type="${inputType}" ${autocomplete} class="${inputClass}" placeholder="${placeholder}" ${valueAttr}>`;
         const label = labelText ? `<label for="${inputName}" class="${$(this).attr('label-class') || ''}">${labelText}</label>` : '';
 
-        $(this).append(`${label}${bindingNode}${input}`);
+        $(this).append(`${labelPlacement === 'left'? label : ''}${bindingNode}${input}${labelPlacement === 'right'? label : ''}`);
     };
 
     proto.attachedCallback = function() {
@@ -2039,7 +2049,7 @@ function aeTextInput(inPage) {
         observer.disconnect();
     };
 
-    document.registerElement('ae-text-input', { prototype: proto });
+    document.registerElement('ae-input', { prototype: proto });
 }
 
 $.fn.extend({
@@ -2047,15 +2057,17 @@ $.fn.extend({
         var path, node = this;
         while (node.length) {
             var realNode = node[0], name = realNode.localName;
-            if (!name) break;
+            if (!name) {
+                break;
+            }
             name = name.toLowerCase();
 
             var parent = node.parent();
 
             var sameTagSiblings = parent.children(name);
             if (sameTagSiblings.length > 1) { 
-                allSiblings = parent.children();
-                var index = allSiblings.index(realNode) + 1;
+                let allSiblings = parent.children();
+                let index = allSiblings.index(realNode) + 1;
                 if (index > 1) {
                     name += ':nth-child(' + index + ')';
                 }
@@ -2073,7 +2085,7 @@ function lang(inPage) {
 
     aeButton(inPage);
     action(inPage);
-    each(inPage);
+    each$1(inPage);
     state(inPage);
     checkbox(inPage);
     radio(inPage);
@@ -2140,8 +2152,7 @@ class Page extends Component$1 {
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);
-        if (inPath && !/^(_state|_nextState)/.test(inPath.split('.')[0]) &&
-            !component.model.prop('data')) {
+        if(!component.hasModel) {
             return this.resolveNodeModel($(component.node).parent(), inPath);
         }
         return component.model;
@@ -2180,8 +2191,8 @@ class Page extends Component$1 {
         _componentInjectors.push(inInjectorFn);
     }
 
-    render() {
-        super.render();
+    render(inModel) {
+        super.render(inModel);
         $(this.mountPoint).css('display', '');
     }
 
@@ -2257,7 +2268,7 @@ class TemplatingDelegate {
 }
 
 function dustHelpers(dust) {
-  'use strict';
+    'use strict';
 
 
     dust.helpers.re = function(chunk, context, bodies, params) {
@@ -2290,21 +2301,54 @@ function dustHelpers(dust) {
 
 
     dust.filters.obscuredcreditcardnumber = function(inValue) {
-        if (!_.isString(inValue)) {
+        if (!lodash.isString(inValue)) {
             return;
         }
-        inValue = inValue.replace(/\D/g, '');
-        if (/\d+\d{4}/.test(inValue)) {
-            var match = inValue.match(/(\d+)(\d{4})$/);
-            return match[1].replace(/(.)/g, 'x') + '-' + match[2];
+        var split = inValue.split('').reverse();
+        var tail = split.splice(0, 4);
+        tail.unshift('-');
+
+        while (split.length) {
+            if(!(split.length % 4)) {
+                tail.unshift('-');
+            }
+            tail.unshift('*');
+            split.pop();
         }
-        return '';
+        return tail.join('').replace(/--/, '-');
     };
 
     dust.filters.tolower = function(inValue) {
-        return _.isString(inValue) ? inValue.toLowerCase() : inValue;
+        return lodash.isString(inValue) ? inValue.toLowerCase() : inValue;
     };
 
+    dust.filters.toupper = function(inValue) {
+        return lodash.isString(inValue) ? inValue.toUpperCase() : inValue;
+    };
+    dust.helpers.sort = function(chunk, context, bodies, params) {
+        var sort = JSON.parse(params.sort);
+        var body = bodies.block;
+        var sortkey;
+
+        function isEmpty(o) {
+            for (var p in o) {
+                if (o.hasOwnProperty(p)) return false;
+            }
+            return true;
+        }
+
+        if (sort) delete params.sort;
+        if (body) {
+            function cmp(a, b) {
+                return (a[sortkey] < b[sortkey]) ? -1 : ((a[sortkey] > b[sortkey]) ? 1 : 0);
+            }
+            while (sort.length) {
+                sortkey = sort.pop().key;
+                context.stack.head.sort(cmp);
+            }
+            return chunk.section(context.getPath(true, []), context, bodies, isEmpty(params) ? null : params);
+        }
+    }
 
     dust.filters.money = function(inValue) {
         var sValue = Number(inValue).toFixed(2).replace('.', ',');
@@ -2395,15 +2439,15 @@ function dustHelpers(dust) {
         } else if (params.key.constructor === String || params.key.constructor === Array) {
             chunk.write(params.key.length);
         } else if (params.key.constructor === Object) {
-            chunk.write(_.keys(params.key.constructor).length);
+            chunk.write(lodash.keys(params.key.constructor).length);
         }
         return chunk;
     };
 
     dust.helpers.calc = function(chunk, context, bodies, params) {
         var result;
-        if (_.get(window, 'math.eval')) {
-            result = _.get(window, 'math').eval(context.resolve(bodies.block));
+        if (lodash.get(window, 'math.eval')) {
+            result = lodash.get(window, 'math').eval(context.resolve(bodies.block));
         } else {
             result = context.resolve(bodies.block);
         }
@@ -2433,7 +2477,7 @@ function dustHelpers(dust) {
 
 
     function log(helper, msg, level) {
-        level = level || "INFO";
+        level = level || 'INFO';
         helper = helper ? '{@' + helper + '}: ' : '';
         dust.log(helper + msg, level);
     }
@@ -2444,15 +2488,15 @@ function dustHelpers(dust) {
         if (_deprecatedCache[target]) {
             return;
         }
-        log(target, "Deprecation warning: " + target + " is deprecated and will be removed in a future version of dustjs-helpers", "WARN");
-        log(null, "For help and a deprecation timeline, see https://github.com/linkedin/dustjs-helpers/wiki/Deprecated-Features#" + target.replace(/\W+/g, ""), "WARN");
+        log(target, 'Deprecation warning: ' + target + ' is deprecated and will be removed in a future version of dustjs-helpers', 'WARN');
+        log(null, 'For help and a deprecation timeline, see https://github.com/linkedin/dustjs-helpers/wiki/Deprecated-Features#' + target.replace(/\W+/g, ''), 'WARN');
         _deprecatedCache[target] = true;
     }
 
     function isSelect(context) {
         return context.stack.tail &&
             context.stack.tail.head &&
-            typeof context.stack.tail.head.__select__ !== "undefined";
+            typeof context.stack.tail.head.__select__ !== 'undefined';
     }
 
     function getSelectState(context) {
@@ -2486,7 +2530,7 @@ function dustHelpers(dust) {
         }
 
         return newContext
-            .push({ "__select__": state })
+            .push({ '__select__': state })
             .push(head, context.stack.index, context.stack.of);
     }
 
@@ -2509,7 +2553,7 @@ function dustHelpers(dust) {
      * Used by {@contextDump}
      */
     function jsonFilter(key, value) {
-        if (typeof value === "function") {
+        if (typeof value === 'function') {
             return value.toString()
                 .replace(/(^\s+|\s+$)/mg, '')
                 .replace(/\n/mg, '')
@@ -2548,7 +2592,7 @@ function dustHelpers(dust) {
         } else if (selectState.hasOwnProperty('key')) {
             key = selectState.key;
         } else {
-            log(helperName, "No key specified", "WARN");
+            log(helperName, 'No key specified', 'WARN');
             return chunk;
         }
 
@@ -2558,7 +2602,7 @@ function dustHelpers(dust) {
         value = coerce(context.resolve(params.value), type);
 
         if (test(key, value)) {
-            // Once a truth test passes, put the select into "pending" state. Now we can render the body of
+            // Once a truth test passes, put the select into 'pending' state. Now we can render the body of
             // the truth test (which may contain truth tests) without altering the state of the select.
             if (!selectState.isPending) {
                 willResolve = true;
@@ -2599,13 +2643,13 @@ function dustHelpers(dust) {
 
         // Utility helping to resolve dust references in the given chunk
         // uses native Dust Context#resolve (available since Dust 2.6.2)
-        "tap": function(input, chunk, context) {
+        'tap': function(input, chunk, context) {
             // deprecated for removal in 1.8
-            _deprecated("tap");
+            _deprecated('tap');
             return context.resolve(input);
         },
 
-        "sep": function(chunk, context, bodies) {
+        'sep': function(chunk, context, bodies) {
             var body = bodies.block;
             if (context.stack.index === context.stack.of - 1) {
                 return chunk;
@@ -2617,14 +2661,14 @@ function dustHelpers(dust) {
             }
         },
 
-        "first": function(chunk, context, bodies) {
+        'first': function(chunk, context, bodies) {
             if (context.stack.index === 0) {
                 return bodies.block(chunk, context);
             }
             return chunk;
         },
 
-        "last": function(chunk, context, bodies) {
+        'last': function(chunk, context, bodies) {
             if (context.stack.index === context.stack.of - 1) {
                 return bodies.block(chunk, context);
             }
@@ -2633,10 +2677,10 @@ function dustHelpers(dust) {
 
         /**
          * {@contextDump}
-         * @param key {String} set to "full" to the full context stack, otherwise the current context is dumped
-         * @param to {String} set to "console" to log to console, otherwise outputs to the chunk
+         * @param key {String} set to 'full' to the full context stack, otherwise the current context is dumped
+         * @param to {String} set to 'console' to log to console, otherwise outputs to the chunk
          */
-        "contextDump": function(chunk, context, bodies, params) {
+        'contextDump': function(chunk, context, bodies, params) {
             var to = context.resolve(params.to),
                 key = context.resolve(params.key),
                 target, output;
@@ -2666,7 +2710,7 @@ function dustHelpers(dust) {
          * @param operand second value (not required for operations like `abs`)
          * @param round if truthy, round() the result
          */
-        "math": function(chunk, context, bodies, params) {
+        'math': function(chunk, context, bodies, params) {
             var key = params.key,
                 method = params.method,
                 operand = params.operand,
@@ -2674,7 +2718,7 @@ function dustHelpers(dust) {
                 output, state, x, len;
 
             if (!params.hasOwnProperty('key') || !params.method) {
-                log("math", "`key` or `method` was not provided", "ERROR");
+                log('math', '`key` or `method` was not provided', 'ERROR');
                 return chunk;
             }
 
@@ -2682,38 +2726,38 @@ function dustHelpers(dust) {
             operand = parseFloat(context.resolve(operand));
 
             switch (method) {
-                case "mod":
+                case 'mod':
                     if (operand === 0) {
-                        log("math", "Division by 0", "ERROR");
+                        log('math', 'Division by 0', 'ERROR');
                     }
                     output = key % operand;
                     break;
-                case "add":
+                case 'add':
                     output = key + operand;
                     break;
-                case "subtract":
+                case 'subtract':
                     output = key - operand;
                     break;
-                case "multiply":
+                case 'multiply':
                     output = key * operand;
                     break;
-                case "divide":
+                case 'divide':
                     if (operand === 0) {
-                        log("math", "Division by 0", "ERROR");
+                        log('math', 'Division by 0', 'ERROR');
                     }
                     output = key / operand;
                     break;
-                case "ceil":
-                case "floor":
-                case "round":
-                case "abs":
+                case 'ceil':
+                case 'floor':
+                case 'round':
+                case 'abs':
                     output = Math[method](key);
                     break;
-                case "toint":
+                case 'toint':
                     output = parseInt(key, 10);
                     break;
                 default:
-                    log("math", "Method `" + method + "` is not supported", "ERROR");
+                    log('math', 'Method `' + method + '` is not supported', 'ERROR');
             }
 
             if (typeof output !== 'undefined') {
@@ -2739,7 +2783,7 @@ function dustHelpers(dust) {
          * @param key a value or reference to use as the left-hand side of comparisons
          * @param type coerce all truth test keys without an explicit type to this type
          */
-        "select": function(chunk, context, bodies, params) {
+        'select': function(chunk, context, bodies, params) {
             var body = bodies.block,
                 state = {};
 
@@ -2755,7 +2799,7 @@ function dustHelpers(dust) {
                 chunk = chunk.render(body, context);
                 resolveSelectDeferreds(getSelectState(context));
             } else {
-                log("select", "Missing body block", "WARN");
+                log('select', 'Missing body block', 'WARN');
             }
             return chunk;
         },
@@ -2766,22 +2810,22 @@ function dustHelpers(dust) {
          * @param value a value or reference to use as the right-hand side of comparisons
          * @param type if specified, `key` and `value` will be forcibly cast to this type
          */
-        "eq": truthTest('eq', function(left, right) {
+        'eq': truthTest('eq', function(left, right) {
             return left === right;
         }),
-        "ne": truthTest('ne', function(left, right) {
+        'ne': truthTest('ne', function(left, right) {
             return left !== right;
         }),
-        "lt": truthTest('lt', function(left, right) {
+        'lt': truthTest('lt', function(left, right) {
             return left < right;
         }),
-        "lte": truthTest('lte', function(left, right) {
+        'lte': truthTest('lte', function(left, right) {
             return left <= right;
         }),
-        "gt": truthTest('gt', function(left, right) {
+        'gt': truthTest('gt', function(left, right) {
             return left > right;
         }),
-        "gte": truthTest('gte', function(left, right) {
+        'gte': truthTest('gte', function(left, right) {
             return left >= right;
         }),
 
@@ -2791,14 +2835,14 @@ function dustHelpers(dust) {
          * Must be contained inside a {@select} block.
          * The passing truth test can be before or after the {@any} block.
          */
-        "any": function(chunk, context, bodies, params) {
+        'any': function(chunk, context, bodies, params) {
             var selectState = getSelectState(context);
 
             if (!selectState) {
-                log("any", "Must be used inside a {@select} block", "ERROR");
+                log('any', 'Must be used inside a {@select} block', 'ERROR');
             } else {
                 if (selectState.isDeferredComplete) {
-                    log("any", "Must not be nested inside {@any} or {@none} block", "ERROR");
+                    log('any', 'Must not be nested inside {@any} or {@none} block', 'ERROR');
                 } else {
                     chunk = chunk.map(function(chunk) {
                         selectState.deferreds.push(function() {
@@ -2819,14 +2863,14 @@ function dustHelpers(dust) {
          * Must be contained inside a {@select} block.
          * The position of the helper does not matter.
          */
-        "none": function(chunk, context, bodies, params) {
+        'none': function(chunk, context, bodies, params) {
             var selectState = getSelectState(context);
 
             if (!selectState) {
-                log("none", "Must be used inside a {@select} block", "ERROR");
+                log('none', 'Must be used inside a {@select} block', 'ERROR');
             } else {
                 if (selectState.isDeferredComplete) {
-                    log("none", "Must not be nested inside {@any} or {@none} block", "ERROR");
+                    log('none', 'Must not be nested inside {@any} or {@none} block', 'ERROR');
                 } else {
                     chunk = chunk.map(function(chunk) {
                         selectState.deferreds.push(function() {
@@ -2852,7 +2896,7 @@ function dustHelpers(dust) {
          * Functions are evaluated and the length of their return value is evaluated
          * @param key find the size of this value or reference
          */
-        "size": function(chunk, context, bodies, params) {
+        'size': function(chunk, context, bodies, params) {
             var key = params.key,
                 value, k;
 
@@ -2863,7 +2907,7 @@ function dustHelpers(dust) {
                 value = key.length;
             } else if (!isNaN(parseFloat(key)) && isFinite(key)) {
                 value = key;
-            } else if (typeof key === "object") {
+            } else if (typeof key === 'object') {
                 value = 0;
                 for (k in key) {
                     if (key.hasOwnProperty(k)) {
@@ -2884,7 +2928,7 @@ function dustHelpers(dust) {
 
     return dust;
 
-};
+}
 
 dustHelpers(dust);
 const _templates = new Map();
@@ -2912,7 +2956,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
                     return inBase.prop(inPath);
                 }
             } else {
-                return _.get(inBase, inPath);
+                return lodash.get(inBase, inPath);
             }
         };
 
@@ -2997,6 +3041,31 @@ var pageFactory = new PageFactory();
 
 const _private = privateHash('component');
 
+const _setupModel = function _setupModel(inModelInitObj) {
+
+    const _p = _private.get(this);
+
+    let getter;
+
+    if (!inModelInitObj) {
+        getter = () => {
+            return this.page.resolveNodeModel(this.node);
+        };
+    } else {
+        _p.model = ObservableObject$1.fromObject(inModelInitObj);
+        getter = () => {
+            return _p.model;
+        };
+    }
+
+    Object.defineProperty(this, 'model', {
+        get: getter
+    });
+    Object.defineProperty(this, 'hasModel', {
+        get: () => !!inModelInitObj
+    });
+};
+
 const _findState = function _findState(inStateName) {
 
     if (!inStateName) {
@@ -3011,26 +3080,11 @@ const _findState = function _findState(inStateName) {
     return currentState;
 };
 
-const _conformsToComponentModel = function _conformsToComponentModel(inOrig) {
-    if(!inOrig) {
-        return false;
-    }
-    if(inOrig instanceof Observable) {
-        return inOrig.prop('data') !== undefined &&
-            inOrig.prop('_state') !== undefined &&
-            inOrig.prop('_nextState') !== undefined;
-    } else {
-        return _$1.isPlainObject(inOrig) &&
-            inOrig.data !== undefined &&
-            inOrig._state !== undefined &&
-            inOrig._nextState !== undefined;
-    }
-
-};
-
 
 const _watchState = function _watchState() {
-    this.model.watch('_nextState', (inPath, inChanges) => {
+    const _p = _private.get(this);
+
+    _p.stateInfo.watch('nextState', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
         if (!nextState) {
             console.warn('Changing to unknown state: ' +
@@ -3039,18 +3093,18 @@ const _watchState = function _watchState() {
         }
         const rollback = (inReason) => {
             inReason && console.debug('Could not change state because: ' + inReason); //jshint ignore:line
-            this.model.prop('_nextState', inChanges.oldValue, true);
+            _p.stateInfo.prop('nextState', inChanges.oldValue, true);
             currentState.didntLeave();
             for (let watcher of _private.get(this).stateWatchers) {
                 watcher(inChanges.newValue, inChanges.oldValue, inReason);
             }
         };
-        let currentState = _private.get(this).currentState;
+        let currentState = _private.get(this).stateInfo.currentStateObject;
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    _private.get(this).currentState = nextState;
-                    this.model.prop('_state', this.model.prop('_nextState'));
+                    _private.get(this).stateInfo.currentStateObject = nextState;
+                    _private.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
 
@@ -3073,55 +3127,51 @@ class Component {
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
         _private.set(this, {
             stateWatchers: new Set(),
-            lifecycleSignal : lifecycleSignal
+            lifecycleSignal: lifecycleSignal,
+            stateInfo: new ObservableObject$1()
         });
 
-        Object.defineProperty(this, 'lifecycle', { 
-            get : function() { 
+        Object.defineProperty(this, 'lifecycle', {
+            get: function() {
                 return lifecycle;
             }
         });
 
 
-        if(pageFactory.componentConfigPreprocessor) {
+        if (pageFactory.componentConfigPreprocessor) {
             pageFactory.componentConfigPreprocessor(inConfig);
         }
         this.config = inConfig;
         this.page = inPage;
         this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
         this.name = inConfig.name;
-        _$1.each(inConfig.actions, (inAction) => {
-            if(!inAction) {
+        lodash.each(inConfig.actions, (inAction) => {
+            if (!inAction) {
                 console.error('Passed a null action to component config');
                 return;
             }
-            const actionName = _$1.isString(inAction) ? inAction : inAction.name;
-            if(!actionName) {
+            const actionName = lodash.isString(inAction) ? inAction : inAction.name;
+            if (!actionName) {
                 console.error('Passed an object with no action name as action in component config');
                 return;
             }
-            const handler = _$1.isPlainObject(inAction) ? inAction.handler : undefined;
+            const handler = lodash.isPlainObject(inAction) ? inAction.handler : undefined;
 
-            if(handler && !_$1.isFunction(handler)) {
+            if (handler && !lodash.isFunction(handler)) {
                 console.error('Passed a non-function action handler in component config');
                 return;
             }
-            if(_$1.isPlainObject(inAction) && inAction.publish === true) {
+            if (lodash.isPlainObject(inAction) && inAction.publish === true) {
                 this.bus.publishAction(actionName, handler ? handler.bind(this) : null);
             } else {
                 this.bus.addAction(actionName, handler ? handler.bind(this) : null);
             }
-            
+
         });
         let templates = inConfig.templates || {};
 
-        this.model = _conformsToComponentModel(inInitObj) ?
-            ObservableObject$1.fromObject(inInitObj) :
-            ObservableObject$1.fromObject({
-                data: inInitObj,
-                _state: '',
-                _nextState: ''
-            });
+        _setupModel.call(this, inInitObj);
+
         for (let templateName in templates) {
             let actualTemplateName = templateName === '_default' ?
                 '_default.' + this.name :
@@ -3132,15 +3182,15 @@ class Component {
         _private.get(this).hasDefaultTemplate = !!templates._default;
         _watchState.bind(this)();
         this.states = this.states || new State();
-        _private.get(this).currentState = this.states;
+        _private.get(this).stateInfo.currentStateObject = this.states;
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
         microtask(this.initState.bind(this));
     }
 
-    data(inPath, inValue) {
-        const path = 'data.' + inPath;
-        this.page.resolveNodeModel(this.node, path).prop(path, inValue);
+    data(inPath, inValue, inSilent) {
+        const path = 'data' + (inPath ? '.' + inPath : '');
+        return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
     }
 
     initState() {
@@ -3148,11 +3198,11 @@ class Component {
     }
 
     getCurrentState() {
-        return _private.get(this).currentState;
+        return _private.get(this).stateInfo.currentStateObject;
     }
 
     tryState(inStateName) {
-        if (inStateName === this.model.prop('_state')) {
+        if (inStateName === _private.get(this).stateInfo.prop('state')) {
             return;
         }
 
@@ -3166,7 +3216,7 @@ class Component {
                 this.unwatchState(watcher);
             };
             this.watchState(watcher);
-            this.model.prop('_nextState', inStateName);
+            _private.get(this).stateInfo.prop('nextState', inStateName);
         });
 
     }
@@ -3179,13 +3229,20 @@ class Component {
         _private.get(this).stateWatchers.add(inWatcherFunction);
     }
 
+    invalidate() {
+        if (!_private.get(this).willRender) {
+            _private.get(this).willRender = true;
+            microtask(this.render.bind(this));
+        }
+    }
+
     render(inModel) {
+        _private.get(this).willRender = false;
         if (_private.get(this).hasDefaultTemplate) {
             const delegate = pageFactory.getTemplatingDelegate();
             const model = inModel ?
                 ObservableObject$1.fromObject(inModel) :
                 this.page.resolveNodeModel(this.node);
-
             delegate.render(
                 '_default.' + this.name,
                 model).then((inHtml) => {
@@ -3216,16 +3273,16 @@ class MasterPage {
         //TODO: merge params with template params. wrap constructor
 
         function customizer(objValue, srcValue) {
-            if (_$1.isArray(objValue)) {
+            if (lodash.isArray(objValue)) {
                 return objValue.concat(srcValue);
             }
         }
 
         const config = {};
-        _$1.mergeWith(config, _config$1, inConfig, customizer);
+        lodash.mergeWith(config, _config$1, inConfig, customizer);
 
         const model = {};
-        _$1.merge(model, _model, inModel);
+        lodash.merge(model, _model, inModel);
 
         const constructorFn = function() {
             _constructorFn.call(this);
@@ -3236,6 +3293,15 @@ class MasterPage {
     }
 }
 
+class ComponentModel extends ObservableObject$1 {
+	constructor(inData, inRootProperties) {
+		super();
+		inRootProperties.data = inData;
+		this.fill(inRootProperties);
+	}
+}
+
+exports.ComponentModel = ComponentModel;
 exports.Component = Component;
 exports.Page = Page;
 exports.State = State;
