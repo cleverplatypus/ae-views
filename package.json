@@ -84,5 +84,5 @@
     "prepublish": "rm -rf dist && mkdir dist && rollup src/ae.js --format cjs  > dist/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.5.0"
+  "version": "0.5.1"
 }
