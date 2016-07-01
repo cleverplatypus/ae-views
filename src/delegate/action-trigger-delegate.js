@@ -63,9 +63,11 @@ export default function attachAction(inPage, inConfig) {
                 }
                 component.bus.triggerAction(
                     actionName,
-                    inEvent,
-                    typifyParams(inPage, inConfig.params)
-                );
+                    typifyParams(inPage, inConfig.params),
+                    inEvent);
+                if(inTrigger === 'click') {
+                    inEvent.stopPropagation();
+                }
             };
 
 

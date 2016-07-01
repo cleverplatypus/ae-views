@@ -1,7 +1,6 @@
 'use strict';
 
 import $ from 'jquery';
-import _ from 'lodash';
 import Bus from './Bus';
 import Component from './Component';
 import Page from './Page';

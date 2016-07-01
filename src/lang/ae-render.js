@@ -2,7 +2,7 @@ import $ from 'jquery';
 import microtask from '../microtask';
 import Element from './ae-element';
 import factory from '../page-factory';
-import Observable from '../Observable';
+import ObservableObject from '../ObservableObject';
 import { transform } from 'lodash';
 export default function render(inPage) {
     'use strict';
@@ -44,7 +44,7 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
-        _private.set(this, { willRender: true });
+        _private.set(this, { willRender: false });
         let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
@@ -79,7 +79,7 @@ export default function render(inPage) {
         const path = $(this).attr('from');
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
 
-            if (inBaseModel instanceof Observable) {
+            if (inBaseModel instanceof ObservableObject) {
                 inBaseModel.watch(path, () => {
                     invalidate.call(this);
                 });
@@ -91,7 +91,7 @@ export default function render(inPage) {
         if ($(this).attr('watch')) {
             _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
 
-                console.log(inBaseModel instanceof Observable ? inBaseModel.toNative(true) : inBaseModel);
+                console.log(inBaseModel instanceof ObservableObject ? inBaseModel.toNative(true) : inBaseModel);
                 invalidate.call(this);
             });
         }

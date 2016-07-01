@@ -4,8 +4,7 @@ import TemplatingDelegate from './TemplatingDelegate';
 import dust from 'ae-dustjs';
 import uuid from 'node-uuid';
 import ObservableObject from '../ObservableObject';
-import Observable from '../Observable';
-import {get} from 'lodash';
+import {get,each} from 'lodash';
 
 import dustHelpers from './dust-helpers';
 dustHelpers(dust);
@@ -39,6 +38,15 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         };
 
        
+    }
+
+    registerExtensions(inExtensions) {
+        each(get(inExtensions, 'filters'), (inFilter, inName) => {
+            dust.filters[inName] = inFilter;
+        });
+        each(get(inExtensions, 'helpers'), (inHelper, inName) => {
+            dust.helpers[inName] = inHelper;
+        });
     }
 
     setCollectionResolver(inResolver) {

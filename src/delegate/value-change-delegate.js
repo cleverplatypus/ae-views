@@ -139,7 +139,7 @@ class InputValueChangeDelegate {
         } else if ($(inElement).get(0).nodeName.toUpperCase() === 'SELECT') {
             let out = [];
             $(inElement).find('option:selected').each(function() {
-                out.push($(this).text());
+                out.push($(this).val());
             });
             return out;
         }

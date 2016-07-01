@@ -2,7 +2,6 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
 
 export default function action(inPage) {
     const _page = inPage;
@@ -22,4 +21,4 @@ export default function action(inPage) {
     };
 
     document.registerElement('ae-managed', { prototype: proto });
-};
+}

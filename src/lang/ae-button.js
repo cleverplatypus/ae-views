@@ -2,7 +2,6 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
 import attachAction from '../delegate/action-trigger-delegate';
 
 export default function aeButton(inPage) {

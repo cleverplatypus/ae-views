@@ -1,7 +1,7 @@
 'use strict';
 
 import Component from './component';
-import _ from 'lodash';
+import {get, isFunction, isPlainObject} from 'lodash';
 import $ from 'jquery';
 
 import modelDataSource from './datasource/model-datasource';
@@ -83,7 +83,9 @@ class Page extends Component {
             }
         }
         if (!_registry.get(node)) {
-            console.debug('Could not find component in ancestry. Falling back to page component');
+            if(get(window, 'logLevel') === 'debug') {
+                console.debug('Could not find component in ancestry. Falling back to page component');
+            }
             return this;
         }
         return _registry.get(node);
@@ -112,11 +114,19 @@ class Page extends Component {
         $(this.mountPoint).css('display', '');
     }
 
-    registerComponent(inConfig, inModelPrototype, inConstructor) {
+    registerComponent(...args) {
+
+        const constructor = args.pop();
+        const config = args.shift();
+        const model = args.shift();
+        if(!isFunction(constructor) || 
+            !isPlainObject(config)) {
+            throw new Error('Page.registerComponent() usage: (config : Object, [model : Object|ObservableObject], constructor : Function');
+        }
         this.registerComponentElement({
-            config: inConfig,
-            modelPrototype: inModelPrototype,
-            constructor: inConstructor
+            config: config,
+            modelPrototype: model,
+            constructor: constructor
         });
     }
 

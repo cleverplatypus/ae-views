@@ -1,5 +1,6 @@
 'use strict';
 var Signal = require('signals').Signal;
+//REFACTOR: bubbling must happen at component chain level
 class Bus {
 
     constructor(inParentBus) {
@@ -7,7 +8,9 @@ class Bus {
         this.signals = {};
     }
 
-    publishAction(inName, inHandler) {
+    //REFACTOR: this must go. publication happens at component level
+    //          i.e. action is added to page bus
+    publishAction(inName, inHandler) { 
         if (this.parent()) {
             this.parent().publishAction(inName, inHandler);
         } else {
@@ -17,6 +20,7 @@ class Bus {
 
     triggerAction(inName, ...rest) {
         if (!this.signals[inName]) {
+
             if (this.parent()) {
                 this.parent().triggerAction.apply(this.parent(), [inName].concat(rest));
             } else {

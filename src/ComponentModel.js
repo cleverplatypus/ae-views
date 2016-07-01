@@ -1,12 +1,17 @@
 'use strict';
 
 import ObservableObject from './ObservableObject';
+import {has} from 'lodash';
 
 class ComponentModel extends ObservableObject {
-	constructor(inData, inRootProperties) {
+	constructor(inInitObj) {
 		super();
-		inRootProperties.data = inData;
-		this.fill(inRootProperties);
+
+		if(has(inInitObj, 'data')) {
+			this.fill(inInitObj);
+		} else {
+			this.fill({ data : inInitObj});
+		}
 	}
 }
 

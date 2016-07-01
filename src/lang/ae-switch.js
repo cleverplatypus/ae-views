@@ -2,7 +2,6 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import _ from 'lodash';
 
 /**
 *   A container for element that change the value of a property based on 
@@ -28,7 +27,7 @@ export default function aeSwitch(inPage) {
         //console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
     };
     
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLUListElement.prototype);
     proto.createdCallback = function() {
         _private.set(this, {
             selectedClass: $(this).attr('selected-class') || 'selected',
@@ -51,12 +50,12 @@ export default function aeSwitch(inPage) {
             if(defaultSwitch) {
                 selectHandler.call(that, defaultSwitch);
             }
-       })
+       });
     };
 
     proto.detachedCallback = function() {
 
     };
 
-    document.registerElement('ae-switch', { prototype: proto });
+    document.registerElement('ae-switch', { prototype: proto, extends : 'ul' });
 }

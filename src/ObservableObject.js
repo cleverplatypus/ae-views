@@ -1,7 +1,6 @@
 'use strict';
 import Observer from './Observer';
 import { isPlainObject, keys, each, isString, get, isArray } from 'lodash';
-import Observable from './Observable';
 
 
 
@@ -24,10 +23,9 @@ class Dummy {
     }
 }
 
-class ObservableObject extends Observable {
+class ObservableObject {
 
     constructor(inConfig) {
-        super();
         const isCollection = (get(inConfig, 'isCollection') === true);
         _private.set(this, {
             isSilent: false,
@@ -56,8 +54,8 @@ class ObservableObject extends Observable {
                             newValue: _private.get(this).props.prop(localProp)
                         }
                     };
-                } else if (val !== undefined && !(val instanceof Observable)) {
-                    throw new Error('trying to set a value through a branch with a non Observable node');
+                } else if (val !== undefined && !(val instanceof ObservableObject)) {
+                    throw new Error('trying to set a value through a branch with a non ObservableObject node');
                 } else {
                     let alreadyFound = false;
                     if (val === undefined) {
@@ -198,7 +196,7 @@ class ObservableObject extends Observable {
             if (myProps.prop(propName) === undefined) {
                 return undefined;
             } else {
-                if (path.length && !(myProps.prop(propName) instanceof Observable)) {
+                if (path.length && !(myProps.prop(propName) instanceof ObservableObject)) {
                     console.warn('trying to access path through a non traversable property');
                     return undefined;
                 } else if (path.length) {
@@ -227,7 +225,7 @@ class ObservableObject extends Observable {
     toNative(inDeep) {
         var out = _private.get(this).isCollection ? [] : {};
         each(_private.get(this).props._obj, (inVal, inKey) => {
-            let isObservable = inVal instanceof Observable;
+            let isObservable = inVal instanceof ObservableObject;
             out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
         });
         return out;

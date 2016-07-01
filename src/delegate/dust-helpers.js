@@ -1,7 +1,7 @@
 /*! dustjs-helpers - v1.7.3
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
-import Observable from '../Observable';
+import ObservableObject from '../ObservableObject';
 import { isString, keys, get } from 'lodash';
 
 export default function(dust) {
@@ -128,7 +128,7 @@ export default function(dust) {
         if (params.key) {
             obj = context.resolve(params.key);
 
-            if (obj instanceof Observable) {
+            if (obj instanceof ObservableObject) {
                 obj = obj.toNative();
             }
 

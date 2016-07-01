@@ -1,14 +1,14 @@
 'use strict';
 import microtask from './microtask';
 import ObservableObject from './ObservableObject';
-import Observable from './Observable';
+import ComponentModel from './ComponentModel';
 import State from './State';
 import Bus from './Bus';
 import { isString, isFunction, isPlainObject, each } from 'lodash';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
-import { Signal } from 'signals';
+import  {Signal} from 'signals';
 import privateHash from './util/private';
 
 const _private = privateHash('component');
@@ -24,7 +24,11 @@ const _setupModel = function _setupModel(inModelInitObj) {
             return this.page.resolveNodeModel(this.node);
         };
     } else {
-        _p.model = ObservableObject.fromObject(inModelInitObj);
+        if(isPlainObject(inModelInitObj)) {
+            _p.model = new ComponentModel(inModelInitObj);
+        } else {
+            _p.model = ObservableObject.fromObject(inModelInitObj);
+        }
         getter = () => {
             return _p.model;
         };
@@ -97,6 +101,7 @@ class Component {
     constructor(inConfig, inInitObj, inConstructor, inPage) {
         const lifecycleSignal = new Signal();
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
+        this.microtask = microtask;
         _private.set(this, {
             stateWatchers: new Set(),
             lifecycleSignal: lifecycleSignal,
@@ -214,7 +219,7 @@ class Component {
             const delegate = factory.getTemplatingDelegate();
             const model = inModel ?
                 ObservableObject.fromObject(inModel) :
-                this.page.resolveNodeModel(this.node);
+                this.data();
             delegate.render(
                 '_default.' + this.name,
                 model).then((inHtml) => {

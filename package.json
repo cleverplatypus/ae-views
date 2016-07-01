@@ -52,7 +52,7 @@
   "dependencies": {
     "ae-dustjs": "git+https://git@github.com/cleverplatypus/ae-dustjs.git",
     "jquery": "^2.2.2",
-    "lodash": "^4.10.0",
+    "lodash": "^4.13.1",
     "node-uuid": "^1.4.7",
     "signals": "^1.0.0"
   },
@@ -75,7 +75,7 @@
   },
   "gitHead": "4cfcfef5cf88ab00c6e05ec24093f96bd6404d27",
   "license": "ISC",
-  "main": "dist/bundle.js",
+  "main": "src/ae.js",
   "jsnext:main": "src/ae.js",
   "name": "ae-views",
   "optionalDependencies": {},
