@@ -1,7 +1,9 @@
 'use strict';
+
 import factory from '../page-factory';
 import $ from 'jquery';
 import Element from './ae-element';
+import ObservableObject from '../ObservableObject';
 
 export default function each(inPage) {
     const _page = inPage;
@@ -17,7 +19,7 @@ export default function each(inPage) {
                 throw new Error('ae-each children must be either <ae-...> or a <template> element.');
             }
         });
-        let templateName = $(this).attr('template')
+        let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
 
@@ -68,7 +70,7 @@ export default function each(inPage) {
         });
         dataSource.resolve(this, path).then((inData) => {
             renderFn(inData);    
-        })
+        });
         
     };
 

@@ -141,6 +141,9 @@ class InputValueChangeDelegate {
             $(inElement).find('option:selected').each(function() {
                 out.push($(this).val());
             });
+            if(!$(inElement).prop('multiple')) {
+                return out[0];
+            } 
             return out;
         }
     }

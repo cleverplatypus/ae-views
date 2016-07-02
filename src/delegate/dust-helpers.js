@@ -2,7 +2,11 @@
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
 import ObservableObject from '../ObservableObject';
-import { isString, keys, get } from 'lodash';
+import {
+    isString,
+    keys,
+    get
+} from 'lodash';
 
 export default function(dust) {
     'use strict';
@@ -46,7 +50,7 @@ export default function(dust) {
         tail.unshift('-');
 
         while (split.length) {
-            if(!(split.length % 4)) {
+            if (split.length % 4 === 0) {
                 tail.unshift('-');
             }
             tail.unshift('*');
@@ -69,23 +73,28 @@ export default function(dust) {
 
         function isEmpty(o) {
             for (var p in o) {
-                if (o.hasOwnProperty(p)) return false;
+                if (o.hasOwnProperty(p)) {
+                    return false;
+                }
             }
             return true;
         }
 
-        if (sort) delete params.sort;
+        if (sort) {
+            delete params.sort;
+        }
         if (body) {
-            function cmp(a, b) {
+            var cmp = function cmp(a, b) {
                 return (a[sortkey] < b[sortkey]) ? -1 : ((a[sortkey] > b[sortkey]) ? 1 : 0);
-            }
+            };
+            
             while (sort.length) {
                 sortkey = sort.pop().key;
                 context.stack.head.sort(cmp);
             }
             return chunk.section(context.getPath(true, []), context, bodies, isEmpty(params) ? null : params);
         }
-    }
+    };
 
     dust.filters.money = function(inValue) {
         var sValue = Number(inValue).toFixed(2).replace('.', ',');
@@ -97,7 +106,7 @@ export default function(dust) {
         return sValue;
     };
 
-    dust.helpers.iterate = function(chunk, context, bodies, params) {
+    dust.helpers.iterate = function(chunk, context, bodies, params) { //jshint ignore:line
         var body = bodies.block,
             sort,
             arr,
@@ -267,7 +276,9 @@ export default function(dust) {
         }
 
         return newContext
-            .push({ '__select__': state })
+            .push({
+                '__select__': state
+            })
             .push(head, context.stack.index, context.stack.of);
     }
 
@@ -312,7 +323,7 @@ export default function(dust) {
     /**
      * This function is invoked by truth test helpers
      */
-    function filter(chunk, context, bodies, params, helperName, test) {
+    function filter(chunk, context, bodies, params, helperName, test) { //jshint ignore:line
         var body = bodies.block,
             skip = bodies['else'],
             selectState = getSelectState(context) || {},
@@ -447,7 +458,7 @@ export default function(dust) {
          * @param operand second value (not required for operations like `abs`)
          * @param round if truthy, round() the result
          */
-        'math': function(chunk, context, bodies, params) {
+        'math': function(chunk, context, bodies, params) { //jshint ignore:line
             var key = params.key,
                 method = params.method,
                 operand = params.operand,
@@ -502,7 +513,9 @@ export default function(dust) {
                     output = Math.round(output);
                 }
                 if (bodies && bodies.block) {
-                    context = addSelectState(context, { key: output });
+                    context = addSelectState(context, {
+                        key: output
+                    });
                     chunk = chunk.render(bodies.block, context);
                     resolveSelectDeferreds(getSelectState(context));
                 } else {

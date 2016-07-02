@@ -1,3 +1,6 @@
+'use strict';
+		
+
 const _private = new WeakMap();
 
 export default class ComponentLifecycle {
@@ -10,7 +13,7 @@ export default class ComponentLifecycle {
 			if(inType === 'rendered') {
 				inHandler();
 			}
-		})
+		});
 	}
 
 	elementCreated(inHandler) {
@@ -18,7 +21,7 @@ export default class ComponentLifecycle {
 			if(inType === 'element-created') {
 				inHandler();
 			}
-		})
+		});
 
 	}
 
@@ -27,7 +30,7 @@ export default class ComponentLifecycle {
 			if(inType === 'element-attached') {
 				inHandler();
 			}
-		})
+		});
 
 	}
 
@@ -36,7 +39,7 @@ export default class ComponentLifecycle {
 			if(inType === 'element-detached') {
 				inHandler();
 			}
-		})
+		});
 
 	}
 

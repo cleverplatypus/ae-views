@@ -1,3 +1,5 @@
+'use strict';
+
 import $ from 'jquery';
 import Element from './ae-element';
 import {isString, each} from 'lodash';
@@ -5,7 +7,6 @@ import valueChangeDelegate from '../delegate/value-change-delegate';
 
 
 export default function bind(inPage) {
-    'use strict';
     const _page = inPage;
     const _private = new WeakSet();
 

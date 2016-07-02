@@ -1,13 +1,10 @@
 'use strict';
 
-const $ = require('jquery');
-
 let _page = null;
-
 
 export default function() {
     return function(inPage) {
-        return new(function(inPage) {
+        const ModelDataSource = function(inPage) {
             this.page = _page = inPage;
 
             this.resolve = function resolve(inNode, inPath) {
@@ -50,7 +47,8 @@ export default function() {
             };
 
 
-        })(inPage);
+        };
+        return new ModelDataSource(inPage);
     };
 
 }

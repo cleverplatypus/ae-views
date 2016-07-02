@@ -10,12 +10,12 @@
     "noempty": true,
     "nonew": true,
     "onevar": false,
-    "strict": true,
+    "strict": false,
     "trailing": true,
     "undef": true,
     "unused": false,
 
-    "node": false,
+    "node": true,
     "devel": true,
     "jquery" : true,
     "browser" : true,
@@ -25,7 +25,7 @@
     "maxcomplexity": 10,
     "maxerr": 50,
     "maxlen": 200,
-
+    "esversion" : 6,
     "globals": {
         "MutationObserver" : false,
         "_" : false,

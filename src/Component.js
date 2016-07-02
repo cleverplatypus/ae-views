@@ -120,7 +120,7 @@ class Component {
         }
         this.config = inConfig;
         this.page = inPage;
-        this.bus = new Bus(inPage ? inPage.bus : null); //jshint ignore:line
+        this.bus = new Bus(this); //jshint ignore:line
         this.name = inConfig.name;
         each(inConfig.actions, (inAction) => {
             if (!inAction) {
@@ -168,6 +168,13 @@ class Component {
     data(inPath, inValue, inSilent) {
         const path = 'data' + (inPath ? '.' + inPath : '');
         return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
+    }
+
+    parent() {
+        if(this.page === this) {
+            return;
+        }
+        return this.page.resolveNodeComponent($(this.node).parent());
     }
 
     initState() {

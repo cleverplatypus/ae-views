@@ -2,8 +2,10 @@ var gulp = require('gulp');
 var babel = require('gulp-babel');
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
-gulp.task('default', () =>
-gulp.src('./src/**.js')
+var jshint = require('gulp-jshint');
+
+gulp.task('bundle', () =>
+    gulp.src('./src/**.js')
     .pipe(babel({
         presets: ['es2015', 'stage-0']
     }))
@@ -11,3 +13,9 @@ gulp.src('./src/**.js')
     .pipe(rename('bundle.js'))
     .pipe(gulp.dest('dist'))
 );
+
+gulp.task('lint', () => {
+    return gulp.src('./src/**/*.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('jshint-stylish'));
+});

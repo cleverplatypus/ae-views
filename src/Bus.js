@@ -1,40 +1,38 @@
 'use strict';
-var Signal = require('signals').Signal;
-//REFACTOR: bubbling must happen at component chain level
+
+import {Signal} from 'signals';
+import {get} from 'lodash';
+
 class Bus {
 
-    constructor(inParentBus) {
-        this.parent = () => inParentBus;
+    constructor(inComponent) {
+        this.component = () => inComponent;
         this.signals = {};
     }
 
-    //REFACTOR: this must go. publication happens at component level
-    //          i.e. action is added to page bus
-    publishAction(inName, inHandler) { 
-        if (this.parent()) {
-            this.parent().publishAction(inName, inHandler);
-        } else {
-            this.addAction(inName, inHandler)
+    publishAction(inName, inHandler) {
+        this.component().page.bus.addAction(inName, inHandler);
+    }
+
+    bubbleAction(inName, ...rest) {
+        const parentBus = get(this.component().parent(), 'bus');
+        if(!parentBus) {
+            console.warn(`Cannot bubble action "${inName}" from page`);
+            return;
         }
+        parentBus.triggerAction.apply(parentBus, [inName].concat(rest));
     }
 
     triggerAction(inName, ...rest) {
-        if (!this.signals[inName]) {
-
-            if (this.parent()) {
-                this.parent().triggerAction.apply(this.parent(), [inName].concat(rest));
-            } else {
-                console.warn('Trying to trigger non existing action: ' + inName);
-                return;
-            }
-
-        } else {
-            this.signals[inName].dispatch.apply(null, rest);
+        if(!this.signals[inName] || 
+            this.signals[inName].dispatch.apply(null, rest) === false) {
+            rest.unshift(inName);
+            this.bubbleAction.apply(this, rest);
         }
     }
 
     addAction(inName, inHandler, inOnce) {
-        if(!this.signals[inName]) {
+        if (!this.signals[inName]) {
             this.signals[inName] = new Signal();
         }
         if (inHandler) {
@@ -48,8 +46,9 @@ class Bus {
 
     onAction(inName, inHandler, inOnce) {
         if (!this.signals[inName]) {
-            if (this.parent()) {
-                this.parent().onAction(inName, inHandler, inOnce);
+            const parentBus = get(this.component().parent(), 'bus');
+            if (parentBus) {
+                parentBus.onAction(inName, inHandler, inOnce);
             } else {
                 this.addAction(inName, inHandler, inOnce);
                 console.warn('Possibly registering listener to non existing action: ' + inName);

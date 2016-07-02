@@ -176,7 +176,7 @@ class ObservableObject {
         return undefined;
     }
 
-    prop(inPath, inValue, inSilent) {
+    prop(inPath, inValue, inSilent) { //jshint ignore:line
         if (inPath !== 0 && !inPath) { //path can be an index. !inPath would ignore zero as a property
             return this;
         }

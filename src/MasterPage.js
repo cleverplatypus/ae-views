@@ -1,7 +1,8 @@
 'use strict';
+
 import {isArray, mergeWith, merge} from 'lodash';
 import pageFactory from './page-factory';
-let _config, _model, _constructorFn
+let _config, _model, _constructorFn;
 
 class MasterPage {
 
