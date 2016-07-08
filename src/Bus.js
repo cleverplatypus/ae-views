@@ -1,7 +1,10 @@
 'use strict';
 
-import {Signal} from 'signals';
-import {get} from 'lodash';
+import {
+    Signal
+} from 'signals';
+import {get
+} from 'lodash';
 
 class Bus {
 
@@ -16,19 +19,28 @@ class Bus {
 
     bubbleAction(inName, ...rest) {
         const parentBus = get(this.component().parent(), 'bus');
-        if(!parentBus) {
+        if (!parentBus) {
             console.warn(`Cannot bubble action "${inName}" from page`);
             return;
         }
         parentBus.triggerAction.apply(parentBus, [inName].concat(rest));
     }
 
+    bubble() {
+        this.shouldBubbleCurrent = true;
+    }
+
     triggerAction(inName, ...rest) {
-        if(!this.signals[inName] || 
-            this.signals[inName].dispatch.apply(null, rest) === false) {
+        if (this.signals[inName]) {
+            this.signals[inName].dispatch.apply(null, rest);
+        }
+
+        if (!this.signals[inName] || this.shouldBubbleCurrent) {
             rest.unshift(inName);
+            this.shouldBubbleCurrent = false;
             this.bubbleAction.apply(this, rest);
         }
+
     }
 
     addAction(inName, inHandler, inOnce) {
