@@ -28,7 +28,7 @@ class MasterPage {
         merge(model, _model, inModel);
 
         const constructorFn = function() {
-            _constructorFn.call(this);
+            _constructorFn.call(this, config);
             inConstructorFn.call(this);
         };
 

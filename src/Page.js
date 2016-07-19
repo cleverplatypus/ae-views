@@ -10,6 +10,7 @@ import lang from './lang/ae-lang';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
 import privateHash from './util/private';
+import LiteUrl from 'lite-url';
 
 const _private = privateHash('component');
 
@@ -20,6 +21,9 @@ const _initializers = [];
 const _componentInjectors = [];
 
 let _config;
+const parseUrl = function parseUrl() {
+    _private.get(this).startupParams = new LiteUrl(window.location.href).params;
+}
 
 const callNextInitializer = function() {
     let initializer = _initializers.shift();
@@ -58,6 +62,7 @@ class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig, inModelPrototype);
         _config = inConfig;
+        parseUrl.call(this);
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
         inConstructor.bind(this)();
@@ -65,6 +70,9 @@ class Page extends Component {
         callNextInitializer.call(this);
     }
 
+    startupParam(inParamName) {
+        return _private.get(this).startupParams[inParamName];
+    }
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);

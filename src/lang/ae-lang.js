@@ -40,6 +40,7 @@ import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
 import aeTextInput from './ae-input';
+import aeInput from './ae-input2';
 
 export default function(inPage) {
 
@@ -52,5 +53,6 @@ export default function(inPage) {
     aeRender(inPage);
     aeSwitch(inPage);
     aeTextInput(inPage);
+    aeInput(inPage);
 }
 

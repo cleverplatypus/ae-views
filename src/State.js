@@ -54,6 +54,11 @@ class State {
 		}
 	}
 
+	exposed() {
+		this.exposed = true;
+		return this;
+	}
+
 	onLeaving(inFn) {
 		this.leaving = inFn;
 		return this;

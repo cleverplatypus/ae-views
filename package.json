@@ -52,6 +52,7 @@
   "dependencies": {
     "ae-dustjs": "git+https://git@github.com/cleverplatypus/ae-dustjs.git",
     "jquery": "^2.2.2",
+    "lite-url": "^1.0.4",
     "lodash": "^4.13.1",
     "node-uuid": "^1.4.7",
     "signals": "^1.0.0"
