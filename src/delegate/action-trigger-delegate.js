@@ -55,6 +55,9 @@ export default function attachAction(inPage, inConfig) {
             let event;
 
             const handler = (inEvent, inTrigger) => {
+                if($(inEvent.target).prop('tagName') === 'LABEL') {
+                    return;
+                }
                 if (inTrigger === 'enter' && inEvent.keyCode !== 13) {
                     return;
                 }
@@ -71,14 +74,11 @@ export default function attachAction(inPage, inConfig) {
             };
 
 
-            for (let trigger of(inConfig.trigger || '').split(',')) {
+            for (let trigger of(inConfig.trigger || 'click').split(',')) {
                 switch (trigger) {
                     case 'enter':
                     case 'esc':
                         event = 'keyup';
-                        break;
-                    case '':
-                        event = 'click';
                         break;
                     default:
                         if (/^\w+:/.test(trigger)) {

@@ -20,24 +20,7 @@ export default function aeButton(inPage) {
         const source = $(this).attr('source');
 
         
-        let target;
-        if ($(this).children().length) {
-            target = $(this).children().get(0);
-        } else {
-            const targetAttr = $(this).attr('target');
-            if (!targetAttr) {
-                target = $(this).parent();
-            } else if (targetAttr === 'next') {
-                target = $(this).next();
-            } else if (/^closest/.test(targetAttr)) {
-                const segs = targetAttr.split(/\s+/);
-                target = $(this).closest(segs[1]);
-            } else if (/^(\.|\#)/.test(targetAttr)) {
-                target = $(this).parent().find(targetAttr);
-            } else {
-                console.warn('Unknown ae-bind target: ' + targetAttr);
-            }
-        }
+        let target = this;
 
         let dataSourceName = $(this).attr('source');
         const path = $(this).attr('path');
@@ -61,31 +44,7 @@ export default function aeButton(inPage) {
             }
 
             const valueResolver = (inValue) => {
-                let condition = $(this).attr('if');
-                let conditionMet = true;
-                if (condition) {
-
-                    let negate =
-                        (!!condition && /^!/.test(condition));
-
-                    condition = condition.replace(/^!/, '');
-
-                    if (condition && /^\/.*\/$/.test(condition)) {
-                        condition = new RegExp(condition.replace(/^\//, '').replace(/\/$/, ''));
-                        conditionMet = condition.test(inValue);
-                    } else if (isString(condition)) {
-                        if (/^(true|false)$/.test(condition)) {
-                            condition = Boolean(condition);
-                        }
-                        conditionMet = (condition === inValue);
-                    }
-                    conditionMet = conditionMet && !negate;
-                }
-
-                if (conditionMet) {
                     valueChangeDelegate.setValue(target, inValue);
-                }
-
             };
 
             dataSource.bindPath(this, fromAttr, function(inNewValue, inOldValue) {
@@ -108,6 +67,13 @@ export default function aeButton(inPage) {
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
                 dataSource.setPath(this, toAttr, inValue.value == null ? null : inValue.value);
+            });
+        }
+
+        if($(this).attr('action')) {
+            attachAction.call(this, _page, { 
+                name : $(this).attr('action')
+
             });
         }
 
