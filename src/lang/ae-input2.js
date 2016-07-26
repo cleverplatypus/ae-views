@@ -2,6 +2,7 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
+import keycode from 'keycode';
 import attachAction from '../delegate/action-trigger-delegate';
 import {
     isString,
@@ -19,7 +20,35 @@ export default function aeButton(inPage) {
 
         const source = $(this).attr('source');
 
-        
+        let restrict;
+        if ((restrict = $(this).attr('restrict'))) {
+            if (/^\[/.test(restrict)) {
+                const re = new RegExp(restrict);
+                $(this).keydown((inEvent) => {
+                    switch (inEvent.keyCode) {
+                        case keycode('enter'):
+                        case keycode('left'):
+                        case keycode('up'):
+                        case keycode('right'):
+                        case keycode('down'):
+                        case keycode('del'):
+                        case keycode('ins'):
+                        case keycode('tab'):
+                        case keycode('backspace'):
+                            return;
+
+                        default:
+                            const char = keycode(inEvent);
+                            if (!re.test(char)) {
+                                inEvent.preventDefault();
+                            }
+                    }
+
+                });
+            }
+        }
+
+
         let target = this;
 
         let dataSourceName = $(this).attr('source');
@@ -36,15 +65,9 @@ export default function aeButton(inPage) {
 
 
         if (fromAttr) {
-            let nodeAttr = inAttr.split(':');
-            nodeAttr[0] = nodeAttr[0] || 'html';
-
-            if (nodeAttr[0] === 'html') {
-                $(target).attr('data-ae-bind-html', fromAttr);
-            }
 
             const valueResolver = (inValue) => {
-                    valueChangeDelegate.setValue(target, inValue);
+                valueChangeDelegate.setValue(target, inValue);
             };
 
             dataSource.bindPath(this, fromAttr, function(inNewValue, inOldValue) {
@@ -70,9 +93,9 @@ export default function aeButton(inPage) {
             });
         }
 
-        if($(this).attr('action')) {
-            attachAction.call(this, _page, { 
-                name : $(this).attr('action')
+        if ($(this).attr('action')) {
+            attachAction.call(this, _page, {
+                name: $(this).attr('action')
 
             });
         }

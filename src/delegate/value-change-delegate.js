@@ -1,7 +1,10 @@
 'use strict';
 
 import $ from 'jquery';
-import {each, includes} from 'lodash';
+import {
+    each,
+    includes
+} from 'lodash';
 import ObservableObject from '../ObservableObject';
 
 class InputValueChangeDelegate {
@@ -21,14 +24,17 @@ class InputValueChangeDelegate {
         const delay = !isNaN(inConfig.delay) ? Number(inConfig.delay) : null;
         const commitOnly = inConfig.commitOnly === true;
         let events = inConfig.event;
-        if(!events) {
+        if (!events) {
 
             switch ($(inElement).get(0).nodeName.toUpperCase()) {
                 case 'INPUT':
-                    if (includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], $(inElement).attr('type').toUpperCase())) {
-                        events = 'change,keyup';
-                    } else if (includes(['CHECKBOX', 'RADIO'], $(inElement).attr('type').toUpperCase())) {
-                        events = 'click';
+                    {
+                        const type = ($(inElement).attr('type') || 'TEXT').toUpperCase();
+                        if (includes(['TEXT', 'EMAIL', 'TEL', 'PASSWORD'], type)) {
+                            events = 'change,keyup';
+                        } else if (includes(['CHECKBOX', 'RADIO'], type)) {
+                            events = 'click';
+                        }
                     }
                     break;
                 case 'SELECT':
@@ -37,11 +43,14 @@ class InputValueChangeDelegate {
                 default:
                     events = 'keydown';
             }
-}
+        }
         let delayedTimeout;
 
         const defaultHandler = () => {
-            inHandler({ value: this.getValue(inElement), key: $(inElement).attr('name') });
+            inHandler({
+                value: this.getValue(inElement),
+                key: $(inElement).attr('name')
+            });
         };
 
         const timeoutHandler = () => {
@@ -76,20 +85,21 @@ class InputValueChangeDelegate {
         }
         const name = inElement.attr('name');
         if ($(inElement).get(0).nodeName.toUpperCase() === 'INPUT') {
-            switch ($(inElement).attr('type').toLowerCase()) {
-                case 'text':
-                case 'email':
-                case 'tel':
-                case 'password':
-                    if($(inElement).val() !== inValue) {
+            const type = ($(inElement).attr('type') || 'TEXT').toUpperCase();
+            switch (type) {
+                case 'TEXT':
+                case 'EMAIL':
+                case 'TEL':
+                case 'PASSWORD':
+                    if ($(inElement).val() !== inValue) {
                         $(inElement).val(inValue);
                     }
                     break;
-                case 'checkbox':
-                    $(inElement).prop('checked', inValue === true|| 
-                    	(!!inValue && inValue === inElement.attr('value')));
+                case 'CHECKBOX':
+                    $(inElement).prop('checked', inValue === true ||
+                        (!!inValue && inValue === inElement.attr('value')));
                     break;
-                case 'radio':
+                case 'RADIO':
                     $(inElement).prop('checked', inValue === inElement.attr('value'));
             }
 
@@ -107,18 +117,20 @@ class InputValueChangeDelegate {
         }
         const targetValue = $(inElement).attr('value');
         if ($(inElement).get(0).nodeName.toUpperCase() === 'INPUT') {
-            switch ($(inElement).attr('type').toLowerCase()) {
-                case 'text':
-                case 'email':
-                case 'tel':
-                case 'password':
+            const type = ($(inElement).attr('type') || 'TEXT').toUpperCase();
+
+            switch (type) {
+                case 'TEXT':
+                case 'EMAIL':
+                case 'TEL':
+                case 'PASSWORD':
                     return $(inElement).val();
-                case 'checkbox':
+                case 'CHECKBOX':
                     if ($(inElement).prop('checked')) {
-                        return !!targetValue ?  targetValue : $(inElement).prop('checked') === true;
+                        return !!targetValue ? targetValue : $(inElement).prop('checked') === true;
                     }
                     return !!targetValue ? null : false;
-                case 'radio': //jshint ignore:line
+                case 'RADIO': //jshint ignore:line
                     {
                         const form = $(inElement).closest('form').get(0);
                         if (!form) {
@@ -134,16 +146,16 @@ class InputValueChangeDelegate {
                     }
                     break;
             }
-        } else if($(inElement).get(0).nodeName.toUpperCase() === 'TEXTAREA') {
+        } else if ($(inElement).get(0).nodeName.toUpperCase() === 'TEXTAREA') {
             return $(inElement).val();
         } else if ($(inElement).get(0).nodeName.toUpperCase() === 'SELECT') {
             let out = [];
             $(inElement).find('option:selected').each(function() {
                 out.push($(this).val());
             });
-            if(!$(inElement).prop('multiple')) {
+            if (!$(inElement).prop('multiple')) {
                 return out[0];
-            } 
+            }
             return out;
         }
     }

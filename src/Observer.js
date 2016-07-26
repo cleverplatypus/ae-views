@@ -2,7 +2,7 @@
 import microtask from './microtask';
 
 const _queue = new Map();
-import {has} from 'lodash';
+import {has, find} from 'lodash';
 let _willNotify = false;
 
 const _private = new WeakMap();
@@ -46,7 +46,7 @@ class Observer {
         const _p = _private.get(this);
         const segs = inPath ? inPath.split('.') : [];
         const propName = segs.shift();
-        if (/\w+/.test(propName)) {
+        if (/^\w+$/.test(propName)) {
             _p.children[propName] = _p.children[propName] || new Observer(this);
             if (segs.length) {
                 _p.children[propName].listen(segs.join('.'), inListener);
@@ -65,6 +65,12 @@ class Observer {
         } else if (propName === '**') {
             _p.descendantListeners.add(inListener);
             // _p.listeners.add(inListener);
+        } else if( /\[\w+\]/.test(propName)) {
+            _p.listeners.add((inPath, inChanges) => {
+                if(inPath === propName.replace(/\W/g, '')) {
+                    inListener(inPath, inChanges);
+                }
+            });
         }
     }
 
@@ -76,6 +82,9 @@ class Observer {
         const pushQueue = function(fn) {
             if (!_queue.has(fn)) {
                 _queue.set(fn, []);
+            }
+            if(find(_queue.get(fn), { path : inPath})) {
+                return;
             }
             _queue.get(fn).push({ path: inPath, changes: inChanges });
         };

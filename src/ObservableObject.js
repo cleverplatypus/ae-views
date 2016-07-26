@@ -1,6 +1,13 @@
 'use strict';
 import Observer from './Observer';
-import { isPlainObject, keys, each, isString, get, isArray } from 'lodash';
+import {
+    isPlainObject,
+    keys,
+    each,
+    isString,
+    get,
+    isArray
+} from 'lodash';
 
 
 
@@ -34,6 +41,7 @@ class ObservableObject {
             observer: new Observer(),
             props: new Dummy(isCollection),
             setProp: function(inPath, inValue, inBackPath, inAlreadyFoundChange) {
+                const _p = _private.get(this);
 
                 const path = !isNaN(inPath) ? [inPath] : inPath.split('.');
                 var localProp = path.shift();
@@ -42,16 +50,29 @@ class ObservableObject {
                 inBackPath.push(localProp);
                 let out;
 
-                let val = _private.get(this).props.prop(localProp);
+                let val = _p.props.prop(localProp);
 
                 if (!path.length) {
-                    _private.get(this).props.prop(localProp, ObservableObject.fromObject(inValue));
+                    _p.props.prop(localProp, ObservableObject.fromObject(inValue));
+                    if (_p.observer.hasListeners()) {
+
+                        _p.changesQueue.push({
+                            path: localProp,
+                            change: {
+                                type: val === undefined ? 'add' : 'replace',
+                                oldValue: val,
+                                newValue: _p.props.prop(localProp)
+                            }
+
+                        });
+                        ObservableObject.notifyWatchers(_p);
+                    }
                     return inAlreadyFoundChange ? null : {
                         path: inBackPath.join('.'),
                         change: {
                             type: val === undefined ? 'add' : 'replace',
                             oldValue: val,
-                            newValue: _private.get(this).props.prop(localProp)
+                            newValue: _p.props.prop(localProp)
                         }
                     };
                 } else if (val !== undefined && !(val instanceof ObservableObject)) {
@@ -60,13 +81,23 @@ class ObservableObject {
                     let alreadyFound = false;
                     if (val === undefined) {
                         val = new ObservableObject();
-                        _private.get(this).props.prop(localProp, val);
+                        _p.props.prop(localProp, val);
+                        _p.changesQueue.push({
+                            path: path.join('.'),
+                            change: {
+                                type: 'add',
+                                oldValue: undefined,
+                                newValue: _p.props.prop(localProp)
+                            }
+
+                        });
+                        ObservableObject.notifyWatchers(_p);
                         out = inAlreadyFoundChange ? null : {
                             path: inBackPath.join('.'),
                             change: {
                                 type: 'add',
                                 oldValue: undefined,
-                                newValue: _private.get(this).props.prop(localProp)
+                                newValue: _p.props.prop(localProp)
                             }
                         };
                         alreadyFound = true;
@@ -134,7 +165,9 @@ class ObservableObject {
 
     static fromObject(inData) {
         if (isArray(inData)) { //REFACTOR: duplicated code?
-            let a = new ObservableObject({ isCollection: true });
+            let a = new ObservableObject({
+                isCollection: true
+            });
             each(inData, function(inVal, inKey) {
                 a.prop(inKey, ObservableObject.fromObject(inVal));
             });
@@ -216,12 +249,12 @@ class ObservableObject {
     }
 
 
-//TODO: implement event-specific watch
+    //TODO: implement event-specific watch
     watch(inPath, inHandler, inEvent) {
         const _p = _private.get(this);
         _p.observer.listen(inPath, inHandler, inEvent);
     }
-    
+
     toNative(inDeep) {
         var out = _private.get(this).isCollection ? [] : {};
         each(_private.get(this).props._obj, (inVal, inKey) => {
@@ -232,7 +265,7 @@ class ObservableObject {
     }
 
     sort(inComparator) {
-        if(_private.get(this).isCollection) {
+        if (_private.get(this).isCollection) {
             _private.get(this).props._obj.sort(inComparator);
         }
         return this;

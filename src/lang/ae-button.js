@@ -10,7 +10,7 @@ export default function aeButton(inPage) {
 
     var proto = Object.create(HTMLButtonElement.prototype);
     proto.createdCallback = function() {
-        console.log('created ae-button');
+        $(this).prop('type', 'button');
         observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 switch (mutation.attributeName) {

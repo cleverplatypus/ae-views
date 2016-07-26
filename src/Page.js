@@ -1,7 +1,10 @@
 'use strict';
 
 import Component from './component';
-import {get, isFunction, isPlainObject} from 'lodash';
+import {get,
+    isFunction,
+    isPlainObject
+} from 'lodash';
 import $ from 'jquery';
 
 import modelDataSource from './datasource/model-datasource';
@@ -21,13 +24,27 @@ const _initializers = [];
 const _componentInjectors = [];
 
 let _config;
+
 const parseUrl = function parseUrl() {
     _private.get(this).startupParams = new LiteUrl(window.location.href).params;
-}
+};
+
+const startPage = function startPage() {
+    $(() => {
+        this.node = $(this.mountPoint);
+        lang(this);
+        _private.get(this)
+            .lifecycleSignal.dispatch('element-created');
+        _private.get(this)
+            .lifecycleSignal.dispatch('element-attached');
+        this.render();
+    });
+};
 
 const callNextInitializer = function() {
     let initializer = _initializers.shift();
     if (!initializer) {
+        startPage.call(this);
         return;
     }
     let result = initializer.call(this);
@@ -39,15 +56,7 @@ const callNextInitializer = function() {
         if (_initializers.length) {
             callNextInitializer.call(this);
         } else {
-            $(() => {
-                this.node = $(this.mountPoint);
-                lang(this);
-                _private.get(this)
-                    .lifecycleSignal.dispatch('element-created');
-                _private.get(this)
-                    .lifecycleSignal.dispatch('element-attached');
-                this.render();
-            });
+            startPage.call(this);
         }
     };
     if (result instanceof Promise) {
@@ -76,7 +85,7 @@ class Page extends Component {
 
     resolveNodeModel(inNode, inPath) {
         let component = this.resolveNodeComponent(inNode);
-        if(!component.hasModel) {
+        if (!component.hasModel) {
             return this.resolveNodeModel($(component.node).parent(), inPath);
         }
         return component.model;
@@ -91,7 +100,7 @@ class Page extends Component {
             }
         }
         if (!_registry.get(node)) {
-            if(get(window, 'logLevel') === 'debug') {
+            if (get(window, 'logLevel') === 'debug') {
                 console.debug('Could not find component in ancestry. Falling back to page component');
             }
             return this;
@@ -127,7 +136,7 @@ class Page extends Component {
         const constructor = args.pop();
         const config = args.shift();
         const model = args.shift();
-        if(!isFunction(constructor) || 
+        if (!isFunction(constructor) ||
             !isPlainObject(config)) {
             throw new Error('Page.registerComponent() usage: (config : Object, [model : Object|ObservableObject], constructor : Function');
         }
@@ -174,6 +183,10 @@ class Page extends Component {
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
+            if($(this).attr('from')) {
+                var model = that.resolveNodeModel($(this).parent());
+                component.model.prop('data', model.prop('data.' + $(this).attr('from')));
+            }
             _private.get(component)
                 .lifecycleSignal.dispatch('element-attached');
             if (component.config.autoRender !== false) {
@@ -186,7 +199,9 @@ class Page extends Component {
                 .lifecycleSignal.dispatch('element-detached');
         };
 
-        document.registerElement(inDefinition.config.name, { prototype: proto });
+        document.registerElement(inDefinition.config.name, {
+            prototype: proto
+        });
     }
 
 }
