@@ -13,6 +13,11 @@ class ComponentModel extends ObservableObject {
 			this.fill({ data : inInitObj});
 		}
 	}
+
+	data(inPath, inData) {
+		const path = 'data' + (inPath ? '.' + inPath : '');
+		return this.prop(path, inData);
+	}
 }
 
 export default ComponentModel;

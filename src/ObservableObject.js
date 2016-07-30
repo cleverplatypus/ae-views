@@ -75,11 +75,9 @@ class ObservableObject {
                             newValue: _p.props.prop(localProp)
                         }
                     };
-                } else if (val !== undefined && !(val instanceof ObservableObject)) {
-                    throw new Error('trying to set a value through a branch with a non ObservableObject node');
                 } else {
                     let alreadyFound = false;
-                    if (val === undefined) {
+                    if (val === undefined || val === null) {
                         val = new ObservableObject();
                         _p.props.prop(localProp, val);
                         _p.changesQueue.push({
@@ -164,7 +162,7 @@ class ObservableObject {
     }
 
     static fromObject(inData) {
-        if (isArray(inData)) { //REFACTOR: duplicated code?
+        if (isArray(inData)) {
             let a = new ObservableObject({
                 isCollection: true
             });
@@ -253,6 +251,11 @@ class ObservableObject {
     watch(inPath, inHandler, inEvent) {
         const _p = _private.get(this);
         _p.observer.listen(inPath, inHandler, inEvent);
+    }
+
+    unwatch(inHandler, inPath) {
+        const _p = _private.get(this);
+        _p.observer.unlisten(inHandler, inPath);
     }
 
     toNative(inDeep) {

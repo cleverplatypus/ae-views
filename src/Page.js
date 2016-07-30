@@ -37,7 +37,9 @@ const startPage = function startPage() {
             .lifecycleSignal.dispatch('element-created');
         _private.get(this)
             .lifecycleSignal.dispatch('element-attached');
-        this.render();
+        if (this.config.autoRender !== false) {
+            this.invalidate();
+        }
     });
 };
 
@@ -148,7 +150,8 @@ class Page extends Component {
     }
 
     initState() {
-        let hash = window.location.hash;
+        let hash = window.location.hash = decodeURI(window.location.hash);
+
         if (/^#>[\w\-]/.test(hash)) {
             hash = hash.replace(/^#>/, '');
             if (this.states.getPath(hash)) {
@@ -183,7 +186,7 @@ class Page extends Component {
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-            if($(this).attr('from')) {
+            if ($(this).attr('from')) {
                 var model = that.resolveNodeModel($(this).parent());
                 component.model.prop('data', model.prop('data.' + $(this).attr('from')));
             }
@@ -197,11 +200,13 @@ class Page extends Component {
         proto.detachedCallback = function() {
             _private.get(component)
                 .lifecycleSignal.dispatch('element-detached');
+            //_private.delete(component);
         };
 
         document.registerElement(inDefinition.config.name, {
             prototype: proto
         });
+
     }
 
 }

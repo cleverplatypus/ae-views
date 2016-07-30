@@ -18,7 +18,6 @@ const _setupModel = function _setupModel(inModelInitObj) {
     const _p = _private.get(this);
 
     let getter;
-
     if (!inModelInitObj) {
         getter = () => {
             return this.page.resolveNodeModel(this.node);
@@ -26,6 +25,9 @@ const _setupModel = function _setupModel(inModelInitObj) {
     } else {
         if(isPlainObject(inModelInitObj)) {
             _p.model = new ComponentModel(inModelInitObj);
+        } else if(inModelInitObj instanceof ComponentModel) {
+            _p.model = inModelInitObj;
+        
         } else {
             _p.model = ObservableObject.fromObject(inModelInitObj);
         }
@@ -75,11 +77,12 @@ const _watchState = function _watchState() {
                 watcher(inChanges.newValue, inChanges.oldValue, inReason);
             }
         };
-        let currentState = _private.get(this).stateInfo.currentStateObject;
+        let currentState = _private.get(this).stateInfo.prop('currentStateObject');
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    _private.get(this).stateInfo.currentStateObject = nextState;
+                    
+                    _private.get(this).stateInfo.prop('currentStateObject', nextState);
                     _private.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
                     currentState.left(inChanges.newValue);
                     nextState.entered(inChanges.oldValue);
@@ -159,7 +162,7 @@ class Component {
         _private.get(this).hasDefaultTemplate = !!templates._default;
         _watchState.bind(this)();
         this.states = this.states || new State();
-        _private.get(this).stateInfo.currentStateObject = this.states;
+        _private.get(this).stateInfo.prop('currentStateObject', this.states);
         inConstructor && inConstructor.bind(this)(); //jshint ignore:line
 
         microtask(this.initState.bind(this));
@@ -182,7 +185,7 @@ class Component {
     }
 
     getCurrentState() {
-        return _private.get(this).stateInfo.currentStateObject;
+        return _private.get(this).stateInfo.prop('currentStateObject');
     }
 
     tryState(inStateName) {

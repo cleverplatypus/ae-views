@@ -24,15 +24,15 @@ class MasterPage {
         const config = {};
         mergeWith(config, _config, inConfig, customizer);
 
-        const model = {};
-        merge(model, _model, inModel);
+        // const model = {};
+        // merge(model, _model, inModel);
 
         const constructorFn = function() {
             _constructorFn.call(this, config);
             inConstructorFn.call(this);
         };
 
-        return pageFactory.page(config, model, constructorFn);
+        return pageFactory.page(config, inModel, constructorFn);
     }
 }
 
