@@ -106,7 +106,7 @@ export default function(dust) {
         return sValue;
     };
 
-    dust.helpers.iterate = function(chunk, context, bodies, params) { //jshint ignore:line
+    dust.helpers.iterate = function(chunk, context, bodies, params) {
         var body = bodies.block,
             sort,
             arr,
@@ -116,11 +116,32 @@ export default function(dust) {
             compareFn;
 
         params = params || {};
-
+        if(params.sortKey) {
+            params.sort = params.sort || 'asc';
+        }
         function desc(a, b) {
+            if(params.sortKey) {
+                a = get(obj, a + '.' + params.sortKey);
+                b = get(obj, b + '.' + params.sortKey);
+            }
             if (a < b) {
                 return 1;
             } else if (a > b) {
+                return -1;
+            }
+            return 0;
+        }
+
+        function asc(a, b) {
+
+            if(params.sortKey) {
+                a = get(obj, a + '.' + params.sortKey);
+                b = get(obj, b + '.' + params.sortKey);
+            }
+
+            if (a > b) {
+                return 1;
+            } else if (a < b) {
                 return -1;
             }
             return 0;
@@ -136,11 +157,9 @@ export default function(dust) {
 
         if (params.key) {
             obj = context.resolve(params.key);
-
             if (obj instanceof ObservableObject) {
-                obj = obj.toNative();
+                obj = obj.toNative(true);
             }
-
             if (body) {
                 if (!!params.sort) {
                     sort = dust.helpers.tap(params.sort, chunk, context);
@@ -157,7 +176,7 @@ export default function(dust) {
                     if (compareFn) {
                         arr.sort(compareFn);
                     } else {
-                        arr.sort();
+                        arr.sort(asc);
                     }
                     for (i = 0; i < arr.length; i++) {
                         chunk = processBody(arr[i], obj[arr[i]]);
@@ -178,6 +197,8 @@ export default function(dust) {
         return chunk;
 
     };
+
+
 
     dust.helpers.length = function(chunk, context, bodies, params) {
         if (!params.key) {

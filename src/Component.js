@@ -190,7 +190,7 @@ class Component {
 
     tryState(inStateName) {
         if (inStateName === _private.get(this).stateInfo.prop('state')) {
-            return;
+            return Promise.resolve();
         }
 
         return new Promise((resolve, reject) => {
