@@ -2,7 +2,9 @@
 import microtask from './microtask';
 
 const _queue = new Map();
-import {has, find, each} from 'lodash';
+import has from 'lodash.has';
+import find from 'lodash.find';
+import each from 'lodash.foreach';
 let _willNotify = false;
 
 const _private = new WeakMap();

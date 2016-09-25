@@ -27,7 +27,12 @@ export default function link(inPage) {
                 const params = {};
                 $($(this).get(0).attributes).each(function() {
                     if (/^param-/.test(this.name)) {
-                        params[this.name.replace('param-', '')] = this.value;
+                        if(/^param-.*-json$/.test(this.name)) {
+                            params[this.name.replace('param-', '').replace(/-json$/, '')] = JSON.parse(this.value);
+                        } else {
+                            params[this.name.replace('param-', '')] = this.value;    
+                        }
+                        
                     }
                 });
                 return params;

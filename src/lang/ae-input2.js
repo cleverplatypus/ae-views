@@ -4,11 +4,8 @@ import $ from 'jquery';
 import Element from './ae-element';
 import keycode from 'keycode';
 import attachAction from '../delegate/action-trigger-delegate';
-import {
-    isString,
-    each
-} from 'lodash';
 import valueChangeDelegate from '../delegate/value-change-delegate';
+import each from 'lodash.foreach';
 
 export default function aeButton(inPage) {
     const _page = inPage;

@@ -4,7 +4,10 @@ import ObservableObject from './ObservableObject';
 import ComponentModel from './ComponentModel';
 import State from './State';
 import Bus from './Bus';
-import { isString, isFunction, isPlainObject, each } from 'lodash';
+import isString from 'lodash.isString';
+import isFunction from 'lodash.isFunction';
+import isPlainObject from 'lodash.isPlainObject';
+import each from 'lodash.foreach';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
@@ -122,7 +125,7 @@ class Component {
             factory.componentConfigPreprocessor(inConfig);
         }
         this.config = inConfig;
-        this.page = inPage;
+        this.page = inPage || this;
         this.bus = new Bus(this); //jshint ignore:line
         this.name = inConfig.name;
         each(inConfig.actions, (inAction) => {
@@ -189,7 +192,7 @@ class Component {
     }
 
     tryState(inStateName) {
-        if (inStateName === _private.get(this).stateInfo.prop('state')) {
+        if (inStateName === (_private.get(this).stateInfo.prop('state') || '')) {
             return Promise.resolve();
         }
 
@@ -234,9 +237,14 @@ class Component {
                 '_default.' + this.name,
                 model).then((inHtml) => {
                 $(this.node).html(inHtml);
+
                 this.afterRender && this.afterRender(); //jshint ignore:line
-                _private.get(this)
-                    .lifecycleSignal.dispatch('rendered');
+                const mutationObserver = new MutationObserver(() => {
+                    _private.get(this)
+                        .lifecycleSignal.dispatch('rendered');
+                        mutationObserver.disconnect();
+                });
+                mutationObserver.observe($(this.node).get(0), {childList : true});
             }).catch((inError) => {
                 console.error(inError);
             });

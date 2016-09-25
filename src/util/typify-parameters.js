@@ -1,6 +1,7 @@
 'use strict';
 import UNRESOLVED from '../symbol/unresolved';
-import {each, isString} from 'lodash';
+import each from 'lodash.foreach';
+import isString from 'lodash.isString';
 
 export default function typifyParams(inPage, inParams) {
     const out = {};

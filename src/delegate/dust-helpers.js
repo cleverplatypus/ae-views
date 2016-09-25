@@ -2,12 +2,9 @@
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
 import ObservableObject from '../ObservableObject';
-import {
-    isString,
-    keys,
-    get
-} from 'lodash';
-
+import isString from 'lodash.isString';
+import keys from 'lodash.keys';
+import get from 'lodash.get';
 export default function(dust) {
     'use strict';
 
@@ -261,7 +258,7 @@ export default function(dust) {
     }
 
     function isSelect(context) {
-        return context.stack.tail &&
+        return context.stack && context.stack.tail &&
             context.stack.tail.head &&
             typeof context.stack.tail.head.__select__ !== 'undefined';
     }

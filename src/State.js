@@ -1,6 +1,9 @@
 'use strict';
 
-import {find, map, isString, isArray} from 'lodash';
+import find from 'lodash.find';
+import map from 'lodash.map';
+import isString from 'lodash.isString';
+import isArray from 'lodash.isArray';
 
 const _private = new WeakMap();
 

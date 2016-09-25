@@ -3,8 +3,7 @@
 import {
     Signal
 } from 'signals';
-import {get
-} from 'lodash';
+import get from 'lodash.get';
 
 class Bus {
 
@@ -30,12 +29,14 @@ class Bus {
         this.shouldBubbleCurrent = true;
     }
 
-    triggerAction(inName, ...rest) {
+    triggerAction(inName, inParams, ...rest) {
+        inParams = inParams || {};
         if (this.signals[inName]) {
-            this.signals[inName].dispatch.apply(null, rest);
+            this.signals[inName].dispatch.apply(null, [inParams].concat(rest));
         }
 
         if (!this.signals[inName] || this.shouldBubbleCurrent) {
+            rest.unshift(inParams);
             rest.unshift(inName);
             this.shouldBubbleCurrent = false;
             this.bubbleAction.apply(this, rest);
@@ -44,9 +45,11 @@ class Bus {
     }
 
     addAction(inName, inHandler, inOnce) {
-        if (!this.signals[inName]) {
-            this.signals[inName] = new Signal();
+        if (this.signals[inName]) {
+            this.signals[inName].dispose();
+            console.warn('action ' + inName + ' was overridden');
         }
+        this.signals[inName] = new Signal();
         if (inHandler) {
             this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);
         }
@@ -63,8 +66,8 @@ class Bus {
                 parentBus.onAction(inName, inHandler, inOnce);
             } else {
                 this.addAction(inName, inHandler, inOnce);
-                console.warn('Possibly registering listener to non existing action: ' + inName);
-                console.warn('You might want to use addAction or publishAction');
+                // console.warn('Possibly registering listener to non existing action: ' + inName);
+                // console.warn('You might want to use addAction or publishAction');
             }
         } else {
             this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);

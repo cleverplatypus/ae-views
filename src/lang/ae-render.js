@@ -3,7 +3,7 @@ import microtask from '../microtask';
 import Element from './ae-element';
 import factory from '../page-factory';
 import ObservableObject from '../ObservableObject';
-import { transform } from 'lodash';
+import transform from 'lodash.transform';
 export default function render(inPage) {
     'use strict';
     const _private = new WeakMap();
@@ -19,9 +19,9 @@ export default function render(inPage) {
 
     var render = function render() {
         _private.get(this).willRender = false;
-        if ($(this).attr('debug-name')) {
-            console.info($(this).attr('debug-name') + ' will render');
-        }
+        // if ($(this).attr('debug-name')) {
+        //     console.info($(this).attr('debug-name') + ' will render');
+        // }
 
         let templateName = $(this).attr('template');
 
@@ -91,7 +91,6 @@ export default function render(inPage) {
         if ($(this).attr('watch')) {
             _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
 
-                console.log(inBaseModel instanceof ObservableObject ? inBaseModel.toNative(true) : inBaseModel);
                 invalidate.call(this);
             });
         }

@@ -1,14 +1,11 @@
 'use strict';
 import Observer from './Observer';
-import {
-    isPlainObject,
-    keys,
-    each,
-    isString,
-    get,
-    isArray
-} from 'lodash';
-
+import isPlainObject from 'lodash.isPlainObject';
+import keys from 'lodash.keys';
+import each from 'lodash.foreach';
+import isString from 'lodash.isString';
+import get from 'lodash.get';
+import isArray from 'lodash.isArray';
 
 
 const _private = new WeakMap();

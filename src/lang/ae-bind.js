@@ -2,7 +2,8 @@
 
 import $ from 'jquery';
 import Element from './ae-element';
-import {isString, each} from 'lodash';
+import isString from 'lodash.isString';
+import each from 'lodash.foreach';
 import valueChangeDelegate from '../delegate/value-change-delegate';
 
 

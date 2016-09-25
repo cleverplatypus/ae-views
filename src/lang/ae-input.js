@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import Element from './ae-element';
-import { each } from 'lodash';
+import each from 'lodash.foreach';
 import uuid from 'node-uuid';
 import attachAction from '../delegate/action-trigger-delegate';
 

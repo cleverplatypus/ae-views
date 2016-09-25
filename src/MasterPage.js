@@ -1,6 +1,8 @@
 'use strict';
 
-import {isArray, mergeWith, merge} from 'lodash';
+import isArray from 'lodash.isArray';
+import merge from 'lodash.merge';
+import mergeWith from 'lodash.mergeWith';
 import pageFactory from './page-factory';
 let _config, _model, _constructorFn;
 

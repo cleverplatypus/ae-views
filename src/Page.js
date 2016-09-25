@@ -1,10 +1,10 @@
 'use strict';
 
 import Component from './component';
-import {get,
-    isFunction,
-    isPlainObject
-} from 'lodash';
+import get from 'lodash.get';
+import isFunction from 'lodash.isFunction';
+import isPlainObject from 'lodash.isPlainObject';
+
 import $ from 'jquery';
 
 import modelDataSource from './datasource/model-datasource';
@@ -72,12 +72,13 @@ const callNextInitializer = function() {
 class Page extends Component {
     constructor(inConfig, inModelPrototype, inConstructor) {
         super(inConfig, inModelPrototype);
+        this.page = this;
         _config = inConfig;
         parseUrl.call(this);
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
         inConstructor.bind(this)();
-        this.page = this;
+        
         callNextInitializer.call(this);
     }
 
@@ -158,6 +159,14 @@ class Page extends Component {
                 this.tryState(hash);
             }
         }
+
+        $(window).on('hashchange', () => {
+            if(/^#action:/.test(window.location.hash)) {
+                const fakeUrl = new LiteUrl(window.location.hash.replace(/^#action:/, 'http://localhost/'));
+                this.bus.triggerAction(fakeUrl.pathname.replace(/\//g, ''), fakeUrl.search);
+                window.location.hash = '';
+            }
+        }).trigger('hashchange');
     }
 
     registerComponentElement(inDefinition) {
@@ -165,7 +174,7 @@ class Page extends Component {
         var that = this;
         let component;
         const name = inDefinition.config.name;
-        console.info('registering component: ' + name);
+        //        console.info('registering component: ' + name);
         document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
 
         proto.createdCallback = function() {

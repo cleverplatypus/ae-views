@@ -1,10 +1,8 @@
 'use strict';
 
 import $ from 'jquery';
-import {
-    each,
-    includes
-} from 'lodash';
+import each from 'lodash.foreach';
+import includes from 'lodash.includes';
 import ObservableObject from '../ObservableObject';
 
 class InputValueChangeDelegate {

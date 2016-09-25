@@ -4,7 +4,8 @@ import TemplatingDelegate from './TemplatingDelegate';
 import dust from 'ae-dustjs';
 import uuid from 'node-uuid';
 import ObservableObject from '../ObservableObject';
-import {get,each} from 'lodash';
+import get from 'lodash.get';
+import each from 'lodash.foreach';
 
 import dustHelpers from './dust-helpers';
 dustHelpers(dust);

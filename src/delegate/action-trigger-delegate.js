@@ -1,7 +1,10 @@
 'use strict';
 
 import $ from 'jquery';
-import {get, each, isString } from 'lodash';
+import get from 'lodash.get';
+import each from 'lodash.foreach';
+import isString from 'lodash.isString';
+
 import UNRESOLVED from '../symbol/unresolved';
 import typifyParams from '../util/typify-parameters';
 
