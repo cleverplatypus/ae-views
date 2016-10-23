@@ -157,6 +157,9 @@ export default function(dust) {
             if (obj instanceof ObservableObject) {
                 obj = obj.toNative(true);
             }
+            if(params.split && isString(obj)) {
+                obj = obj.split(new RegExp(params.split));
+            }
             if (body) {
                 if (!!params.sort) {
                     sort = dust.helpers.tap(params.sort, chunk, context);

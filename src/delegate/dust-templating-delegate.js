@@ -6,11 +6,14 @@ import uuid from 'node-uuid';
 import ObservableObject from '../ObservableObject';
 import get from 'lodash.get';
 import each from 'lodash.foreach';
+import result from 'lodash.result';
+import isFunction from 'lodash.isfunction';
 
 import dustHelpers from './dust-helpers';
 dustHelpers(dust);
 const _templates = new Map();
 let evilFn;
+let globalContext;
 
 class DustTemplatingDelegate extends TemplatingDelegate {
     constructor(inEvilFn) {
@@ -28,7 +31,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 
         dust.propertyResolver = function(inBase, inPath) {
             if (inBase instanceof ObservableObject) {
-                if(inBase.isCollection && inPath === 'length') {
+                if (inBase.isCollection && inPath === 'length') {
                     return inBase.length;
                 } else {
                     return inBase.prop(inPath);
@@ -38,10 +41,12 @@ class DustTemplatingDelegate extends TemplatingDelegate {
             }
         };
 
-       
+
     }
 
     registerExtensions(inExtensions) {
+        globalContext = get(inExtensions, 'globalContext');
+
         each(get(inExtensions, 'filters'), (inFilter, inName) => {
             dust.filters[inName] = inFilter;
         });
@@ -62,6 +67,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         _templates.set(inName, inTemplate);
         dust.register(inName, inTemplate);
     }
+
 
     registerTemplate(inSource, inName) {
         inName = inName || ('template_' + uuid.v4());
@@ -84,13 +90,21 @@ class DustTemplatingDelegate extends TemplatingDelegate {
             return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
         }
         var promise = new Promise((resolve, reject) => {
-            dust.render(template, inModel, (inError, inHtml) => {
+            if (inModel instanceof ObservableObject) {
+                inModel = inModel.toNative(true);
+            }
+            const handler = function(inError, inHtml) {
                 if (inError) {
                     reject(inError);
                 } else {
                     resolve(inHtml);
                 }
-            });
+            };
+
+            const glob = isFunction(globalContext) ? globalContext() : ( globalContext || {});
+            const context = dust.makeBase(glob).push(inModel);
+
+            dust.render(template, context, handler);
         });
         return promise;
     }

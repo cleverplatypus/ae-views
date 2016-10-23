@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import Element from './ae-element';
 import attachAction from '../delegate/action-trigger-delegate';
+import get from 'lodash.get';
 
 let _page;
 
@@ -16,6 +17,11 @@ export default function link(inPage) {
 
     proto.createdCallback = function() {
         $(this).prop('onclick', () =>{});
+        $(this).click((e) => {
+            if (!/googlebot/.test((get(window, 'navigator.userAgent') || '').toLowerCase())) {
+                e.preventDefault();
+            }
+        });
     };
 
     proto.attachedCallback = function() {

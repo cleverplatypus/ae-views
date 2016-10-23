@@ -59,6 +59,29 @@ export default function aeButton(inPage) {
         const fromAttr = usePath ? path : $(this).attr('from');
         let inAttr = $(this).attr('in') || '';
 
+        if ($(this).attr('bind-enabled')) {
+            const path = $(this).attr('bind-enabled').replace('!', '');
+            const negate = /^!/.test($(this).attr('bind-enabled'));
+            const source = $(this).attr('source');
+            const setValue = (inValue) => {
+                $(this).prop('disabled',
+                    ((inValue === false) && !negate) ||
+                    ((inValue !== false) && negate));
+            };
+
+            _page
+                .getDataSource(source)
+                .bindPath(this, path, (inNewValue) => {
+                    setValue(inNewValue);
+                });
+            _page
+                .getDataSource(source)
+                .resolve(this, path)
+                .then((inValue) => {
+                    setValue(inValue);
+                });
+        }
+
 
 
         if (fromAttr) {

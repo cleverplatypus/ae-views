@@ -11,7 +11,9 @@ import each from 'lodash.foreach';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
-import  {Signal} from 'signals';
+import {
+    Signal
+} from 'signals';
 import privateHash from './util/private';
 
 const _private = privateHash('component');
@@ -26,11 +28,11 @@ const _setupModel = function _setupModel(inModelInitObj) {
             return this.page.resolveNodeModel(this.node);
         };
     } else {
-        if(isPlainObject(inModelInitObj)) {
+        if (isPlainObject(inModelInitObj)) {
             _p.model = new ComponentModel(inModelInitObj);
-        } else if(inModelInitObj instanceof ComponentModel) {
+        } else if (inModelInitObj instanceof ComponentModel) {
             _p.model = inModelInitObj;
-        
+
         } else {
             _p.model = ObservableObject.fromObject(inModelInitObj);
         }
@@ -84,7 +86,7 @@ const _watchState = function _watchState() {
         if (currentState) {
             currentState.leaving(inChanges.newValue).then(() => {
                 nextState.entering(inChanges.oldValue).then(() => {
-                    
+
                     _private.get(this).stateInfo.prop('currentStateObject', nextState);
                     _private.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
                     currentState.left(inChanges.newValue);
@@ -104,7 +106,14 @@ const _watchState = function _watchState() {
 
 class Component {
 
-    constructor(inConfig, inInitObj, inConstructor, inPage) {
+    constructor(inConfig, inParam2, inParam3, inParam4) {
+        let inInitObj, inConstructor, inPage;
+        if (isFunction(inParam2)) {
+            [inConstructor, inPage] = [inParam2, inParam3];
+        } else {
+            [inInitObj, inConstructor, inPage] = [inParam2, inParam3, inParam4];
+        }
+
         const lifecycleSignal = new Signal();
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
         this.microtask = microtask;
@@ -177,7 +186,7 @@ class Component {
     }
 
     parent() {
-        if(this.page === this) {
+        if (this.page === this) {
             return;
         }
         return this.page.resolveNodeComponent($(this.node).parent());
@@ -227,28 +236,37 @@ class Component {
     }
 
     render(inModel) {
-        _private.get(this).willRender = false;
-        if (_private.get(this).hasDefaultTemplate) {
-            const delegate = factory.getTemplatingDelegate();
-            const model = inModel ?
-                ObservableObject.fromObject(inModel) :
-                this.data();
-            delegate.render(
-                '_default.' + this.name,
-                model).then((inHtml) => {
-                $(this.node).html(inHtml);
+        return new Promise((resolve, reject) => {
+            _private.get(this).willRender = false;
+            if (_private.get(this).hasDefaultTemplate) {
+                const delegate = factory.getTemplatingDelegate();
+                const model = inModel ?
+                    ObservableObject.fromObject(inModel) :
+                    this.data();
+                delegate.render(
+                    '_default.' + this.name,
+                    model).then((inHtml) => {
+                    $(this.node).html(inHtml);
 
-                this.afterRender && this.afterRender(); //jshint ignore:line
-                const mutationObserver = new MutationObserver(() => {
-                    _private.get(this)
-                        .lifecycleSignal.dispatch('rendered');
-                        mutationObserver.disconnect();
+                    this.afterRender && this.afterRender(); //jshint ignore:line
+                    //const mutationObserver = new MutationObserver(() => {
+                    this.microtask(() => {
+                        _private.get(this)
+                            .lifecycleSignal.dispatch('rendered');
+                            resolve();
+                        //      mutationObserver.disconnect();
+                    });
+
+                    //});
+                    //mutationObserver.observe($(this.node).get(0), {childList : true});
+                }).catch((inError) => {
+                    console.error(inError);
+                    reject(inError);
                 });
-                mutationObserver.observe($(this.node).get(0), {childList : true});
-            }).catch((inError) => {
-                console.error(inError);
-            });
-        }
+            }
+
+        });
+
     }
 
 }

@@ -80,7 +80,7 @@ export default function bind(inPage) {
                         }
                         conditionMet = (condition === inValue);
                     }
-                    conditionMet = conditionMet && !negate;
+                    conditionMet = conditionMet === (!negate);//jshint ignore:line
                 }
 
                 switch (nodeAttr[0]) {

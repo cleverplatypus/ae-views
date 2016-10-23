@@ -67,6 +67,7 @@
     "lodash.map": "^4.6.0",
     "lodash.merge": "^4.6.0",
     "lodash.mergewith": "^4.6.0",
+    "lodash.result": "^4.5.2",
     "lodash.transform": "^4.6.0",
     "node-uuid": "^1.4.7",
     "signals": "^1.0.0"

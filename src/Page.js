@@ -78,12 +78,13 @@ class Page extends Component {
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
         inConstructor.bind(this)();
-        
+
         callNextInitializer.call(this);
     }
 
-    startupParam(inParamName) {
-        return _private.get(this).startupParams[inParamName];
+
+    get startupParams() {
+        return _private.get(this).startupParams;
     }
 
     resolveNodeModel(inNode, inPath) {
@@ -161,7 +162,7 @@ class Page extends Component {
         }
 
         $(window).on('hashchange', () => {
-            if(/^#action:/.test(window.location.hash)) {
+            if (/^#action:/.test(window.location.hash)) {
                 const fakeUrl = new LiteUrl(window.location.hash.replace(/^#action:/, 'http://localhost/'));
                 this.bus.triggerAction(fakeUrl.pathname.replace(/\//g, ''), fakeUrl.search);
                 window.location.hash = '';
@@ -185,7 +186,12 @@ class Page extends Component {
                 that);
             _registry.set(this, component);
             component.node = this;
-
+            Object.defineProperty(this, 'ae', {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: component
+            });
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
             }
@@ -196,8 +202,9 @@ class Page extends Component {
         proto.attachedCallback = function() {
             const component = _registry.get(this);
             if ($(this).attr('from')) {
-                var model = that.resolveNodeModel($(this).parent());
-                component.model.prop('data', model.prop('data.' + $(this).attr('from')));
+                const from = $(this).attr('from');
+                const model = that.resolveNodeModel($(this).parent());
+                component.model.prop('data', model.prop('data' + ( from === '.' ? '' : '.' + from)));
             }
             _private.get(component)
                 .lifecycleSignal.dispatch('element-attached');
