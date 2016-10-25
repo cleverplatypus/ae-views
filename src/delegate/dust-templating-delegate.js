@@ -84,7 +84,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         return inName;
     }
 
-    render(inTemplateName, inModel) {
+    render(inTemplateName, inModel, inParams) {
         const template = _templates.get(inTemplateName);
         if (!template) {
             return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
@@ -102,8 +102,11 @@ class DustTemplatingDelegate extends TemplatingDelegate {
             };
 
             const glob = isFunction(globalContext) ? globalContext() : ( globalContext || {});
-            const context = dust.makeBase(glob).push(inModel);
-
+            let context = dust.makeBase(glob);
+            if(inParams) {
+                context = context.push(inParams);
+            }
+            context = context.push(inModel);
             dust.render(template, context, handler);
         });
         return promise;

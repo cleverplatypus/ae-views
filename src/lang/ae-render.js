@@ -4,6 +4,8 @@ import Element from './ae-element';
 import factory from '../page-factory';
 import ObservableObject from '../ObservableObject';
 import transform from 'lodash.transform';
+import each from 'lodash.foreach';
+
 export default function render(inPage) {
     'use strict';
     const _private = new WeakMap();
@@ -32,7 +34,7 @@ export default function render(inPage) {
             }, {});
 
             factory.getTemplatingDelegate()
-                .render(templateName, inValue || {})
+                .render(templateName, inValue || {}, _private.get(this).params)
                 .then((inHtml) => {
                     $(this).find('>ae-managed').html(inHtml);
                 })
@@ -44,7 +46,17 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
-        _private.set(this, { willRender: false });
+        _private.set(this, { 
+            willRender: false,
+            params : (() => {
+                var out = {};
+                each(this.attributes, (inAttribute) => {
+                    if(/^param-/.test(inAttribute.name)) {
+                        out[inAttribute.name.replace('param-', '')] = inAttribute.value;
+                    }
+                });
+                return out;
+            })() });
         let templateName = $(this).attr('template');
         if (!templateName) {
             let template = $(this).find('>template');
