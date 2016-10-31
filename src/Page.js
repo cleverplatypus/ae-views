@@ -32,6 +32,7 @@ const parseUrl = function parseUrl() {
 const startPage = function startPage() {
     $(() => {
         this.node = $(this.mountPoint);
+        $(this.mountPoint).prop('ae',this);
         lang(this);
         _private.get(this)
             .lifecycleSignal.dispatch('element-created');

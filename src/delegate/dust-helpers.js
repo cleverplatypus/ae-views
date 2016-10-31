@@ -238,6 +238,29 @@ export default function(dust) {
     };
 
 
+    dust.helpers.glob = function(chunk, context, bodies, params) {
+        var result;
+        const value = params.value;
+        if (get(window, 'math.eval')) {
+            result = get(window, 'math').eval(value);
+        } else {
+            result = value;
+        }
+        if (params.format) {
+            switch (params.format) {
+                case 'money':
+                    result = result.toFixed(2).replace('.', ',');
+                    break;
+                case 'integer':
+                    result = Math.round(result);
+                    break;
+            }
+        }
+        context.global[params.name] = result;
+        chunk.write('');
+        return chunk;
+    };
+
 
 
 
