@@ -11,10 +11,17 @@ export default function state(inPage) {
         const component = _page.resolveNodeComponent(this);
         const method = $(this).attr('method') || 'removal';
         const statePattern = new RegExp($(this).attr('pattern') || '^$');
+        const statePathMatch = $(this).attr('path');
+        const stateNameMatch = $(this).attr('name');
         const watcher = () => {
             $(this).prop('willRender', false);
             const currentState = component.getCurrentState();
-            if (statePattern.test(currentState.getPath())) {
+            const matches = 
+                statePathMatch === currentState.getPath() ||
+                stateNameMatch === currentState.getName() ||
+                statePattern.test(currentState.getPath());
+                
+            if (matches) {
                 if (method === 'visibility') {
                     $(this).children().each(function() {
                         $(this).removeClass('is-hidden');
