@@ -33,6 +33,7 @@ $.fn.extend({
 });
 
 import aeManaged from './ae-managed';
+import aeRendered from './ae-rendered';
 import aeButton from './ae-button';
 import aeEach from './ae-each';
 import aeState from './ae-state';
@@ -41,6 +42,7 @@ import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
 import aeTextInput from './ae-input';
+import aeTemplate from './ae-template';
 import aeInput from './ae-input2';
 import aeLink from './ae-link';
 import registerAeElement from './ae-element';
@@ -58,6 +60,8 @@ export default function(inPage) {
     aeAction(inPage);
     aeBind(inPage);
     aeRender(inPage);
+    aeTemplate(inPage);
+    aeRendered(inPage);
     aeSwitch(inPage);
     aeTextInput(inPage);
     aeInput(inPage);

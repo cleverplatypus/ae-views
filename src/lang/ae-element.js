@@ -13,7 +13,7 @@ const TemplateWiring = require('../wiring/TemplateWiring');
 const SignalWiring = require('../wiring/SignalWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 
-module.exports = function aeElementDefinition(inApp, inElementName) {
+export default function aeElementDefinition(inApp, inElementName) {
 
     const _app = inApp;
 
