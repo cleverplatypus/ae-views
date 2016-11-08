@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import microtask from '../microtask';
-import Element from './ae-element';
+
 import factory from '../page-factory';
 import ObservableObject from '../ObservableObject';
 import transform from 'lodash.transform';
@@ -10,7 +10,7 @@ export default function render(inPage) {
     'use strict';
     const _private = new WeakMap();
     const _page = inPage;
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
 
     const invalidate = function invalidate() {
         if (!_private.get(this).willRender) {

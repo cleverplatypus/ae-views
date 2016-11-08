@@ -1,11 +1,10 @@
 import $ from 'jquery';
-import Element from './ae-element';
 import microtask from '../microtask';
 
 export default function state(inPage) {
     'use strict';
     const _page = inPage;
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
 
     proto.createdCallback = function() {
         const component = _page.resolveNodeComponent(this);
@@ -16,11 +15,11 @@ export default function state(inPage) {
         const watcher = () => {
             $(this).prop('willRender', false);
             const currentState = component.getCurrentState();
-            const matches = 
+            const matches =
                 statePathMatch === currentState.getPath() ||
                 stateNameMatch === currentState.getName() ||
                 statePattern.test(currentState.getPath());
-                
+
             if (matches) {
                 if (method === 'visibility') {
                     $(this).children().each(function() {

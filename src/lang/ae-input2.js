@@ -1,7 +1,7 @@
 'use strict';
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 import keycode from 'keycode';
 import attachAction from '../delegate/action-trigger-delegate';
 import valueChangeDelegate from '../delegate/value-change-delegate';

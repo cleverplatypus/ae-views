@@ -1,53 +1,34 @@
 'use strict';
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 import attachAction from '../delegate/action-trigger-delegate';
+const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
+import each from 'lodash.foreach';
 
 export default function aeButton(inPage) {
     const _page = inPage;
-    let observer;
 
     var proto = Object.create(HTMLButtonElement.prototype);
     proto.createdCallback = function() {
-        $(this).prop('type', 'button');
-        observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                switch (mutation.attributeName) {
-                    case 'label':
-                        $(mutation.target).text($(mutation.target).attr('label'));
-                        break;
-                }
-            });
+        let wirings = [];
+        $(this).prop('ae', {
+            wirings: wirings
         });
-        // configuration of the observer:
-        var config = { attributes: true };
 
-        // pass in the target node, as well as the observer options
-        observer.observe(this, config);
-
-
-        if ($(this).attr('bind-label')) {
-            const path = $(this).attr('bind-label');
-            const source = $(this).attr('source');
-
-            _page
-                .getDataSource(source)
-                .bindPath(this, path, (inNewValue) => {
-                    $(this).text(inNewValue);
-                });
-            _page
-                .getDataSource(source)
-                .resolve(this, path)
-                .then((inValue) => {
-                    $(this).text(inValue);
-                });
+        if ($(this).attr('bind-html')) {
+            wirings.push(new ElementHTMLWiring(this));
         }
+
+        wirings.push.apply(wirings);
+
+        $(this).prop('type', 'button');
+
 
         if ($(this).attr('bind-enabled')) {
             let path = $(this).attr('bind-enabled');
             let strictBoolean = false;
-            if(/!$/.test(path)) {
+            if (/!$/.test(path)) {
                 path = path.replace(/!$/, '');
                 strictBoolean = true;
             }
@@ -91,15 +72,22 @@ export default function aeButton(inPage) {
     };
 
     proto.attachedCallback = function() {
-        if ($(this).attr('label')) {
-            $(this).html($(this).attr('label'));
-        }
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.attach(_page);
+        });
 
     };
 
     proto.detachedCallback = function() {
-        observer.disconnect();
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.detach();
+        });
     };
 
-    document.registerElement('ae-button', { prototype: proto, extends : 'button'});
+    document.registerElement('ae-button', {
+        prototype: proto,
+        extends: 'button'
+    });
 }

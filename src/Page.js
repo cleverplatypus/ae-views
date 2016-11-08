@@ -78,7 +78,7 @@ class Page extends Component {
         parseUrl.call(this);
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
-        inConstructor.bind(this)();
+        inConstructor.bind(this)(inConfig);
 
         callNextInitializer.call(this);
     }
@@ -113,6 +113,11 @@ class Page extends Component {
         return _registry.get(node);
 
     }
+
+    getResolver(inName) {
+        return get(_config, 'resolvers.' + inName);
+    }
+
 
     addDataSource(inName, inInitFunction) {
         _dataSources.set(inName, inInitFunction(this));

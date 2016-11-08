@@ -2,7 +2,7 @@
 
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 import attachAction from '../delegate/action-trigger-delegate';
 import get from 'lodash.get';
 

@@ -1,7 +1,7 @@
 'use strict';
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 import isString from 'lodash.isString';
 import each from 'lodash.foreach';
 import valueChangeDelegate from '../delegate/value-change-delegate';
@@ -11,7 +11,7 @@ export default function bind(inPage) {
     const _page = inPage;
     const _private = new WeakSet();
 
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
 
     proto.attachedCallback = function() {
         if ($(this).attr('path') && ($(this).attr('from') && $(this).attr('to'))) {

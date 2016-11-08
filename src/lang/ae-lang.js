@@ -1,6 +1,7 @@
 'use strict';
 
 import $ from 'jquery';
+import each from 'lodash.foreach';
 
 $.fn.extend({
     getPath: function () {
@@ -42,8 +43,13 @@ import aeSwitch from './ae-switch';
 import aeTextInput from './ae-input';
 import aeInput from './ae-input2';
 import aeLink from './ae-link';
+import registerAeElement from './ae-element';
 
 export default function(inPage) {
+    
+    each(['div', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section'], (inElementName) => {
+        registerAeElement(inPage, inElementName);
+    });
 
     aeButton(inPage);
     aeManaged(inPage);

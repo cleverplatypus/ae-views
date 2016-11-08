@@ -8,6 +8,7 @@ import isString from 'lodash.isString';
 import isFunction from 'lodash.isFunction';
 import isPlainObject from 'lodash.isPlainObject';
 import each from 'lodash.foreach';
+import get from 'lodash.get';
 import $ from 'jquery';
 import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
@@ -120,7 +121,8 @@ class Component {
         _private.set(this, {
             stateWatchers: new Set(),
             lifecycleSignal: lifecycleSignal,
-            stateInfo: new ObservableObject()
+            stateInfo: new ObservableObject(),
+            resolvers : inConfig.resolvers
         });
 
         Object.defineProperty(this, 'lifecycle', {
@@ -190,6 +192,10 @@ class Component {
             return;
         }
         return this.page.resolveNodeComponent($(this.node).parent());
+    }
+
+    getResolver(inName) {
+        return get(_private.get(this), 'resolvers.' + inName);
     }
 
     initState() {

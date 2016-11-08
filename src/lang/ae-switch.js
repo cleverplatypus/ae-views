@@ -1,7 +1,7 @@
 'use strict';
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 
 /**
 *   A container for element that change the value of a property based on 

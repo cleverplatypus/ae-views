@@ -23,6 +23,10 @@ export default function() {
                 });
             };
 
+            this.unbindPath = function unbindPath() {
+                //CRITICAL: to be implemented
+            };
+
             this.bindPath = function bindPath(inNode, inPath, inHandler) {
                 if (!/^_/.test(inPath) && inPath) {
                     if (inPath === '.') {
@@ -34,7 +38,7 @@ export default function() {
                 const model = _page.resolveNodeModel(inNode, inPath);
 
                 model.watch(inPath, function(inPath, inChanges) {
-                    inHandler(inChanges.newValue, inChanges.oldValue);
+                    var result = inHandler(inChanges.newValue, inChanges.oldValue);
                 });
             };
 

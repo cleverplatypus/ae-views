@@ -24,7 +24,7 @@
 
 
 import $ from 'jquery';
-import Element from './ae-element';
+
 import attachAction from '../delegate/action-trigger-delegate';
 
 let _page;
@@ -34,7 +34,7 @@ export default function action(inPage) {
 
     _page = inPage;
 
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
 
     proto.createdCallback = function() {
 

@@ -2,7 +2,7 @@
 
 import factory from '../page-factory';
 import $ from 'jquery';
-import Element from './ae-element';
+
 import ObservableObject from '../ObservableObject';
 
 export default function each(inPage) {
@@ -10,7 +10,7 @@ export default function each(inPage) {
     const _private = new WeakMap();
     const _templatingDelegate = factory.getTemplatingDelegate();
 
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
 
     proto.createdCallback = function() {
 

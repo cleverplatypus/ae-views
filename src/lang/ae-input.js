@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import Element from './ae-element';
+
 import each from 'lodash.foreach';
 import uuid from 'node-uuid';
 import attachAction from '../delegate/action-trigger-delegate';
@@ -9,7 +9,7 @@ export default function aeTextInput(inPage) {
     const _page = inPage;
     let observer;
     document.styleSheets[0].insertRule('ae-input' + '{ display: block;}', 1);
-    var proto = Object.create(Element.prototype);
+    var proto = Object.create(HTMLElement.prototype);
     proto.createdCallback = function() {
 
         observer = new MutationObserver(function(mutations) {
