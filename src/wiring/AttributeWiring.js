@@ -109,7 +109,11 @@ class AttributeWiring extends Wiring {
     }
 
     detach() {
-        this.binding.detach();
+        each(this.bindings, (inBinding) => {
+            if (inBinding instanceof Binding) {
+                inBinding.detach();
+            }
+        });
     }
 
     static wire(inElement, inAllowedAttributes) {

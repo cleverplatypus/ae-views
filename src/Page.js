@@ -2,6 +2,7 @@
 
 import Component from './component';
 import get from 'lodash.get';
+import each from 'lodash.foreach';
 import isFunction from 'lodash.isFunction';
 import isPlainObject from 'lodash.isPlainObject';
 
@@ -14,6 +15,7 @@ import factory from './page-factory';
 import ComponentLifecycle from './ComponentLifecycle';
 import privateHash from './util/private';
 import LiteUrl from 'lite-url';
+import AttributeWiring from './wiring/AttributeWiring';
 
 const _private = privateHash('component');
 
@@ -32,7 +34,7 @@ const parseUrl = function parseUrl() {
 const startPage = function startPage() {
     $(() => {
         this.node = $(this.mountPoint);
-        $(this.mountPoint).prop('ae',this);
+        $(this.mountPoint).prop('ae', this);
         lang(this);
         _private.get(this)
             .lifecycleSignal.dispatch('element-created');
@@ -200,17 +202,23 @@ class Page extends Component {
             });
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
+
             }
+            _private.get(component).wirings =
+                AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data']);
             _private.get(component)
                 .lifecycleSignal.dispatch('element-created');
         };
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
+            each(_private.get(component).wirings, (wiring) => {
+                wiring.attach(component.page);
+            });
             if ($(this).attr('from')) {
                 const from = $(this).attr('from');
                 const model = that.resolveNodeModel($(this).parent());
-                component.model.prop('data', model.prop('data' + ( from === '.' ? '' : '.' + from)));
+                component.model.prop('data', model.prop('data' + (from === '.' ? '' : '.' + from)));
             }
             _private.get(component)
                 .lifecycleSignal.dispatch('element-attached');
@@ -220,6 +228,9 @@ class Page extends Component {
         };
 
         proto.detachedCallback = function() {
+            each(_private.get(component).wirings, (wiring) => {
+                wiring.detach();
+            });
             _private.get(component)
                 .lifecycleSignal.dispatch('element-detached');
             //_private.delete(component);
