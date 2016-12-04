@@ -23,40 +23,40 @@ const castNumber = function castNumber(inValue) {
     return Number(inValue);
 };
 
-const  tokenizeArgs = function tokenizeArgs(inArgsString) {
+const tokenizeArgs = function tokenizeArgs(inArgsString) {
     var currentToken = '';
     var args = [];
     var isInQuotes = false;
     var idx = 0;
 
-    while(idx <= inArgsString.length) {
-        if(idx === inArgsString.length) {
+    while (idx <= inArgsString.length) {
+        if (idx === inArgsString.length) {
             args.push(currentToken);
             break;
         }
         var c = inArgsString.charAt(idx);
-        if(c === '`') {
+        if (c === '`') {
             isInQuotes = !isInQuotes;
-            currentToken+=c;
-            if(!isInQuotes) {
+            currentToken += c;
+            if (!isInQuotes) {
                 args.push(currentToken);
                 currentToken = '';
             }
-        } else if(c === ',') {
-            if(isInQuotes) {
-                currentToken+=c;
+        } else if (c === ',') {
+            if (isInQuotes) {
+                currentToken += c;
             } else {
                 args.push(currentToken);
                 currentToken = '';
             }
         } else {
-            currentToken+=c;
+            currentToken += c;
         }
         idx++;
     }
     //args = typifyParams(null, args);
     return args.map((inElement) => {
-        if(isString(inElement) && /^`.*`$/.test(inElement)) {
+        if (isString(inElement) && /^`.*`$/.test(inElement)) {
             return inElement.replace(/^`/, '').replace(/`$/, '');
         }
         return inElement;
@@ -69,7 +69,7 @@ class BindingExpression {
 
         this.arguments = tokenizeArgs(get(inExpressionString.match(/(\((.*?)\))$/), 2), 0);
         const pathAndCast = get(this.arguments, 0).split(':');
-        const cast = get(pathAndCast,1);
+        const cast = get(pathAndCast, 1);
         const sourceAndPath = get(pathAndCast, 0).split('>');
         sourceAndPath.reverse();
         this.path = sourceAndPath.shift().replace('!', '');
@@ -118,20 +118,29 @@ class BindingExpression {
         let currentToken = '';
         let segments = [];
 
-        while(idx < inString.length) {
-            let match = inString.substr(idx).match(/~\w*\((.?!?\w+(\.[\w]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/);
-            if(match) {
-                if(currentToken) {
+        while (idx < inString.length) {
+            let match = inString.substr(idx).match(/^~\w*\((.?!?\w+(\.[\w]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/);
+            if (match) {
+                if (currentToken) {
                     segments.push(currentToken);
                     currentToken = '';
                 }
                 segments.push(match[0]);
                 idx += match[0].length;
-
+            } else if ((match = inString.substr(idx).match(/^\s+/))) {
+                if (currentToken) {
+                    segments.push(currentToken);
+                    currentToken = '';
+                }
+                segments.push(match[0]);
+                idx += match[0].length;
             } else {
                 currentToken += inString.charAt(idx);
                 idx++;
             }
+        }
+        if(currentToken) {
+            segments.push(currentToken);
         }
 
         return map(segments,
@@ -177,8 +186,8 @@ class Binding {
             _p.dataSource.resolve(
                 _p.element,
                 exp.path).then((inNewValue) => {
-                    resolve(exp.cast(exp.accessor.apply(null, [inNewValue].concat(exp.arguments))));
-                });
+                resolve(exp.cast(exp.accessor.apply(null, [inNewValue].concat(exp.arguments))));
+            });
         });
     }
 
@@ -186,11 +195,11 @@ class Binding {
         const _p = _private.get(this);
         const exp = _p.expression;
         this.getValue().then((inValue) => {
-            _p.handler(inValue);
-        })
-        .catch((inError) => {
-            LOG.error(inError);
-        });
+                _p.handler(inValue);
+            })
+            .catch((inError) => {
+                LOG.error(inError);
+            });
     }
 
 
@@ -232,7 +241,7 @@ class Binding {
                 return;
             }
             const result = exp.accessor.apply(null, [inNewValue].concat(exp.arguments));
-            if(result instanceof Promise) {
+            if (result instanceof Promise) {
                 result
                     .then((inResultValue) => {
                         inHandler(exp.cast(inResultValue));

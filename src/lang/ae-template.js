@@ -22,3 +22,4 @@ export default function action(inPage) {
 
     document.registerElement('ae-template', { prototype: proto});
 }
+

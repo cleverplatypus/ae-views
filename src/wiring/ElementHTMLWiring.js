@@ -11,7 +11,7 @@ import includes from 'lodash.includes';
 const setValue = function setValue(inValue) {
     const val = [];
     const promises = [];
-    
+
     each(this.bindings, (inBinding, inIndex) => {
         if (inBinding instanceof Binding) {
             const promise = inBinding.getValue();
@@ -42,7 +42,7 @@ class ElementHTMLWiring extends Wiring {
         if (inApp) {
             this.app = inApp;
         } else if (!this.app) {
-            throw new Error('AttributeWiring: cannot attach to undefined app');
+            throw new Error('ElementHTMLWiring: cannot attach to undefined app');
         }
 
         const handler = (inValue) => {

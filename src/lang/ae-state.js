@@ -31,7 +31,6 @@ export default function state(inPage) {
                         $(this).prop('wasRendered', true);
                     }
                 }
-//                console.log('about to call .rendered on ' + currentState.getPath());
                 currentState.rendered();
             } else {
                 if (method === 'visibility') {

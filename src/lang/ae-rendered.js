@@ -5,6 +5,7 @@ import factory from '../page-factory';
 import ObservableObject from '../ObservableObject';
 import transform from 'lodash.transform';
 import each from 'lodash.foreach';
+import AttributeWiring from '../wiring/AttributeWiring';
 
 export default function render(inPage) {
     const _private = new WeakMap();
@@ -45,6 +46,9 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
+        $(this).prop('ae', {
+            wirings: AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data', 'style'])
+        });
         _private.set(this, {
             willRender: false,
             params: (() => {
@@ -71,7 +75,10 @@ export default function render(inPage) {
     };
 
     proto.attachedCallback = function() {
-
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.attach(_page);
+        });
         invalidate.call(this);
         var observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -111,11 +118,14 @@ export default function render(inPage) {
     };
 
     proto.detachedCallback = function() {
-
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.detach();
+        });
     };
 
     document.registerElement('ae-rendered', {
         prototype: proto,
-        extends : 'div'
+        extends: 'div'
     });
 }

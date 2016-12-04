@@ -11,6 +11,7 @@ const attachAction = require('../delegate/action-trigger-delegate');
 const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
 const TemplateWiring = require('../wiring/TemplateWiring');
 const SignalWiring = require('../wiring/SignalWiring');
+const StateWiring = require('../wiring/StateWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 
 export default function aeElementDefinition(inApp, inElementName) {
@@ -26,6 +27,10 @@ export default function aeElementDefinition(inApp, inElementName) {
             wirings: wirings
         });
 
+        if ($(this).attr('state-match')) {
+            wirings.push(new StateWiring(this));
+        }
+
         if ($(this).attr('from')) {
             if ($(this).find('>template')) {
                 wirings.push(wirings, new TemplateWiring(this));
@@ -33,14 +38,16 @@ export default function aeElementDefinition(inApp, inElementName) {
                 wirings.push(wirings, new ElementHTMLWiring(this));
             }
         }
-        if ($(this).attr('signal')) {
-            wirings.push(new SignalWiring(this));
-        }
         if ($(this).attr('bind-html')) {
             wirings.push(new ElementHTMLWiring(this));
         }
 
-        wirings.push.apply(wirings, AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data']));
+        $.each(this.attributes, (i, attrib) => {
+            if (/^signal/.test(attrib.name)) {
+                wirings.push(new SignalWiring(this, attrib.name));
+            }
+        });
+        wirings.push.apply(wirings, AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data', 'style']));
 
     };
 
@@ -64,4 +71,4 @@ export default function aeElementDefinition(inApp, inElementName) {
         prototype: proto,
         extends: inElementName
     });
-};
+}

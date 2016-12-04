@@ -6,17 +6,21 @@ import $ from 'jquery';
 
 class SignalWiring extends Wiring {
 
-    constructor(inElement) {
+    constructor(inElement, inAttrName) {
         super();
+        this.attributeName = inAttrName;
         this.element = inElement;
     }
 
     attach(inPage) {
         this.page = inPage;
-
+        let eventName = this.attributeName.replace(/^signal-/, '');
+        if(eventName === 'signal') {
+            eventName = 'click';
+        }
         attachAction.call(this.element, this.page, {
-            name: $(this.element).attr('signal'),
-            trigger: 'click',
+            name: $(this.element).attr(this.attributeName),
+            trigger: eventName,
             target: 'self',
             params: (() => {
                 const params = {};

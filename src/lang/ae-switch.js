@@ -51,6 +51,9 @@ export default function aeSwitch(inPage) {
                 selectHandler.call(that, defaultSwitch);
             }
         });
+        if(!defaultSwitch) {
+            selectHandler.call(this, $(this).children().first());
+        }
     };
 
     proto.detachedCallback = function() {

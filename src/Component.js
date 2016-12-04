@@ -114,6 +114,25 @@ class Component {
         } else {
             [inInitObj, inConstructor, inPage] = [inParam2, inParam3, inParam4];
         }
+        this.getModel = (inName) => {
+            let model = get(inConfig, 'models.' + inName);
+            if (!model && this === this.page) {
+                LOG.warn('Model ' + inName + ' is not registered with the page');
+            } else if(!model) {
+                return this.page.getModel(inName);
+            }
+            return model;
+        };
+
+        this.getController = (inName) => {
+            let controller = get(inConfig, 'controllers.' + inName);
+            if (!controller && this === this.page) {
+                LOG.warn('Controller ' + inName + ' is not registered with the page');
+            } else if(!controller) {
+                return this.page.getController(inName);
+            }
+            return controller;
+        };
 
         const lifecycleSignal = new Signal();
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
@@ -122,7 +141,7 @@ class Component {
             stateWatchers: new Set(),
             lifecycleSignal: lifecycleSignal,
             stateInfo: new ObservableObject(),
-            resolvers : inConfig.resolvers
+            resolvers: inConfig.resolvers
         });
 
         Object.defineProperty(this, 'lifecycle', {
@@ -259,7 +278,7 @@ class Component {
                     this.microtask(() => {
                         _private.get(this)
                             .lifecycleSignal.dispatch('rendered');
-                            resolve();
+                        resolve();
                         //      mutationObserver.disconnect();
                     });
 

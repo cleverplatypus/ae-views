@@ -33,6 +33,28 @@ const _observeClassAttrMutation = function _observeClassAttrMutation(inHandler) 
     classMutationObserver.observe(this.element, config);
 
 };
+
+const _compositeAttrHandler = function _compositeAttrHandler(inAttrName, inValue) {
+    const val = [];
+    const promises = [];
+    $(this.element).attr(inAttrName, '');
+    each(this.bindings, (inBinding, inIndex) => {
+        if (inBinding instanceof Binding) {
+            const promise = inBinding.getValue();
+            promise.then((inNewValue) => {
+                val[inIndex] = inNewValue;
+            });
+            promises.push(promise);
+
+        }
+        val.push(inBinding);
+    });
+    Promise.all(promises).then(() => {
+        $(this.element).attr(inAttrName, val.join(''));
+    });
+
+};
+
 const _handleClassAttr = function _handleClassAttr(inValue) {
     const val = [];
     const promises = [];
@@ -93,7 +115,7 @@ class AttributeWiring extends Wiring {
             } else if (/^class-/.test(this.attrName)) {
                 _handleClassDashAttr.call(this, inValue);
             } else {
-                $(this.element).attr(this.attrName, inValue);
+                _compositeAttrHandler.call(this, this.attrName, inValue);
             }
         };
 
@@ -119,6 +141,7 @@ class AttributeWiring extends Wiring {
     static wire(inElement, inAllowedAttributes) {
         const wirings = [];
         let hasClassBinding = false;
+        const attrToRemove = [];
         $.each(inElement.attributes, function(i, attrib) {
             if (!includes(inAllowedAttributes, get(attrib.name.match(/^(\w+)/), 1))) {
                 return;
@@ -129,14 +152,15 @@ class AttributeWiring extends Wiring {
                     hasClassBinding = true;
                 }
                 wirings.push(new AttributeWiring(inElement, attrib.name, val));
-                setTimeout(() => {
-                    $(inElement).removeAttr(attrib.name);
-                }, 1);
+                attrToRemove.push(attrib.name);
             }
 
         });
         each(wirings, (inWiring) => {
             inWiring.hasClassBinding = hasClassBinding;
+        });
+        each(attrToRemove, (inName) => {
+            $(inElement).removeAttr(inName);
         });
         return wirings;
 

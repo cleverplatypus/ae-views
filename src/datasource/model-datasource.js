@@ -23,8 +23,9 @@ export default function() {
                 });
             };
 
-            this.unbindPath = function unbindPath() {
-                //CRITICAL: to be implemented
+            this.unbindPath = function unbindPath(inNode, inObserver, inPath) {
+                const model = _page.resolveNodeModel(inNode, inPath);
+                model.unwatch(inObserver, inPath);
             };
 
             this.bindPath = function bindPath(inNode, inPath, inHandler) {

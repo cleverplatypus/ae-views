@@ -50,6 +50,9 @@ class ObservableObject {
                 let val = _p.props.prop(localProp);
 
                 if (!path.length) {
+                    if(_p.props.prop(localProp) === inValue) {
+                        return;
+                    }
                     _p.props.prop(localProp, ObservableObject.fromObject(inValue));
                     if (_p.observer.hasListeners()) {
 
@@ -235,6 +238,9 @@ class ObservableObject {
         } else {
             const branch = [];
             var change = _p.setProp(inPath, inValue, branch);
+            if(!change) {
+                return inValue;
+            }
             if (!inSilent) {
                 _p.changesQueue.push(change);
                 ObservableObject.notifyWatchers(_p);

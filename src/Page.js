@@ -80,6 +80,7 @@ class Page extends Component {
         parseUrl.call(this);
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
+        
         inConstructor.bind(this)(inConfig);
 
         callNextInitializer.call(this);
