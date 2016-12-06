@@ -1,8 +1,8 @@
 'use strict';
 
-const Wiring = require('./Wiring');
+import Wiring from './Wiring';
 const $ = require('jquery');
-const Binding = require('../Binding');
+import Binding from'../Binding';
 
 const get = require('lodash.get');
 const each = require('lodash.foreach');
@@ -167,4 +167,4 @@ class AttributeWiring extends Wiring {
     }
 }
 
-module.exports = AttributeWiring;
+export default AttributeWiring;

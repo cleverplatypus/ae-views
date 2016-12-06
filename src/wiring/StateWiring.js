@@ -1,6 +1,6 @@
 'use strict';
 
-const Wiring = require('./Wiring');
+import Wiring from './Wiring';
 import attachAction from '../delegate/action-trigger-delegate';
 import $ from 'jquery';
 import microtask from '../microtask';
@@ -67,4 +67,4 @@ class StateWiring extends Wiring {
     }
 }
 
-module.exports = StateWiring;
+export default StateWiring;

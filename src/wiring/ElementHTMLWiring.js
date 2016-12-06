@@ -64,4 +64,4 @@ class ElementHTMLWiring extends Wiring {
 
 
 }
-module.exports = ElementHTMLWiring;
+export default ElementHTMLWiring;

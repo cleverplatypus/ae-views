@@ -39,7 +39,7 @@ export default function() {
                 const model = _page.resolveNodeModel(inNode, inPath);
 
                 model.watch(inPath, function(inPath, inChanges) {
-                    var result = inHandler(inChanges.newValue, inChanges.oldValue);
+                    inHandler(inChanges.newValue, inChanges.oldValue);//TODO: test the change.type === 'pruned' scenario
                 });
             };
 

@@ -103,9 +103,6 @@
   "name": "ae-views",
   "optionalDependencies": {},
   "readme": "ERROR: No README data found!",
-  "scripts": {
-    "prepublish": "rm -rf dist && mkdir dist && rollup src/ae.js -m inline --format cjs  > dist/bundle.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  
   "version": "0.5.2"
 }

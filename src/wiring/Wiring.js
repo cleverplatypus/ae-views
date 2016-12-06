@@ -14,4 +14,4 @@ class Wiring {
 	}
 }
 
-module.exports = Wiring;
+export default Wiring;

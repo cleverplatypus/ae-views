@@ -1,9 +1,9 @@
 'use strict';
-const AppFactory = require('../page-factory');
-const Wiring = require('./Wiring');
+import AppFactory  from '../page-factory';
+import Wiring from './Wiring';
 const $ = require('jquery');
-const Binding = require('../Binding');
-const ObservableObject = require('../ObservableObject');
+import Binding  from '../Binding';
+import ObservableObject from '../ObservableObject';
 const get = require('lodash.get');
 const each = require('lodash.foreach');
 const isFunction = require('lodash.isFunction');
@@ -161,4 +161,4 @@ class TemplateWiring {
     }
 }
 
-module.exports = TemplateWiring;
+export default TemplateWiring;

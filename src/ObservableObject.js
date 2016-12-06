@@ -47,20 +47,20 @@ class ObservableObject {
                 inBackPath.push(localProp);
                 let out;
 
-                let val = _p.props.prop(localProp);
+                let oldValue = _p.props.prop(localProp);
 
                 if (!path.length) {
-                    if(_p.props.prop(localProp) === inValue) {
+                    if(oldValue === inValue) {
                         return;
                     }
                     _p.props.prop(localProp, ObservableObject.fromObject(inValue));
+                        //_p.observer.prune(localProp);
                     if (_p.observer.hasListeners()) {
-
                         _p.changesQueue.push({
                             path: localProp,
                             change: {
-                                type: val === undefined ? 'add' : 'replace',
-                                oldValue: val,
+                                type: oldValue === undefined ? 'add' : 'replace',
+                                oldValue: oldValue,
                                 newValue: _p.props.prop(localProp)
                             }
 
@@ -70,16 +70,16 @@ class ObservableObject {
                     return inAlreadyFoundChange ? null : {
                         path: inBackPath.join('.'),
                         change: {
-                            type: val === undefined ? 'add' : 'replace',
-                            oldValue: val,
+                            type: oldValue === undefined ? 'add' : 'replace',
+                            oldValue: oldValue,
                             newValue: _p.props.prop(localProp)
                         }
                     };
                 } else {
                     let alreadyFound = false;
-                    if (val === undefined || val === null) {
-                        val = new ObservableObject();
-                        _p.props.prop(localProp, val);
+                    if (oldValue === undefined || oldValue === null) {
+                        oldValue = new ObservableObject();
+                        _p.props.prop(localProp, oldValue);
                         _p.changesQueue.push({
                             path: path.join('.'),
                             change: {
@@ -100,7 +100,7 @@ class ObservableObject {
                         };
                         alreadyFound = true;
                     }
-                    let result = _private.get(val).setProp(path.join('.'), inValue, inBackPath, alreadyFound);
+                    let result = _private.get(oldValue).setProp(path.join('.'), inValue, inBackPath, alreadyFound);
                     return (result ? result : out);
                 }
             }.bind(this)

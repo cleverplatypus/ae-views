@@ -1,6 +1,6 @@
 'use strict';
 
-const Wiring = require('./Wiring');
+import Wiring from './Wiring';
 import attachAction from '../delegate/action-trigger-delegate';
 import $ from 'jquery';
 
@@ -40,4 +40,4 @@ class SignalWiring extends Wiring {
     }
 }
 
-module.exports = SignalWiring;
+export default SignalWiring;
