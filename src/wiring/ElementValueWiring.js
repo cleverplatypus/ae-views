@@ -7,6 +7,8 @@ import get from 'lodash.get';
 import each from 'lodash.foreach';
 import includes from 'lodash.includes';
 
+let delayedSetTimeout;
+
 
 const setValue = function setValue(inValue) {
     const val = [];
@@ -25,19 +27,19 @@ const setValue = function setValue(inValue) {
     });
     Promise.all(promises).then(() => {
         const totalVal = val.join('');
-        if ($(this.element).html() !== totalVal) {
-            $(this.element).html(totalVal);
+        if ($(this.element).val() !== totalVal) {
+            $(this.element).val(totalVal);
         }
     });
 
 };
 
-class ElementHTMLWiring extends Wiring {
+class ElementValueWiring extends Wiring {
 
     constructor(inElement) {
         super();
         this.element = inElement;
-        const attrValue = $(this.element).attr('to-html') || $(this.element).attr('bind-html');
+        const attrValue = $(this.element).attr('to-value') || $(this.element).attr('bind-value');
         this.bindings = Binding.parse(attrValue, inElement);
     }
 
@@ -45,25 +47,26 @@ class ElementHTMLWiring extends Wiring {
         if (inApp) {
             this.app = inApp;
         } else if (!this.app) {
-            throw new Error('ElementHTMLWiring: cannot attach to undefined app');
+            throw new Error('ElementValueWiring: cannot attach to undefined app');
         }
-        if (!$(this.element).attr('to-html')) {
-            this.observer = new MutationObserver((mutations) => {
-                each(this.bindings, (inBinding, inIndex) => {
-                    inBinding.setValue($(this.element).html());
-                });
 
+        const setProperty = () => {
+            delayedSetTimeout = null;
+            each(this.bindings, (inBinding, inIndex) => {
+                inBinding.setValue($(this.element).val());
             });
+        };
 
-            var config = {
-                subtree: true,
-                childList: true,
-                characterData: true,
-                attributes: true
-            };
+        const changeHandler = () => {
+            if (delayedSetTimeout) {
+                clearTimeout(delayedSetTimeout);
+            }
+            delayedSetTimeout = setTimeout(setProperty, $(this.element).attr('value-out-delay') || 0);
+        };
 
-            this.observer.observe(this.element, config);
-        }
+        $(this.element).off('change').on('change', changeHandler);
+        $(this.element).off('keyup').on('keyup', changeHandler);
+
         const handler = (inValue) => {
             setValue.call(this);
         };
@@ -76,7 +79,7 @@ class ElementHTMLWiring extends Wiring {
     }
 
     detach() {
-        const that = this;
+        $(this.element).off('change');
         each(this.bindings, (inBinding) => {
             inBinding.detach();
         });
@@ -84,4 +87,4 @@ class ElementHTMLWiring extends Wiring {
 
 
 }
-export default ElementHTMLWiring;
+export default ElementValueWiring;

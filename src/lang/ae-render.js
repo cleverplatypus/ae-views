@@ -88,7 +88,7 @@ export default function render(inPage) {
         // pass in the target node, as well as the observer options
         observer.observe(this, config);
 
-        const path = $(this).attr('from');
+        const path = $(this).attr('from') || '.';
         _page.getDataSource().bindPath(this, path, (inBaseModel) => {
 
             if (inBaseModel instanceof ObservableObject) {

@@ -27,7 +27,7 @@ export default function aeSwitch(inPage) {
         //console.log('switch element clicked: ' + $(inSelectedElement).data('ae-switch-value'));
     };
 
-    var proto = Object.create(HTMLUListElement.prototype);
+    var proto = Object.create(HTMLDivElement.prototype);
     proto.createdCallback = function() {
         _private.set(this, {
             selectedClass: $(this).attr('selected-class') || 'selected',
@@ -62,6 +62,6 @@ export default function aeSwitch(inPage) {
 
     document.registerElement('ae-switch', {
         prototype: proto,
-        extends: 'ul'
+        extends: 'div'
     });
 }

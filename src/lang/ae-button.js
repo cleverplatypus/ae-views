@@ -3,7 +3,7 @@
 import $ from 'jquery';
 
 import attachAction from '../delegate/action-trigger-delegate';
-const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
+import ElementHTMLWiring from '../wiring/ElementHTMLWiring';
 import each from 'lodash.foreach';
 
 export default function aeButton(inPage) {
@@ -36,10 +36,13 @@ export default function aeButton(inPage) {
             const setValue = (inValue) => {
                 $(this).prop('disabled', strictBoolean ? inValue !== true : !inValue);
             };
-
+            let watchPath = path.split('.');
+            watchPath[watchPath.length-1] = '[' + watchPath[watchPath.length-1] + ']';
+            watchPath = watchPath.join('.');
+            
             _page
                 .getDataSource(source)
-                .bindPath(this, path, (inNewValue) => {
+                .bindPath(this, watchPath, (inNewValue) => {
                     setValue(inNewValue);
                 });
             _page

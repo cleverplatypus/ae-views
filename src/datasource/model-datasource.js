@@ -1,14 +1,15 @@
 'use strict';
 
 let _page = null;
+import ComponentModel from '../ComponentModel';
 
 export default function() {
     return function(inPage) {
         const ModelDataSource = function(inPage) {
             this.page = _page = inPage;
 
-            this.resolve = function resolve(inNode, inPath) {
-                return new Promise((resolvePromise, rejectPromise) => {
+            this.resolve = function resolve(inNode, inPath, inModelName) {
+                return new Promise((resolve, rejectPromise) => {
 
                     if (!/^_/.test(inPath) && inPath) {
                         if (inPath === '.') {
@@ -17,40 +18,57 @@ export default function() {
                             inPath = 'data' + (inPath ? '.' + inPath : '');
                         }
                     }
-                    const model = _page.resolveNodeModel(inNode, inPath);
-                    resolvePromise(inPath ? model.prop(inPath) : model);
+                    const model = _page.resolveNodeModel(inNode, inModelName);
+                    if(inPath) {
+                        const value = model.prop(inPath);
+                        if(value instanceof Promise) {
+                            value.then(resolve);
+                        } else {
+                            resolve(value);
+                        }
+                    } else {
+                        resolve(model);
+                    }
 
                 });
             };
 
-            this.unbindPath = function unbindPath(inNode, inObserver, inPath) {
-                const model = _page.resolveNodeModel(inNode, inPath);
+            this.unbindPath = function unbindPath(inNode, inObserver, inPath, inModelName) { //CRITICAL: refactor to comply to new binding mechanism
+                const model = _page.resolveNodeModel(inNode, inModelName);
                 model.unwatch(inObserver, inPath);
             };
 
-            this.bindPath = function bindPath(inNode, inPath, inHandler) {
-                if (!/^_/.test(inPath) && inPath) {
-                    if (inPath === '.') {
-                        inPath = 'data';
-                    } else {
-                        inPath = 'data' + (inPath ? '.' + inPath : '');
+            this.bindPath = function bindPath(inNode, inPath, inHandler, inModelName) {
+                const model = _page.resolveNodeModel(inNode, inModelName);
+
+                if (model instanceof ComponentModel) {
+                    if (!/^(?:\[)?_/.test(inPath) && inPath) {
+                        if (inPath === '.') {
+                            inPath = 'data';
+                        } else {
+                            inPath = 'data' + (inPath ? '.' + inPath : '');
+                        }
                     }
                 }
-                const model = _page.resolveNodeModel(inNode, inPath);
 
                 model.watch(inPath, function(inPath, inChanges) {
-                    inHandler(inChanges.newValue, inChanges.oldValue);//TODO: test the change.type === 'pruned' scenario
+                    inHandler(inChanges.newValue, inChanges.oldValue); //TODO: test the change.type === 'pruned' scenario
                 });
             };
 
-            this.setPath = function setPath(inNode, inPath, inValue) {
-                if (!/^_/.test(inPath)) {
-                    inPath = 'data.' + inPath;
+            this.setPath = function setPath(inNode, inPath, inValue, inModelName) {
+                const model = _page.resolveNodeModel(inNode, inModelName);
+                if (model instanceof ComponentModel) {
+                    if (!/^(?:\[)?_/.test(inPath) && inPath) {
+                        if (inPath === '.') {
+                            inPath = 'data';
+                        } else {
+                            inPath = 'data' + (inPath ? '.' + inPath : '');
+                        }
+                    }
                 }
-                const model = _page.resolveNodeModel(inNode, inPath);
                 model.prop(inPath, inValue);
             };
-
 
         };
         return new ModelDataSource(inPage);

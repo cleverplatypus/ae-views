@@ -80,7 +80,6 @@ class Page extends Component {
         parseUrl.call(this);
         this.mountPoint = inConfig.mountPoint || 'body';
         this.addDataSource('model', modelDataSource(this));
-        
         inConstructor.bind(this)(inConfig);
 
         callNextInitializer.call(this);
@@ -91,12 +90,12 @@ class Page extends Component {
         return _private.get(this).startupParams;
     }
 
-    resolveNodeModel(inNode, inPath) {
+    resolveNodeModel(inNode, inModelName) {
         let component = this.resolveNodeComponent(inNode);
-        if (!component.hasModel) {
-            return this.resolveNodeModel($(component.node).parent(), inPath);
+        if (!component.hasModel(inModelName)) {
+            return this.resolveNodeModel($(component.node).parent(), inModelName);
         }
-        return component.model;
+        return component.getModel(inModelName);
     }
 
     resolveNodeComponent(inNode) {
@@ -142,6 +141,10 @@ class Page extends Component {
     render(inModel) {
         super.render(inModel);
         $(this.mountPoint).css('display', '');
+    }
+
+    getTemplate(inName) {
+        return _templatingDelegate.getTemplate(inName);
     }
 
     registerComponent(...args) {

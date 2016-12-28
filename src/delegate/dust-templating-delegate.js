@@ -21,27 +21,35 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         var n = 'EV' + 'a' + 'L';
         evilFn = inEvilFn || window[n.toLowerCase()];
 
-        dust.collectionResolver = function(inCollection) {
-            if (inCollection instanceof ObservableObject && inCollection.isCollection) {
-                return inCollection.toNative();
-            } else {
-                return inCollection;
+        // dust.collectionResolver = function(inCollection) {
+        //     if (inCollection instanceof ObservableObject && inCollection.isCollection) {
+        //         return inCollection.toNative();
+        //     } else {
+        //         return inCollection;
+        //     }
+        // };
+
+        // dust.propertyResolver = function(inBase, inPath) {
+        //     if (inBase instanceof ObservableObject) {
+        //         if (inBase.isCollection && inPath === 'length') {
+        //             return inBase.length;
+        //         } else {
+        //             return inBase.prop(inPath);
+        //         }
+        //     } else {
+        //         return get(inBase, inPath);
+        //     }
+        // };
+
+
+    }
+
+    getTemplate(inName) {
+        return {
+            render(inModel, inParams) {
+                return this.render(inName, inModel, inParams);
             }
         };
-
-        dust.propertyResolver = function(inBase, inPath) {
-            if (inBase instanceof ObservableObject) {
-                if (inBase.isCollection && inPath === 'length') {
-                    return inBase.length;
-                } else {
-                    return inBase.prop(inPath);
-                }
-            } else {
-                return get(inBase, inPath);
-            }
-        };
-
-
     }
 
     registerExtensions(inExtensions) {
@@ -89,10 +97,19 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         if (!template) {
             return Promise.reject(`DustTemplatingDelegate: Template with name ${inTemplateName} not found`);
         }
+        let model;
+
         var promise = new Promise((resolve, reject) => {
-            if (inModel instanceof ObservableObject) {
-                inModel = inModel.toNative(true);
-            }
+            const render = () => {
+                const glob = isFunction(globalContext) ? globalContext() : (globalContext || {});
+                let context = dust.makeBase(glob);
+                if (inParams) {
+                    context = context.push(inParams);
+                }
+                context = context.push(model);
+                dust.render(template, context, handler);
+            };
+
             const handler = function(inError, inHtml) {
                 if (inError) {
                     reject(inError);
@@ -101,13 +118,18 @@ class DustTemplatingDelegate extends TemplatingDelegate {
                 }
             };
 
-            const glob = isFunction(globalContext) ? globalContext() : ( globalContext || {});
-            let context = dust.makeBase(glob);
-            if(inParams) {
-                context = context.push(inParams);
+            if (inModel instanceof ObservableObject) {
+                //always resolving lazy properties
+                //TODO: make lazy properties resolution optional
+                inModel.toNative(true, true).then((inModel) => {
+                    model = inModel;
+                    render();
+                });
+            } else {
+                model = inModel;
+                render();
             }
-            context = context.push(inModel);
-            dust.render(template, context, handler);
+
         });
         return promise;
     }

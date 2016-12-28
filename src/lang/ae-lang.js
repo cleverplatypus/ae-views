@@ -49,7 +49,7 @@ import registerAeElement from './ae-element';
 
 export default function(inPage) {
     
-    each(['div', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section'], (inElementName) => {
+    each(['div', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
         registerAeElement(inPage, inElementName);
     });
 

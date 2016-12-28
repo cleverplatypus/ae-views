@@ -6,13 +6,14 @@ const capitalize = require('lodash.capitalize');
 const each = require('lodash.foreach');
 const concat = require('lodash.concat');
 
-const attachAction = require('../delegate/action-trigger-delegate');
+import attachAction from '../delegate/action-trigger-delegate';
 //const Binding = require('../Binding');
-const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
-const TemplateWiring = require('../wiring/TemplateWiring');
-const SignalWiring = require('../wiring/SignalWiring');
-const StateWiring = require('../wiring/StateWiring');
-const AttributeWiring = require('../wiring/AttributeWiring');
+import ElementHTMLWiring from '../wiring/ElementHTMLWiring';
+import ElementValueWiring from '../wiring/ElementValueWiring';
+import TemplateWiring from '../wiring/TemplateWiring';
+import SignalWiring from '../wiring/SignalWiring';
+import StateWiring from '../wiring/StateWiring';
+import AttributeWiring from '../wiring/AttributeWiring';
 
 export default function aeElementDefinition(inApp, inElementName) {
 
@@ -38,8 +39,12 @@ export default function aeElementDefinition(inApp, inElementName) {
                 wirings.push(wirings, new ElementHTMLWiring(this));
             }
         }
-        if ($(this).attr('bind-html')) {
+        if ($(this).attr('bind-html') || $(this).attr('to-html')) {
             wirings.push(new ElementHTMLWiring(this));
+        }
+
+        if ($(this).attr('bind-value') || $(this).attr('to-value')) {
+            wirings.push(new ElementValueWiring(this));
         }
 
         $.each(this.attributes, (i, attrib) => {

@@ -45,17 +45,16 @@ const _setupModel = function _setupModel(inModelInitObj) {
     Object.defineProperty(this, 'model', {
         get: getter
     });
-    Object.defineProperty(this, 'hasModel', {
-        get: () => !!inModelInitObj
-    });
+
+
 };
 
-const _findState = function _findState(inStateName) {
-
-    if (!inStateName) {
+const _findState = function _findState(inState) {
+    if (!inState) {
         return this.states;
     }
-    let path = inStateName.split('.');
+    const statePath = isString(inState) ? inState : inState.getPath();
+    let path = statePath.split('.');
     let currentState = this.states;
     while (path.length && currentState) {
         let seg = path.shift();
@@ -68,7 +67,7 @@ const _findState = function _findState(inStateName) {
 const _watchState = function _watchState() {
     const _p = _private.get(this);
 
-    _p.stateInfo.watch('nextState', (inPath, inChanges) => {
+    _p.stateInfo.watch('[nextState]', (inPath, inChanges) => {
         let nextState = _findState.bind(this)(inChanges.newValue);
         if (!nextState) {
             console.warn('Changing to unknown state: ' +
@@ -114,25 +113,7 @@ class Component {
         } else {
             [inInitObj, inConstructor, inPage] = [inParam2, inParam3, inParam4];
         }
-        this.getModel = (inName) => {
-            let model = get(inConfig, 'models.' + inName);
-            if (!model && this === this.page) {
-                LOG.warn('Model ' + inName + ' is not registered with the page');
-            } else if(!model) {
-                return this.page.getModel(inName);
-            }
-            return model;
-        };
 
-        this.getController = (inName) => {
-            let controller = get(inConfig, 'controllers.' + inName);
-            if (!controller && this === this.page) {
-                LOG.warn('Controller ' + inName + ' is not registered with the page');
-            } else if(!controller) {
-                return this.page.getController(inName);
-            }
-            return controller;
-        };
 
         const lifecycleSignal = new Signal();
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
@@ -154,6 +135,7 @@ class Component {
         if (factory.componentConfigPreprocessor) {
             factory.componentConfigPreprocessor(inConfig);
         }
+        this._properties = {};
         this.config = inConfig;
         this.page = inPage || this;
         this.bus = new Bus(this); //jshint ignore:line
@@ -185,6 +167,34 @@ class Component {
 
         _setupModel.call(this, inInitObj);
 
+        this.hasModel = (inName) => {
+            if (inName) {
+                return !!get(inConfig, 'models.' + inName);
+            }
+
+            return !!_private.get(this).model;
+        };
+
+        this.getModel = (inName) => {
+            if (this.hasModel(inName)) {
+                return get(inConfig, 'models.' + inName) || _private.get(this).model ;
+            }
+            if (this === this.page) {
+                LOG.warn('Model ' + inName + ' is not registered with the page');
+                return;
+            }
+            return this.page.getModel(inName);
+        };
+
+        this.getController = (inName) => {
+            let controller = get(inConfig, 'controllers.' + inName);
+            if (!controller && this === this.page) {
+                LOG.warn('Controller ' + inName + ' is not registered with the page');
+            } else if (!controller) {
+                return this.page.getController(inName);
+            }
+            return controller;
+        };
         for (let templateName in templates) {
             let actualTemplateName = templateName === '_default' ?
                 '_default.' + this.name :
@@ -203,7 +213,15 @@ class Component {
 
     data(inPath, inValue, inSilent) {
         const path = 'data' + (inPath ? '.' + inPath : '');
-        return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
+        if (this.model) {
+            return this.model.prop(path, inValue, inSilent);
+        } else {
+            return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
+        }
+    }
+
+    get properties() {
+        return this._properties;
     }
 
     parent() {

@@ -97,10 +97,13 @@ export default function render(inPage) {
         observer.observe(this, config);
 
         const path = $(this).attr('from');
-        _page.getDataSource().bindPath(this, path, (inBaseModel) => {
+        let watchPath = path.split('.');
+            watchPath[watchPath.length-1] = '[' + watchPath[watchPath.length-1] + ']';
+            watchPath = watchPath.join('.');
+        _page.getDataSource().bindPath(this, watchPath, (inBaseModel) => {
 
             if (inBaseModel instanceof ObservableObject) {
-                inBaseModel.watch(path, () => {
+                inBaseModel.watch(watchPath, () => {
                     invalidate.call(this);
                 });
             } else {

@@ -8,108 +8,119 @@ import get from 'lodash.get';
 import isArray from 'lodash.isArray';
 
 
-const _private = new WeakMap();
 
-
-class Dummy {
-    constructor(inIsCollection) {
-        this._obj = inIsCollection ? [] : {};
-        _private.set(this, {
-
-        });
-    }
-    prop(inName, inValue) {
-        if (inValue !== undefined) {
-            this._obj[inName] = inValue;
-        } else {
-            return this._obj[inName];
+const setProp = function(inPath, inValue) { //jshint ignore:line
+    const notifyDescendantListeners = (inSource, inBackPath, inEventName) => {
+        if (inSource instanceof ObservableObject) {
+            for (let propName in inSource.toNative(true)) {
+                const newBackPath = inBackPath.concat(propName);
+                this._changesQueue.push({
+                    path: newBackPath.join('.'),
+                    change: {
+                        type: inEventName,
+                        newValue: this.prop(newBackPath.join('.'))
+                    }
+                });
+                if (inSource._props[propName] instanceof ObservableObject) {
+                    notifyDescendantListeners(inSource._props[propName], newBackPath.splice(1), inEventName);
+                }
+            }
         }
-    }
-}
+    };
+
+    const descend = (inSource, inPath, inNewValue, inBackPath) => {
+        const pathSegs = inPath.toString().split('.');
+        inNewValue = ObservableObject.fromObject(inNewValue);
+        if (pathSegs.length === 1) {
+            const oldValue = inSource._props[inPath];
+            if (oldValue !== inNewValue) {
+                this._changesQueue.push({
+                    path: inBackPath.concat(inPath).join('.'),
+                    change: {
+                        type: oldValue === undefined ? 'add' : 'replace',
+                        oldValue: oldValue,
+                        newValue: inNewValue
+                    }
+                });
+            }
+            inSource._props[inPath] = inNewValue;
+            if (oldValue instanceof ObservableObject) {
+                notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
+            } else if (inNewValue instanceof ObservableObject) {
+                notifyDescendantListeners(inNewValue, inBackPath.concat([inPath]), 'add');
+            }
+        } else {
+            const localProp = pathSegs.shift();
+            const oldValue = inSource._props[localProp];
+
+            if (!(oldValue instanceof ObservableObject) || (oldValue.isCollection && isNaN(localProp)) || (!oldValue.isCollection && !isNaN(localProp))) {
+                inSource._props[localProp] = new ObservableObject({
+                    isCollection: !isNaN(localProp)
+                });
+                if (oldValue instanceof ObservableObject) {
+                    notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
+                } else if (inNewValue instanceof ObservableObject) {
+                    notifyDescendantListeners(inNewValue, inBackPath.concat([inPath]), 'add');
+                }
+
+                this._changesQueue.push({
+                    path: inBackPath.concat(localProp).join('.'),
+                    change: {
+                        type: oldValue instanceof ObservableObject ? 'replace' : 'add',
+                        oldValue: oldValue,
+                        newValue: inSource._props[localProp]
+                    }
+                });
+
+            }
+
+            descend(
+                inSource._props[localProp],
+                pathSegs.join('.'),
+                inNewValue, inBackPath.concat([localProp]));
+
+        }
+
+    };
+    descend(this, inPath.toString(), inValue, []);
+};
+
+
+const getProp = function(inPath) {
+    const descend = (inBase, inSubPath) => {
+        if (inSubPath.length === 1) {
+            let propName = inSubPath.pop();
+            if (inBase.isCollection && !isNaN(propName)) {
+                propName = parseInt(propName);
+            }
+            return inBase._props[propName];
+        } else {
+            const propName = inSubPath.shift();
+            if (!inBase._props.hasOwnProperty(propName)) {
+                return undefined;
+            }
+            if(inBase._props[propName]) {
+                return descend(inBase._props[propName], inSubPath);
+            }
+        }
+    };
+    return descend(this, inPath.toString().split('.'));
+};
 
 class ObservableObject {
 
     constructor(inConfig) {
         const isCollection = (get(inConfig, 'isCollection') === true);
-        _private.set(this, {
-            isSilent: false,
-            isCollection: isCollection,
-            changesQueue: [],
-            observer: new Observer(),
-            props: new Dummy(isCollection),
-            setProp: function(inPath, inValue, inBackPath, inAlreadyFoundChange) {
-                const _p = _private.get(this);
-
-                const path = !isNaN(inPath) ? [inPath] : inPath.split('.');
-                var localProp = path.shift();
-
-                inBackPath = inBackPath || [];
-                inBackPath.push(localProp);
-                let out;
-
-                let oldValue = _p.props.prop(localProp);
-
-                if (!path.length) {
-                    if(oldValue === inValue) {
-                        return;
-                    }
-                    _p.props.prop(localProp, ObservableObject.fromObject(inValue));
-                        //_p.observer.prune(localProp);
-                    if (_p.observer.hasListeners()) {
-                        _p.changesQueue.push({
-                            path: localProp,
-                            change: {
-                                type: oldValue === undefined ? 'add' : 'replace',
-                                oldValue: oldValue,
-                                newValue: _p.props.prop(localProp)
-                            }
-
-                        });
-                        ObservableObject.notifyWatchers(_p);
-                    }
-                    return inAlreadyFoundChange ? null : {
-                        path: inBackPath.join('.'),
-                        change: {
-                            type: oldValue === undefined ? 'add' : 'replace',
-                            oldValue: oldValue,
-                            newValue: _p.props.prop(localProp)
-                        }
-                    };
-                } else {
-                    let alreadyFound = false;
-                    if (oldValue === undefined || oldValue === null) {
-                        oldValue = new ObservableObject();
-                        _p.props.prop(localProp, oldValue);
-                        _p.changesQueue.push({
-                            path: path.join('.'),
-                            change: {
-                                type: 'add',
-                                oldValue: undefined,
-                                newValue: _p.props.prop(localProp)
-                            }
-
-                        });
-                        ObservableObject.notifyWatchers(_p);
-                        out = inAlreadyFoundChange ? null : {
-                            path: inBackPath.join('.'),
-                            change: {
-                                type: 'add',
-                                oldValue: undefined,
-                                newValue: _p.props.prop(localProp)
-                            }
-                        };
-                        alreadyFound = true;
-                    }
-                    let result = _private.get(oldValue).setProp(path.join('.'), inValue, inBackPath, alreadyFound);
-                    return (result ? result : out);
-                }
-            }.bind(this)
-        });
-
+        this._lazyPaths = {};
+        this._isSilent = false;
+        this._isCollection = isCollection;
+        this._changesQueue = [];
+        this._observer = new Observer();
+        this._props = isCollection ? [] : {};
     }
 
     * [Symbol.iterator]() {
-        const src = _private.get(this).props._obj;
+        const src = this._props;
         if (this.isCollection) {
             for (var item of src) {
                 yield item;
@@ -123,11 +134,39 @@ class ObservableObject {
         }
     }
 
+    /**
+     * makes a given path lazy loadable
+     * the thenable function is a function that returns
+     * a promise. This function is only called the first time
+     * the path is accessed
+     */
+    lazyPath(inPath, inThenableFunction) {
+        if (!getProp.call(this, inPath)) {
+            //this ensures that calling toNative with lazyProps == true
+            //resolves this path
+            setProp.call(this, inPath, null);
+        }
+        let promise;
+        this._lazyPaths[inPath] = () => {
+            if (promise) {
+                return promise;
+            }
+            promise = inThenableFunction();
+            promise.then((inVal) => {
+                this.prop(inPath, inVal);
+                delete this._lazyPaths[inPath];
+            });
+            return promise;
+        };
+    }
+
+    get observer() {
+        return this._observer;
+    }
 
     fill(inData, inPath, inSilent) {
-        const _p = _private.get(this);
         if (!inPath) {
-            _p.props._obj = this.isCollection ? [] : {};
+            this._props = this.isCollection ? [] : {};
         } else if (this.prop(inPath) instanceof ObservableObject) {
             this.prop(inPath).empty();
         }
@@ -136,14 +175,14 @@ class ObservableObject {
             this.merge(inData, inPath, inSilent);
         } else {
             if (!inSilent) {
-                _p.changesQueue.push({
+                this._changesQueue.push({
                     path: '',
                     change: {
                         type: 'emptied',
-                        newValue: _p.props._obj
+                        newValue: this._props
                     }
                 });
-                ObservableObject.notifyWatchers(_p);
+                ObservableObject.notifyWatchers(this);
             }
         }
 
@@ -191,18 +230,18 @@ class ObservableObject {
         return inBase.prop(inPath);
     }
 
-    dummy() {
-        return _private.get(this);
+    get isCollection() {
+        return this._isCollection;
     }
 
-    get isCollection() {
-        return _private.get(this).isCollection;
+    keys() {
+        return keys(this._props);
     }
 
     get length() {
-        const _p = _private.get(this);
-        if (_p.isCollection) {
-            return keys(_p.props._obj).length;
+
+        if (this._isCollection) {
+            return keys(this._props).length;
         }
         return undefined;
     }
@@ -211,39 +250,31 @@ class ObservableObject {
         if (inPath !== 0 && !inPath) { //path can be an index. !inPath would ignore zero as a property
             return this;
         }
-        const _p = _private.get(this);
-        const myProps = _p.props;
-        const path = !isNaN(inPath) ? [inPath] : inPath.split('.');
+
+        const path = inPath.toString().split('.');
         var propName = path.shift();
-        if (_p.isCollection && isNaN(propName) && propName !== 'length') {
+        if (inValue !== undefined && this._isCollection && isNaN(propName) && propName !== 'length') {
             throw new Error('Collection ObservableObject can only have numbers as keys');
-        } else if (_p.isCollection) {
+        } else if (this._isCollection) {
             propName = !isNaN(propName) ? parseInt(propName) : propName;
             if (isNaN(propName)) {
                 return this.length;
             }
         }
         if (inValue === undefined) {
-            if (myProps.prop(propName) === undefined) {
+            if (this._lazyPaths[inPath]) {
+                return this._lazyPaths[inPath]();
+            }
+            if (this._props[propName] === undefined) {
                 return undefined;
             } else {
-                if (path.length && !(myProps.prop(propName) instanceof ObservableObject)) {
-                    console.warn('trying to access path through a non traversable property');
-                    return undefined;
-                } else if (path.length) {
-                    return myProps.prop(propName).prop(path.join('.'));
-                }
-                return myProps.prop(propName);
+                return getProp.call(this, inPath);
             }
         } else {
             const branch = [];
-            var change = _p.setProp(inPath, inValue, branch);
-            if(!change) {
-                return inValue;
-            }
+            setProp.call(this, inPath, inValue, branch);
             if (!inSilent) {
-                _p.changesQueue.push(change);
-                ObservableObject.notifyWatchers(_p);
+                ObservableObject.notifyWatchers(this);
             }
             return inValue;
         }
@@ -252,27 +283,51 @@ class ObservableObject {
 
     //TODO: implement event-specific watch
     watch(inPath, inHandler, inEvent) {
-        const _p = _private.get(this);
-        _p.observer.listen(inPath, inHandler, inEvent);
+        this._observer.listen(inPath, inHandler, inEvent);
     }
 
     unwatch(inHandler, inPath) {
-        const _p = _private.get(this);
-        _p.observer.unlisten(inHandler, inPath);
+        this._observer.unlisten(inHandler, inPath);
     }
 
-    toNative(inDeep) {
-        var out = _private.get(this).isCollection ? [] : {};
-        each(_private.get(this).props._obj, (inVal, inKey) => {
-            let isObservable = inVal instanceof ObservableObject;
-            out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
-        });
-        return out;
+    toNative(inDeep, inLazyProps) {
+        if (inLazyProps) {
+            return new Promise((resolve, reject) => {
+                const allPromises = [];
+                const descend = (inObj, inFullPath) => {
+                    each(inObj._props, (inVal, inKey) => {
+                        const fullPath = inFullPath ? inFullPath.split('.').concat([inKey]).join('.') : inKey;
+                        if (this._lazyPaths[fullPath]) {
+                            allPromises.push(this._lazyPaths[fullPath]());
+                        }
+                        if (inVal instanceof ObservableObject) {
+                            if (inDeep) {
+                                descend(inVal, fullPath);
+                            }
+                        }
+                    });
+                };
+                descend(this, '');
+                Promise.all(allPromises).then(() => {
+                    resolve(this.toNative(inDeep));
+                });
+            });
+        } else {
+            var out = this._isCollection ? [] : {};
+            each(this._props, (inVal, inKey) => {
+                let isObservable = inVal instanceof ObservableObject;
+                out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
+            });
+            return out;
+        }
+
+
+
     }
 
     sort(inComparator) {
-        if (_private.get(this).isCollection) {
-            _private.get(this).props._obj.sort(inComparator);
+        if (this._isCollection) {
+            this._props.sort(inComparator);
         }
         return this;
     }
@@ -281,10 +336,10 @@ class ObservableObject {
         if (inInstance.isSilent) {
             return;
         }
-        for (let c of inInstance.changesQueue) {
+        for (let c of inInstance._changesQueue) {
             inInstance.observer.notify(c.path, c.change);
         }
-        inInstance.changesQueue = [];
+        inInstance._changesQueue = [];
 
     }
 
@@ -297,16 +352,15 @@ class ObservableObject {
         }
 
         inTarget.fill(inContent, inPath, inSilent);
-        const _p = _private.get(inTarget);
         if (!inSilent) {
-            _p.changesQueue.push({
+            inTarget._changesQueue.push({
                 path: inPath,
                 change: {
                     type: 'filled',
                     newValue: inContent
                 }
             });
-            ObservableObject.notifyWatchers(_p);
+            ObservableObject.notifyWatchers(inTarget);
         }
     }
 
@@ -320,16 +374,15 @@ class ObservableObject {
         }
 
         inTarget.merge(inContent, inPath);
-        const _p = _private.get(inTarget);
         if (!inSilent) {
-            _p.changesQueue.push({
+            inTarget._changesQueue.push({
                 path: inPath,
                 change: {
                     type: 'merged',
                     newValue: inContent
                 }
             });
-            ObservableObject.notifyWatchers(_p);
+            ObservableObject.notifyWatchers(inTarget);
         }
 
     }
@@ -338,6 +391,7 @@ class ObservableObject {
     empty(inSilent) {
         this.fill(null, inSilent);
     }
+
 }
-window.ObservableObject = ObservableObject;
+
 export default ObservableObject;

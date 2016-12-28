@@ -102,6 +102,10 @@ class AttributeWiring extends Wiring {
         }
     }
 
+    binds(inAttrName) {
+        return this.attrName === inAttrName || this.bindings.length;
+    }
+
     attach(inApp) {
         if (inApp) {
             this.app = inApp;

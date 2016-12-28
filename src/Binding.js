@@ -78,7 +78,7 @@ class BindingExpression {
         this.arguments.shift(); //binding path doesn't belong in the args list
 
         this.truthy = (inValue) => {
-            if (!isBoolean(inValue)) {
+            if (!isBoolean(inValue) && cast !== 'bool') {
                 return inValue;
             }
             if (negate) {
@@ -87,13 +87,15 @@ class BindingExpression {
                 return !!inValue;
             }
         };
-
-        this.resolverName = get(inExpressionString.match(/~(\w+)/), 1);
+        
+        const modelAndResolver = get(inExpressionString.match(/~((?:\w+:)?\w*)/), 1);
+        this.modelName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[0] : null;
+        this.resolverName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[1] : modelAndResolver.split(':')[0];
         switch (get(pathAndCast, 1)) {
             case 'number':
                 this.cast = castNumber;
                 break;
-            case 'boolean':
+            case 'bool':
                 this.cast = castBoolean;
                 break;
             default:
@@ -103,13 +105,13 @@ class BindingExpression {
 
     static isBinding(inString) {
         return isString(inString) &&
-            /^~\w*\((.?!?\w+(\.[\w]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)$/
+            /^~(?:\w+:)?\w*\((.?!?[\w\-]+(\.[\w\-]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)$/
             .test(inString);
     }
 
     static isExpression(inString) {
         return isString(inString) &&
-            /~\w*\((.?!?\w+(\.[\w]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/
+            /~(?:\w+:)?\w*\((.?!?[\w\-]+(\.[\w\-]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/
             .test(inString);
     }
 
@@ -119,7 +121,7 @@ class BindingExpression {
         let segments = [];
 
         while (idx < inString.length) {
-            let match = inString.substr(idx).match(/^~\w*\((.?!?\w+(\.[\w]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/);
+            let match = inString.substr(idx).match(/^~(?:[\w\-]+:)?[\w\-]*\((.?!?[\w\-]+(\.[\w\-]+)*(?::(bool|number))?)((\s*,\s*)(.?!?(`[^`]*`|\d+|true|false)(?::(bool|number))?))*\)/);
             if (match) {
                 if (currentToken) {
                     segments.push(currentToken);
@@ -139,7 +141,7 @@ class BindingExpression {
                 idx++;
             }
         }
-        if(currentToken) {
+        if (currentToken) {
             segments.push(currentToken);
         }
 
@@ -176,7 +178,7 @@ class Binding {
         _p.dataSource.setPath(
             _p.element,
             exp.path,
-            exp.cast(inValue));
+            exp.cast(inValue), exp.modelName);
     }
 
     getValue() { //CRITICAL: support the .path.bla relative binding format
@@ -185,8 +187,8 @@ class Binding {
         return new Promise((resolve, reject) => {
             _p.dataSource.resolve(
                 _p.element,
-                exp.path).then((inNewValue) => {
-                resolve(exp.cast(exp.accessor.apply(null, [inNewValue].concat(exp.arguments))));
+                exp.path, exp.modelName).then((inNewValue) => {
+                resolve(exp.accessor.apply(null, [exp.truthy(exp.cast(inNewValue))].concat(exp.arguments)));
             });
         });
     }
@@ -240,7 +242,7 @@ class Binding {
             if (inNewValue === inOldValue) {
                 return;
             }
-            const result = exp.accessor.apply(null, [inNewValue].concat(exp.arguments));
+            const result = exp.accessor.apply(null, [exp.cast(exp.truthy(inNewValue))].concat(exp.arguments));
             if (result instanceof Promise) {
                 result
                     .then((inResultValue) => {
@@ -257,16 +259,23 @@ class Binding {
         //      we're saving such wrapper in order to be able
         //      to unbind it later
 
+        let watchPath = exp.path.split('.');
+        watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
+        watchPath = watchPath.join('.');
+
         _p.observer = //CRITICAL: support the .path.bla relative binding format
-            _p.dataSource.bindPath(_p.element, exp.path, observer);
+            _p.dataSource.bindPath(_p.element, watchPath, observer, exp.modelName);
         _p.hander = observer;
         this.fire();
     }
 
     detach() {
         const _p = _private.get(this);
+        let watchPath = _p.expression.path.split('.');
+        watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
+        watchPath = watchPath.join('.');
         _p.dataSource //CRITICAL: support the .path.bla relative binding format
-            .unbindPath(_p.element, _p.path, _p.observer);
+            .unbindPath(_p.element, watchPath, _p.observer, _p.expression.modelName);
     }
 
     static parse(inExpressionString, inElement) {

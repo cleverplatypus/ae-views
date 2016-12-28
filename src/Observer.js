@@ -1,214 +1,166 @@
-'use strict';
+import isArray from 'lodash.isarray';
+
 import microtask from './microtask';
-
-
-import has from 'lodash.has';
-import find from 'lodash.find';
-import each from 'lodash.foreach';
-import get from 'lodash.get';
 import ObservableObject from './ObservableObject';
-
-const _private = new WeakMap();
-let _willNotify = false;
-const _queue = new Map();
-
-const _emit = function() {
-    for (let f of _queue.keys()) {
-        let info = _queue.get(f);
-        for (let i of info) {
-            f(i.changes);
-        }
+import each from 'lodash.foreach';
+class Queue {
+    constructor() {
+        this._notifications = [];
     }
-    _queue.clear();
-    _willNotify = false;
-};
 
-class Observer {
-    constructor(inParent) {
-        _private.set(this, {
-            parent: inParent,
-            listeners: new Set(),
-            childrenListeners: new Set(),
-            descendantListeners: new Set(),
-            children: {}
+    push(inNotification) {
+        this._notifications.push(inNotification);
+    }
+
+    drain() {
+        microtask(() => {
+            for (let notification of this._notifications) {
+                notification.listener.trigger(notification.path, notification.change);
+            }
+            this._notifications = [];
         });
-    }
-
-
-    unlisten(inListenerFn, inPath) {
-        const _p = _private.get(this);
-        for (let listener of _p.listeners) {
-            if (listener.handler === inListenerFn) {
-                _p.listeners.delete(listener);
-            }
-        }
-        for (let listener of _p.childrenListeners) {
-            if (listener.handler === inListenerFn) {
-                _p.childrenListeners.delete(listener);
-            }
-        }
-        for (let listener of _p.descendantListeners) {
-            if (listener.handler === inListenerFn) {
-                _p.descendantListeners.delete(listener);
-            }
-        }
-        each(_p.children, (inChildObserver) => {
-            inChildObserver.unlisten(inListenerFn, inPath);
-        });
-    }
-
-    hasListeners() {
-        const _p = _private.get(this);
-        return _p.listeners.size > 0 || _p.childrenListeners.size > 0 || _p.descendantListeners.size > 0;
-    }
-
-    get allListeners() {
-        const _p = _private.get(this);
-
-        return Array.from(_p.listeners)
-            .concat(Array.from(_p.childrenListeners))
-            .concat(Array.from(_p.descendantListeners));
-    }
-
-    listen(inPath, inListener, inOriginalPath) {
-        // if (!inPath) {
-        //     return;
-        // }
-        const originalPath = inOriginalPath || inPath;
-        const _p = _private.get(this);
-        const segs = inPath ? inPath.split('.') : [];
-        const propName = segs.shift();
-        if (/^\w+$/.test(propName)) {
-            _p.children[propName] = _p.children[propName] || new Observer(this);
-            if (segs.length) {
-                _p.children[propName].listen(segs.join('.'), inListener, originalPath);
-            } else {
-                _p.listeners.add({
-                    handler: function(inChanges) {
-                        inListener(originalPath, inChanges);
-                    },
-                    observedPath: originalPath
-                });
-            }
-        } else if (propName === '*') {
-            _p.listeners.add({
-                handler: function(inChanges) {
-                    inListener(originalPath, inChanges);
-                },
-                observedPath: originalPath
-            });
-
-        } else if (propName === '**') {
-            _p.descendantListeners.add({
-                handler: function(inChanges) {
-                    inListener(originalPath, inChanges);
-                },
-                observedPath: originalPath
-            });
-            // _p.listeners.add(inListener);
-        } else if (/\[\w+\]/.test(propName)) {
-            _p.listeners.add({
-                handler: (inChanges) => {
-                    inListener(originalPath, inChanges);
-                },
-                observedPath: originalPath
-            });
-        }
-    }
-
-    resolveChild(inPath) {
-        let node = this;
-        let subChain = inPath.split('.');
-        let prop = '';
-        while (subChain.length) {
-            prop = subChain.shift();
-            node = _private.get(node).children[prop];
-        }
-        return node;
-    }
-    notify(inPath, inChange, inOriginalPath) {
-        const originalPath = inOriginalPath || inPath;
-
-        const _p = _private.get(this);
-        const segs = inPath ? inPath.split('.') : [];
-        const propName = segs.shift();
-        let shouldTrigger = false;
-        const top = inPath.split('.').pop();
-
-        const pushQueue = function(fn, inLocalChange) {
-            if (!_queue.has(fn)) {
-                _queue.set(fn, []);
-            }
-            if (find(_queue.get(fn), {
-                    originalPath: originalPath
-                })) {
-                return;
-            }
-            _queue.get(fn).push({
-                path: inPath,
-                changes: inLocalChange || inChange,
-                originalPath: originalPath
-            });
-        };
-        if (['replace', 'emptied'].indexOf(get(inChange, 'type')) !== -1 &&
-            inChange.oldValue instanceof ObservableObject) {
-            const descend = (inBaseObserver, inPropChain) => {
-                if (inBaseObserver.hasListeners()) {
-                    const change = {
-                        type: 'pruned'
-                    };
-                    each(inBaseObserver.allListeners, (listener) => {
-                        pushQueue(listener.handler, change);
-                        shouldTrigger = true;
-                    });
-
-                }
-                each(_private.get(inBaseObserver).children, (inChild, inSubProp) => {
-                    descend(inChild, inPropChain + '.' + inSubProp);
-                });
-            };
-            const target = this.resolveChild(inPath);
-            descend(target, inPath);
-        }
-
-        if (propName) {
-            if (has(_p.children, propName) && segs.length) {
-                _p.children[propName].notify(segs.join('.'), inChange, originalPath);
-            }
-            if (!segs.length) {
-                shouldTrigger = shouldTrigger || _p.listeners.size;
-                for (let l of _p.listeners) {
-                    pushQueue(l.handler);
-                }
-            }
-            shouldTrigger = shouldTrigger || _p.childrenListeners.size;
-            for (let l of _p.childrenListeners) {
-                pushQueue(l.handler);
-            }
-            shouldTrigger = shouldTrigger || _p.descendantListeners.size;
-            for (let l of _p.descendantListeners) {
-                pushQueue(l.handler);
-            }
-        } else {
-            shouldTrigger = shouldTrigger || _p.listeners.size;
-            for (let l of _p.listeners) {
-                pushQueue(l.handler);
-            }
-        }
-
-        if (!_willNotify && shouldTrigger) {
-            microtask(_emit, [inPath, inChange]);
-            _willNotify = true;
-        }
-
-    }
-
-    bubble(path, changes) {
-
-    }
-
-    static target(base, path, changes) {
-
     }
 }
+
+const _queue = new Queue();
+
+class Listener {
+    constructor(inFullPath, inHandler) {
+        const path = inFullPath.toString().split('.');
+        const leaf = path[path.length -1];
+        if(leaf && /^\[[\w\-,]+\]$/.test(leaf)) {
+            this.observerProperties = leaf.match(/([\w\-]+)/g);
+        }
+        this.fullPath = inFullPath;
+        this.handler = inHandler;
+    }
+    trigger(inPath, inChange) {
+        if (!this.shouldTrigger(inPath)) {
+            throw new Error(inPath + ' should not be in the queue');
+        }
+        this.handler(inPath, inChange);
+    }
+    shouldTrigger(inPath) {
+        return !this.observerProperties ||
+            (() => {
+                const leaf = inPath.split('.').pop();
+                for (let prop of this.observerProperties) {
+                    if (leaf === prop) {
+                        return true;
+                    }
+                }
+                return false;
+            })();
+    }
+}
+
+class Observer {
+
+    constructor(inParent) {
+        this._parent = inParent;
+        this._listeners = [];
+        this._childrenListeners = [];
+        this._descendantListeners = [];
+        this._children = {};
+    }
+
+    unlisten() {
+        console.warn('unlisten is not implemented');
+    }
+
+    listen(inPath, inHandler, inOriginalPath) {
+        inOriginalPath = inOriginalPath || inPath;
+
+        if (!inPath) {
+            this._listeners.push(new Listener(inOriginalPath, inHandler));
+        } else if (/^\[[\w\-,]+\]$/.test(inPath)) {
+            /*
+            listens to inPath minus [someProp] and only
+            triggers if the modified property name === someProp
+            */
+            this._listeners.push(new Listener(inOriginalPath, inHandler));
+        } else if (/^[\w\-]+(?:\..*)*$/.test(inPath)) {
+            /*
+                if path length > 1 descend properties
+            */
+            const segs = inPath.split('.');
+            const propName = segs.shift();
+            this._children[propName] = this._children[propName] || new Observer(this);
+            this._children[propName].listen(segs.join('.'), inHandler, inOriginalPath);
+        } else if (/^\*$/.test(inPath)) {
+            this._childrenListeners.push(new Listener(inOriginalPath, inHandler));
+        } else if (/^\*\*$/.test(inPath)) {
+            this._descendantListeners.push(new Listener(inOriginalPath, inHandler));
+        }
+    }
+
+    notify(inPath, inChange, inOriginalPath) {
+        inOriginalPath = inOriginalPath || inPath;
+
+
+        const segs = inPath.split('.');
+        if (!inPath || /^\[[\w\-,]+\]$/.test(inPath)) {
+            for (let listener of this._listeners) {
+                if (listener.shouldTrigger(inPath)) {
+                    _queue.push({
+                        listener: listener,
+                        path: inOriginalPath,
+                        change: inChange
+                    });
+                }
+            }
+        } else if (/^[\w\-]+(?:\..*)*$/.test(inPath)) {
+            if (segs.length >= 2) {
+                if (segs.length === 2) {
+                    for (let listener of this._childrenListeners.concat(this._descendantListeners)) {
+                        if (listener.shouldTrigger(inOriginalPath)) {
+                            _queue.push({
+                                listener: listener,
+                                path: inOriginalPath,
+                                change: inChange
+                            });
+                        }
+                    }
+                } else if (segs.length > 2) {
+                    for (let listener of this._childrenListeners.concat(this._descendantListeners)) {
+                        if (listener.shouldTrigger(inOriginalPath)) {
+                            _queue.push({
+                                listener: listener,
+                                path: inOriginalPath,
+                                change: inChange
+                            });
+                        }
+                    }
+                }
+                const child = segs.shift();
+                if (this._children[child]) {
+                    this._children[child].notify(segs.join('.'), inChange, inOriginalPath);
+                }
+            } else if (segs.length === 1) {
+                for (let listener of this._listeners) {
+                    if (listener.shouldTrigger(inOriginalPath)) {
+                        _queue.push({
+                            listener: listener,
+                            path: inOriginalPath,
+                            change: inChange
+                        });
+                    }
+                    if(inChange.type === 'add' && inChange.newValue instanceof ObservableObject) {
+                        each(inChange.newValue.keys(), (inKey) => {
+                            this.notify(inKey, { 
+                                type : 'add', 
+                                newValue : inChange.newValue.prop(inKey)
+                            }, inOriginalPath.split('.').concat([inKey]).join('.'));
+                        });
+                    }
+                }
+            }
+
+        }
+        if (!this._parent) {
+            _queue.drain(inPath, inChange);
+        }
+    }
+}
+
 export default Observer;

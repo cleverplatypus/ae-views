@@ -6,6 +6,7 @@ import keycode from 'keycode';
 import attachAction from '../delegate/action-trigger-delegate';
 import valueChangeDelegate from '../delegate/value-change-delegate';
 import each from 'lodash.foreach';
+import SignalWiring from '../wiring/SignalWiring';
 
 export default function aeButton(inPage) {
     const _page = inPage;
@@ -68,10 +69,12 @@ export default function aeButton(inPage) {
                     ((inValue === false) && !negate) ||
                     ((inValue !== false) && negate));
             };
-
+            let watchPath = path.split('.');
+            watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
+            watchPath = watchPath.join('.');
             _page
                 .getDataSource(source)
-                .bindPath(this, path, (inNewValue) => {
+                .bindPath(this, watchPath, (inNewValue) => {
                     setValue(inNewValue);
                 });
             _page
@@ -82,6 +85,7 @@ export default function aeButton(inPage) {
                 });
         }
 
+        const pathAppend = $(this).attr('path-append');
 
 
         if (fromAttr) {
@@ -89,8 +93,13 @@ export default function aeButton(inPage) {
             const valueResolver = (inValue) => {
                 valueChangeDelegate.setValue(target, inValue);
             };
-
-            dataSource.bindPath(this, fromAttr, function(inNewValue, inOldValue) {
+            let watchPath = fromAttr.split('.');
+            if (pathAppend) {
+                watchPath = watchPath.concat(pathAppend.split('.'));
+            }
+            watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
+            watchPath = watchPath.join('.');
+            dataSource.bindPath(this, watchPath, function(inNewValue, inOldValue) {
                 if (inNewValue !== inOldValue) {
                     valueResolver(inNewValue);
                 }
@@ -109,7 +118,11 @@ export default function aeButton(inPage) {
                 }
             });
             valueChangeDelegate.onValueChange(target, outOptions, (inValue) => {
-                dataSource.setPath(this, toAttr, inValue.value == null ? null : inValue.value);
+                let fullPath = toAttr.split('.');
+                if (pathAppend) {
+                    fullPath = fullPath.concat(pathAppend.split('.'));
+                }
+                dataSource.setPath(this, fullPath.join('.'), inValue.value == null ? null : inValue.value);
             });
         }
 
@@ -120,16 +133,34 @@ export default function aeButton(inPage) {
             });
         }
 
+        const wirings = [];
+        $(this).prop('ae', {
+            wirings: wirings
+        });
+        $.each(this.attributes, (i, attrib) => {
+            if (/^signal/.test(attrib.name)) {
+                wirings.push(new SignalWiring(this, attrib.name));
+            }
+        });
+
     };
 
     proto.attachedCallback = function() {
-
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.attach(_page);
+        });
 
     };
 
     proto.detachedCallback = function() {
-
+        const ae = $(this).prop('ae');
+        each(ae.wirings, (wiring) => {
+            wiring.detach();
+        });
     };
+
+
 
     document.registerElement('ae-input2', {
         prototype: proto,
