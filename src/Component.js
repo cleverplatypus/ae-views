@@ -292,16 +292,11 @@ class Component {
                     $(this.node).html(inHtml);
 
                     this.afterRender && this.afterRender(); //jshint ignore:line
-                    //const mutationObserver = new MutationObserver(() => {
                     this.microtask(() => {
                         _private.get(this)
                             .lifecycleSignal.dispatch('rendered');
                         resolve();
-                        //      mutationObserver.disconnect();
                     });
-
-                    //});
-                    //mutationObserver.observe($(this.node).get(0), {childList : true});
                 }).catch((inError) => {
                     console.error(inError);
                     reject(inError);

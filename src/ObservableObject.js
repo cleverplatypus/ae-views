@@ -89,6 +89,9 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
 const getProp = function(inPath) {
     const descend = (inBase, inSubPath) => {
         if (inSubPath.length === 1) {
+            if(!(inBase instanceof ObservableObject)) {
+                return;
+            }
             let propName = inSubPath.pop();
             if (inBase.isCollection && !isNaN(propName)) {
                 propName = parseInt(propName);
