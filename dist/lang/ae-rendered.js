@@ -6,6 +6,7 @@ import ObservableObject from '../ObservableObject';
 import transform from 'lodash.transform';
 import each from 'lodash.foreach';
 import AttributeWiring from '../wiring/AttributeWiring';
+import StateWiring from '../wiring/StateWiring';
 
 export default function render(inPage) {
     const _private = new WeakMap();
@@ -20,6 +21,9 @@ export default function render(inPage) {
     };
 
     var render = function render() {
+        if (!$.contains(document, this)) {
+            return;
+        }
         _private.get(this).willRender = false;
         // if ($(this).attr('debug-name')) {
         //     console.info($(this).attr('debug-name') + ' will render');
@@ -46,8 +50,19 @@ export default function render(inPage) {
         });
     };
     proto.createdCallback = function() {
+        const stateWiring = new StateWiring(this);
+        stateWiring.onEnter.add(invalidate.bind(this));
         $(this).prop('ae', {
-            wirings: AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data', 'style'])
+            wirings: AttributeWiring.wire(this, [
+                'class',
+                'id',
+                'name',
+                'param',
+                'data',
+                'style'
+            ]).concat([
+                stateWiring
+            ])
         });
         _private.set(this, {
             willRender: false,
@@ -97,9 +112,12 @@ export default function render(inPage) {
         observer.observe(this, config);
 
         const path = $(this).attr('from');
-        let watchPath = path.split('.');
-            watchPath[watchPath.length-1] = '[' + watchPath[watchPath.length-1] + ']';
+        let watchPath = '';
+        if (path) {
+            watchPath = path.split('.');
+            watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
             watchPath = watchPath.join('.');
+        }
         _page.getDataSource().bindPath(this, watchPath, (inBaseModel) => {
 
             if (inBaseModel instanceof ObservableObject) {
@@ -118,6 +136,11 @@ export default function render(inPage) {
             });
         }
 
+        if ($(this).attr('trigger-on')) {
+            _page.resolveNodeComponent(this).bus.onAction($(this).attr('trigger-on'), () => {
+                invalidate.call(this);
+            });
+        }
     };
 
     proto.detachedCallback = function() {

@@ -26,7 +26,8 @@ export default function state(inPage) {
                 });
             } else {
                 if (!$(this).prop('wasRendered')) {
-                    $(this).html(this.content);
+                      $(this).removeClass('is-hidden');
+                      $(this).html(this.content);
                     $(this).prop('wasRendered', true);
                 }
             }
@@ -37,6 +38,7 @@ export default function state(inPage) {
                     $(this).addClass('is-hidden');
                 });
             } else {
+                $(this).addClass('is-hidden');
                 $(this).empty();
                 $(this).prop('wasRendered', false);
             }

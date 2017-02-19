@@ -2,7 +2,7 @@
 
 import Wiring from './Wiring';
 const $ = require('jquery');
-import Binding from'../Binding';
+import Binding from '../Binding';
 
 const get = require('lodash.get');
 const each = require('lodash.foreach');
@@ -113,6 +113,9 @@ class AttributeWiring extends Wiring {
             throw new Error('AttributeWiring: cannot attach to undefined app');
         }
 
+        const component = inApp.resolveNodeComponent(this.element);
+        const targetElement = component.element === this.element ? $(this.element).parent() : this.element;
+
         const handler = (inValue) => {
             if (this.attrName === 'class') {
                 _handleClassAttr.call(this, inValue);
@@ -129,9 +132,10 @@ class AttributeWiring extends Wiring {
 
         each(this.bindings, (inBinding) => {
             if (inBinding instanceof Binding) {
-                inBinding.attach(inApp, handler);
+                inBinding.attach(inApp, handler, targetElement);
             }
         });
+        
     }
 
     detach() {
@@ -150,7 +154,7 @@ class AttributeWiring extends Wiring {
             if (!includes(inAllowedAttributes, get(attrib.name.match(/^(\w+)/), 1))) {
                 return;
             }
-            const val = Binding.parse(attrib.value, inElement);
+            const val = Binding.parse(attrib.value);
             if (val !== attrib.value) {
                 if (attrib.name === 'class') {
                     hasClassBinding = true;
@@ -164,7 +168,7 @@ class AttributeWiring extends Wiring {
             inWiring.hasClassBinding = hasClassBinding;
         });
         each(attrToRemove, (inName) => {
-            $(inElement).removeAttr(inName);
+            //$(inElement).removeAttr(inName);
         });
         return wirings;
 

@@ -11,17 +11,19 @@ export default function() {
             this.resolve = function resolve(inNode, inPath, inModelName) {
                 return new Promise((resolve, rejectPromise) => {
 
-                    if (!/^_/.test(inPath) && inPath) {
-                        if (inPath === '.') {
-                            inPath = 'data';
-                        } else {
-                            inPath = 'data' + (inPath ? '.' + inPath : '');
+                    const model = _page.resolveNodeModel(inNode, inModelName);
+                    if (model instanceof ComponentModel) {
+                        if (!/^_/.test(inPath) && inPath) {
+                            if (inPath === '.') {
+                                inPath = 'data';
+                            } else {
+                                inPath = 'data' + (inPath ? '.' + inPath : '');
+                            }
                         }
                     }
-                    const model = _page.resolveNodeModel(inNode, inModelName);
-                    if(inPath) {
+                    if (inPath) {
                         const value = model.prop(inPath);
-                        if(value instanceof Promise) {
+                        if (value instanceof Promise) {
                             value.then(resolve);
                         } else {
                             resolve(value);
@@ -52,7 +54,7 @@ export default function() {
                 }
 
                 model.watch(inPath, function(inPath, inChanges) {
-                    inHandler(inChanges.newValue, inChanges.oldValue); //TODO: test the change.type === 'pruned' scenario
+                    inHandler(inChanges.newValue, inChanges.oldValue, inChanges.type); //TODO: test the change.type === 'pruned' scenario
                 });
             };
 

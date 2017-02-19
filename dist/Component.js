@@ -16,37 +16,19 @@ import {
     Signal
 } from 'signals';
 import privateHash from './util/private';
+import result from 'lodash.result';
 
 const _private = privateHash('component');
 
-const _setupModel = function _setupModel(inModelInitObj) {
-
-    const _p = _private.get(this);
-
-    let getter;
-    if (!inModelInitObj) {
-        getter = () => {
-            return this.page.resolveNodeModel(this.node);
-        };
-    } else {
-        if (isPlainObject(inModelInitObj)) {
-            _p.model = new ComponentModel(inModelInitObj);
-        } else if (inModelInitObj instanceof ComponentModel) {
-            _p.model = inModelInitObj;
-
-        } else {
-            _p.model = ObservableObject.fromObject(inModelInitObj);
-        }
-        getter = () => {
-            return _p.model;
-        };
+const _setupModel = function _setupModel(inModel) {
+    if(isPlainObject(inModel)) {
+        return new ComponentModel(inModel);
+    } else if(!!inModel && !(Object.getPrototypeOf(inModel) instanceof ComponentModel)) {
+        throw new Error('Attempt to use an invalid object as Component model');
+    } else if(!inModel) {
+        return null;
     }
-
-    Object.defineProperty(this, 'model', {
-        get: getter
-    });
-
-
+    return inModel;
 };
 
 const _findState = function _findState(inState) {
@@ -122,7 +104,9 @@ class Component {
             stateWatchers: new Set(),
             lifecycleSignal: lifecycleSignal,
             stateInfo: new ObservableObject(),
-            resolvers: inConfig.resolvers
+            resolvers: inConfig.resolvers,
+            active : true,
+            model : _setupModel(inInitObj)
         });
 
         Object.defineProperty(this, 'lifecycle', {
@@ -135,11 +119,16 @@ class Component {
         if (factory.componentConfigPreprocessor) {
             factory.componentConfigPreprocessor(inConfig);
         }
+        
         this._properties = {};
         this.config = inConfig;
+
         this.page = inPage || this;
         this.bus = new Bus(this); //jshint ignore:line
         this.name = inConfig.name;
+        this.isComponent = function isComponent() {
+            return true;
+        };
         each(inConfig.actions, (inAction) => {
             if (!inAction) {
                 console.error('Passed a null action to component config');
@@ -169,7 +158,7 @@ class Component {
 
         this.hasModel = (inName) => {
             if (inName) {
-                return !!get(inConfig, 'models.' + inName);
+                return !!result(inConfig, 'models.' + inName);
             }
 
             return !!_private.get(this).model;
@@ -177,7 +166,7 @@ class Component {
 
         this.getModel = (inName) => {
             if (this.hasModel(inName)) {
-                return get(inConfig, 'models.' + inName) || _private.get(this).model ;
+                return result(inConfig, 'models.' + inName) || _private.get(this).model ;
             }
             if (this === this.page) {
                 LOG.warn('Model ' + inName + ' is not registered with the page');
@@ -212,12 +201,17 @@ class Component {
     }
 
     data(inPath, inValue, inSilent) {
-        const path = 'data' + (inPath ? '.' + inPath : '');
-        if (this.model) {
-            return this.model.prop(path, inValue, inSilent);
-        } else {
-            return this.page.resolveNodeModel(this.node, path).prop(path, inValue, inSilent);
+        const model = this.page.resolveNodeModel(this.node);
+        if(isPlainObject(inPath)) {
+            model.prop('data', inPath);
         }
+        const path = 'data' + (inPath ? '.' + inPath : '');
+        if (model) {
+            return model.prop(path, inValue, inSilent);
+        } else if(this !== this.page) {
+            return this.page.resolveNodeModel(this.node).prop(path, inValue, inSilent);
+        }
+        return null;
     }
 
     get properties() {
@@ -235,8 +229,34 @@ class Component {
         return get(_private.get(this), 'resolvers.' + inName);
     }
 
+    get model() {
+        return _private.get(this).model;
+    }
+
     initState() {
 
+        let defaultState;
+        const descend = (inParent) => {
+            each(inParent.children, (inChild) => {
+                if(!!this.page.getStartupState()) {
+                    if(this.page.getStartupState() === inChild.getPath()) {
+                        defaultState = inChild;
+                        return false;
+                    }
+                } else if(inChild.is_default) {
+                    defaultState = inChild;
+                    return false;
+                }
+                descend(inChild);
+            });
+            if(defaultState) {
+                return;
+            }
+        };
+        descend(this.states);
+        if(defaultState) {
+            this.tryState(defaultState.getPath());
+        }
     }
 
     getCurrentState() {
@@ -278,7 +298,24 @@ class Component {
         }
     }
 
+    set active(inValue) {
+         const _p = _private.get(this);
+         if(inValue) {
+            if(!_p.active) {
+                this.invalidate();
+            }
+         }
+         _p.active = inValue;
+    }
+
+    get active() {
+        return _private.get(this).active;
+    }
+
     render(inModel) {
+        if(!this.active) {
+            return;
+        }
         return new Promise((resolve, reject) => {
             _private.get(this).willRender = false;
             if (_private.get(this).hasDefaultTemplate) {

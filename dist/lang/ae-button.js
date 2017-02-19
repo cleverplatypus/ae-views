@@ -4,6 +4,9 @@ import $ from 'jquery';
 
 import attachAction from '../delegate/action-trigger-delegate';
 import ElementHTMLWiring from '../wiring/ElementHTMLWiring';
+import PropertyWiring from '../wiring/PropertyWiring';
+import StateWiring from '../wiring/StateWiring';
+import AttributeWiring from '../wiring/AttributeWiring';
 import each from 'lodash.foreach';
 
 export default function aeButton(inPage) {
@@ -16,42 +19,20 @@ export default function aeButton(inPage) {
             wirings: wirings
         });
 
+        if ($(this).attr('state-match')) {
+            wirings.push(new StateWiring(this));
+        }
+
         if ($(this).attr('bind-html')) {
             wirings.push(new ElementHTMLWiring(this));
         }
+        wirings.push.apply(wirings, PropertyWiring.wire(this));
+
 
         wirings.push.apply(wirings);
+        wirings.push.apply(wirings, AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data', 'style']));
 
         $(this).prop('type', 'button');
-
-
-        if ($(this).attr('bind-enabled')) {
-            let path = $(this).attr('bind-enabled');
-            let strictBoolean = false;
-            if (/!$/.test(path)) {
-                path = path.replace(/!$/, '');
-                strictBoolean = true;
-            }
-            const source = $(this).attr('source');
-            const setValue = (inValue) => {
-                $(this).prop('disabled', strictBoolean ? inValue !== true : !inValue);
-            };
-            let watchPath = path.split('.');
-            watchPath[watchPath.length-1] = '[' + watchPath[watchPath.length-1] + ']';
-            watchPath = watchPath.join('.');
-            
-            _page
-                .getDataSource(source)
-                .bindPath(this, watchPath, (inNewValue) => {
-                    setValue(inNewValue);
-                });
-            _page
-                .getDataSource(source)
-                .resolve(this, path)
-                .then((inValue) => {
-                    setValue(inValue);
-                });
-        }
 
         if ($(this).attr('action')) {
             attachAction.call(this, _page, {

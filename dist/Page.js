@@ -5,7 +5,7 @@ import get from 'lodash.get';
 import each from 'lodash.foreach';
 import isFunction from 'lodash.isFunction';
 import isPlainObject from 'lodash.isPlainObject';
-
+import ObservableObject from './ObservableObject';
 import $ from 'jquery';
 
 import modelDataSource from './datasource/model-datasource';
@@ -16,6 +16,8 @@ import ComponentLifecycle from './ComponentLifecycle';
 import privateHash from './util/private';
 import LiteUrl from 'lite-url';
 import AttributeWiring from './wiring/AttributeWiring';
+import PropertyWiring from './wiring/PropertyWiring';
+import StateWiring from './wiring/StateWiring';
 
 const _private = privateHash('component');
 
@@ -85,17 +87,41 @@ class Page extends Component {
         callNextInitializer.call(this);
     }
 
+    loadModule(inUrl) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: inUrl,
+                converters: {
+                    'text script': (text) => {
+                        return text;
+                    }
+                },
+                success: (js_code) => {
+                    new Function('inPage', js_code)(this); //jshint ignore:line
+                    resolve();
+                },
+                fail: (inError) => {
+                    reject(inError);
+                }
+            });
+        });
+    }
 
     get startupParams() {
         return _private.get(this).startupParams;
     }
 
     resolveNodeModel(inNode, inModelName) {
-        let component = this.resolveNodeComponent(inNode);
-        if (!component.hasModel(inModelName)) {
+        const component = this.resolveNodeComponent(inNode);
+        if (inModelName) {
+            return component.getModel(inModelName);
+        }
+        if(component.model) {
+            return component.model;
+        } else if(!(component instanceof Page)){
             return this.resolveNodeModel($(component.node).parent(), inModelName);
         }
-        return component.getModel(inModelName);
+        return null;
     }
 
     resolveNodeComponent(inNode) {
@@ -156,12 +182,14 @@ class Page extends Component {
             !isPlainObject(config)) {
             throw new Error('Page.registerComponent() usage: (config : Object, [model : Object|ObservableObject], constructor : Function');
         }
-        this.registerComponentElement({
+        return this.registerComponentElement({
             config: config,
             modelPrototype: model,
             constructor: constructor
         });
     }
+
+
 
     initState() {
         let hash = window.location.hash = decodeURI(window.location.hash);
@@ -172,6 +200,7 @@ class Page extends Component {
                 this.tryState(hash);
             }
         }
+        this.getStartupState = () => hash;
 
         $(window).on('hashchange', () => {
             if (/^#action:/.test(window.location.hash)) {
@@ -187,8 +216,6 @@ class Page extends Component {
         var that = this;
         let component;
         const name = inDefinition.config.name;
-        //        console.info('registering component: ' + name);
-        document.styleSheets[0].insertRule(name + '{ display: block;}', 1);
 
         proto.createdCallback = function() {
             component = new Component(
@@ -204,12 +231,28 @@ class Page extends Component {
                 writable: false,
                 value: component
             });
+
+            Object.defineProperty(component, 'element', {
+                get: () => {
+                    return this;
+                }
+            });
             for (let injector of _componentInjectors) {
                 injector.call(that, component);
 
             }
-            _private.get(component).wirings =
-                AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data']);
+            const wirings = [];
+            _private.get(component).wirings = wirings;
+            wirings.push.apply(wirings,
+                AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data'].concat(get(inDefinition, 'config.bindableAttributes'))));
+
+            wirings.push.apply(wirings, PropertyWiring.wire(this));
+
+            if ($(this).attr('state-match')) {
+                _private.get(component).wirings.push(new StateWiring(this));
+            }
+
+
             _private.get(component)
                 .lifecycleSignal.dispatch('element-created');
         };
@@ -222,10 +265,11 @@ class Page extends Component {
             if ($(this).attr('from')) {
                 const from = $(this).attr('from');
                 const model = that.resolveNodeModel($(this).parent());
-                component.model.prop('data', model.prop('data' + (from === '.' ? '' : '.' + from)));
+                component.model.prop('data', ObservableObject.fromObject(model.prop('data' + (from === '.' ? '' : '.' + from))));
             }
             _private.get(component)
                 .lifecycleSignal.dispatch('element-attached');
+
             if (component.config.autoRender !== false) {
                 component.render.call(component);
             }
@@ -243,6 +287,7 @@ class Page extends Component {
         document.registerElement(inDefinition.config.name, {
             prototype: proto
         });
+        return name;
 
     }
 

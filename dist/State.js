@@ -112,6 +112,11 @@ class State {
 
 	}
 
+	default() {
+		this.is_default = true;
+		return this;
+	}
+
 	matches(inPattern) {
 		return (!inPattern && !_private.get(this).name) ||
 			(new RegExp(inPattern)).test(_private.get(this).name);

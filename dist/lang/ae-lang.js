@@ -41,15 +41,15 @@ import aeAction from './ae-action';
 import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
-import aeTextInput from './ae-input';
+import aeInput from './ae-input';
 import aeTemplate from './ae-template';
-import aeInput from './ae-input2';
+import aeSelect from './ae-select';
 import aeLink from './ae-link';
 import registerAeElement from './ae-element';
 
 export default function(inPage) {
     
-    each(['div', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
+    each(['div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
         registerAeElement(inPage, inElementName);
     });
 
@@ -57,13 +57,13 @@ export default function(inPage) {
     aeManaged(inPage);
     aeEach(inPage);
     aeState(inPage);
+    aeSelect(inPage);
     aeAction(inPage);
     aeBind(inPage);
     aeRender(inPage);
     aeTemplate(inPage);
     aeRendered(inPage);
     aeSwitch(inPage);
-    aeTextInput(inPage);
     aeInput(inPage);
     aeLink(inPage);
 }

@@ -47,7 +47,7 @@ class Bus {
     addAction(inName, inHandler, inOnce) {
         if (this.signals[inName]) {
             this.signals[inName].dispose();
-            console.warn('action ' + inName + ' was overridden');
+            //console.warn('action ' + inName + ' was overridden');
         }
         this.signals[inName] = new Signal();
         if (inHandler) {

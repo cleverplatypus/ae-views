@@ -1,9 +1,14 @@
 'use strict';
 
 import Wiring from './Wiring';
+import Component from '../Component';
+import {Signal} from 'signals';
+
 import attachAction from '../delegate/action-trigger-delegate';
 import $ from 'jquery';
 import microtask from '../microtask';
+const _enterSignal = new Signal();
+const _exitSignal = new Signal();
 
 class StateWiring extends Wiring {
 
@@ -12,14 +17,28 @@ class StateWiring extends Wiring {
         this.element = inElement;
     }
 
+
     attach(inPage) {
+        if (!$(this.element).attr('state-match')) {
+            return;
+        }
         this.page = inPage;
         const component = inPage.resolveNodeComponent(this.element);
-        const method = $(this.element).attr('method') || 'visibility';
+        let statefulComponent;
+        let isComponent = false;
+        if (component.element === this.element) {
+            isComponent = true;
+            statefulComponent = inPage.resolveNodeComponent($(this.element).parent());
+        } else {
+            statefulComponent = component;
+        }
+        const method = $(this.element).attr('state-method') || 'visibility';
         const statePattern = new RegExp($(this.element).attr('state-match') || '^$');
+        $(this.element).removeAttr('state-match');
+        $(this.element).removeAttr('state-method');
         const watcher = () => {
             $(this.element).prop('willRender', false);
-            const currentState = component.getCurrentState();
+            const currentState = statefulComponent.getCurrentState();
             const matches =
                 statePattern.test(currentState.getPath());
 
@@ -36,7 +55,12 @@ class StateWiring extends Wiring {
                         $(this.element).prop('wasRendered', true);
                     }
                 }
+                if (isComponent) {
+                    component.active = true;
+                }
+
                 currentState.rendered();
+                _enterSignal.dispatch();
             } else {
                 if (method === 'visibility') {
                     $(this.element).addClass('is-hidden');
@@ -44,13 +68,18 @@ class StateWiring extends Wiring {
                         $(this.element).addClass('is-hidden');
                     });
                 } else {
+                    $(this.element).addClass('is-hidden');
                     $(this.element).empty();
                     $(this.element).prop('wasRendered', false);
                 }
+                if (isComponent) {
+                    component.active = false;
+                }
+                _exitSignal.dispatch();
             }
         };
 
-        component.watchState(() => {
+        statefulComponent.watchState(() => {
             if (!$(this.element).prop('willRender')) {
                 $(this.element).prop('willRender', true);
                 microtask(watcher);
@@ -63,7 +92,18 @@ class StateWiring extends Wiring {
     }
 
     detach() {
+        if (!$(this.element).attr('state-match')) {
+            return;
+        }
 
+    }
+
+    get onEnter() {
+        return _enterSignal;
+    }
+
+    get onExit() {
+        return _exitSignal;
     }
 }
 

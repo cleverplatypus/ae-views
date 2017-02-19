@@ -11,7 +11,7 @@ import isArray from 'lodash.isArray';
 
 const setProp = function(inPath, inValue) { //jshint ignore:line
     const notifyDescendantListeners = (inSource, inBackPath, inEventName) => {
-        if (inSource instanceof ObservableObject) {
+        if (inSource instanceof ObservableObject && inSource.isObserved()) {
             for (let propName in inSource.toNative(true)) {
                 const newBackPath = inBackPath.concat(propName);
                 this._changesQueue.push({
@@ -43,7 +43,7 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
                     }
                 });
             }
-            inSource._props[inPath] = inNewValue;
+            inSource._props[isNaN(inPath) ? inPath : parseInt(inPath)] = inNewValue;
             if (oldValue instanceof ObservableObject) {
                 notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
             } else if (inNewValue instanceof ObservableObject) {
@@ -53,10 +53,10 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
             const localProp = pathSegs.shift();
             const oldValue = inSource._props[localProp];
 
-            if (!(oldValue instanceof ObservableObject) || (oldValue.isCollection && isNaN(localProp)) || (!oldValue.isCollection && !isNaN(localProp))) {
-                inSource._props[localProp] = new ObservableObject({
+            if (!(oldValue instanceof ObservableObject) || (oldValue.isCollection && isNaN(pathSegs[0])) /*|| (!oldValue.isCollection && !isNaN(pathSegs[0]))*/) {
+                inSource._props[localProp] = new ObservableObject(/*{
                     isCollection: !isNaN(localProp)
-                });
+                }*/);
                 if (oldValue instanceof ObservableObject) {
                     notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
                 } else if (inNewValue instanceof ObservableObject) {
@@ -120,6 +120,7 @@ class ObservableObject {
         this._changesQueue = [];
         this._observer = new Observer();
         this._props = isCollection ? [] : {};
+        this._watchesCount = 0;
     }
 
     * [Symbol.iterator]() {
@@ -135,6 +136,10 @@ class ObservableObject {
                 yield out;
             }
         }
+    }
+
+    isObserved() {
+        return true;//!!this._watchesCount;
     }
 
     /**
@@ -177,7 +182,7 @@ class ObservableObject {
         if (keys(inData).length) {
             this.merge(inData, inPath, inSilent);
         } else {
-            if (!inSilent) {
+            if (!inSilent && this.isObserved()) {
                 this._changesQueue.push({
                     path: '',
                     change: {
@@ -276,7 +281,7 @@ class ObservableObject {
         } else {
             const branch = [];
             setProp.call(this, inPath, inValue, branch);
-            if (!inSilent) {
+            if (!inSilent && this.isObserved()) {
                 ObservableObject.notifyWatchers(this);
             }
             return inValue;
@@ -287,10 +292,12 @@ class ObservableObject {
     //TODO: implement event-specific watch
     watch(inPath, inHandler, inEvent) {
         this._observer.listen(inPath, inHandler, inEvent);
+        this._watchesCount += 1;
     }
 
     unwatch(inHandler, inPath) {
         this._observer.unlisten(inHandler, inPath);
+        this._watchesCount -= 1;
     }
 
     toNative(inDeep, inLazyProps) {
@@ -299,7 +306,7 @@ class ObservableObject {
                 const allPromises = [];
                 const descend = (inObj, inFullPath) => {
                     each(inObj._props, (inVal, inKey) => {
-                        const fullPath = inFullPath ? inFullPath.split('.').concat([inKey]).join('.') : inKey;
+                        const fullPath = inFullPath ? inFullPath.toString().split('.').concat([inKey]).join('.') : inKey;
                         if (this._lazyPaths[fullPath]) {
                             allPromises.push(this._lazyPaths[fullPath]());
                         }
@@ -336,9 +343,10 @@ class ObservableObject {
     }
 
     static notifyWatchers(inInstance) {
-        if (inInstance.isSilent) {
+        if (inInstance.isSilent || !inInstance.isObserved()) {
             return;
         }
+
         for (let c of inInstance._changesQueue) {
             inInstance.observer.notify(c.path, c.change);
         }
@@ -355,7 +363,7 @@ class ObservableObject {
         }
 
         inTarget.fill(inContent, inPath, inSilent);
-        if (!inSilent) {
+        if (!inSilent && inTarget.isObserved()) {
             inTarget._changesQueue.push({
                 path: inPath,
                 change: {
@@ -377,7 +385,7 @@ class ObservableObject {
         }
 
         inTarget.merge(inContent, inPath);
-        if (!inSilent) {
+        if (!inSilent && inTarget.isObserved()) {
             inTarget._changesQueue.push({
                 path: inPath,
                 change: {

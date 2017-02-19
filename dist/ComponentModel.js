@@ -15,6 +15,9 @@ class ComponentModel extends ObservableObject {
 	}
 
 	data(inPath, inData) {
+		if(typeof inPath === 'object') {
+			return this.prop('data', inPath);
+		}
 		const path = 'data' + (inPath ? '.' + inPath : '');
 		return this.prop(path, inData);
 	}

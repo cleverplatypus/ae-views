@@ -3,13 +3,21 @@ import isArray from 'lodash.isarray';
 import microtask from './microtask';
 import ObservableObject from './ObservableObject';
 import each from 'lodash.foreach';
+import find from 'lodash.find';
+import remove from 'lodash.remove';
+
 class Queue {
     constructor() {
         this._notifications = [];
     }
 
     push(inNotification) {
-        this._notifications.push(inNotification);
+        if (!find(this._notifications, (inItem) => {
+                return inNotification.listener.fullPath === inItem.listener.fullPath &&
+                    inNotification.listener.handler === inItem.listener.handler;
+            })) {
+            this._notifications.push(inNotification);
+        }
     }
 
     drain() {
@@ -17,6 +25,8 @@ class Queue {
             for (let notification of this._notifications) {
                 notification.listener.trigger(notification.path, notification.change);
             }
+            window.nots = window.nots || [];
+            window.nots.push(this._notifications);
             this._notifications = [];
         });
     }
@@ -27,8 +37,8 @@ const _queue = new Queue();
 class Listener {
     constructor(inFullPath, inHandler) {
         const path = inFullPath.toString().split('.');
-        const leaf = path[path.length -1];
-        if(leaf && /^\[[\w\-,]+\]$/.test(leaf)) {
+        const leaf = path[path.length - 1];
+        if (leaf && /^\[[\w\-,]+\]$/.test(leaf)) {
             this.observerProperties = leaf.match(/([\w\-]+)/g);
         }
         this.fullPath = inFullPath;
@@ -41,7 +51,10 @@ class Listener {
         this.handler(inPath, inChange);
     }
     shouldTrigger(inPath) {
-        return !this.observerProperties ||
+        // if(this.fullPath.indexOf(inPath) !== 0) {
+        //     return false;
+        // }
+        return (!this.observerProperties && this.fullPath.indexOf(inPath) !== 0) ||
             (() => {
                 const leaf = inPath.split('.').pop();
                 for (let prop of this.observerProperties) {
@@ -64,8 +77,25 @@ class Observer {
         this._children = {};
     }
 
-    unlisten() {
-        console.warn('unlisten is not implemented');
+    /**
+     * inPath is optional
+     */
+    unlisten(inHandler, inPath) {
+        const match = (inListener) => {
+            return inListener.handler === inHandler &&
+            (!inPath || inListener.fullPath === inPath);
+        }
+        remove(this._childrenListeners, match);
+        remove(this._descendantListeners, match);
+        remove(this._listeners, match);
+        each(this._children, (inChild) => {
+            inChild.unlisten(inHandler, inPath);
+        })
+    }
+
+    dump() {
+        const out = {};
+        return out;
     }
 
     listen(inPath, inHandler, inOriginalPath) {
@@ -96,8 +126,6 @@ class Observer {
 
     notify(inPath, inChange, inOriginalPath) {
         inOriginalPath = inOriginalPath || inPath;
-
-
         const segs = inPath.split('.');
         if (!inPath || /^\[[\w\-,]+\]$/.test(inPath)) {
             for (let listener of this._listeners) {
@@ -111,33 +139,7 @@ class Observer {
             }
         } else if (/^[\w\-]+(?:\..*)*$/.test(inPath)) {
             if (segs.length >= 2) {
-                if (segs.length === 2) {
-                    for (let listener of this._childrenListeners.concat(this._descendantListeners)) {
-                        if (listener.shouldTrigger(inOriginalPath)) {
-                            _queue.push({
-                                listener: listener,
-                                path: inOriginalPath,
-                                change: inChange
-                            });
-                        }
-                    }
-                } else if (segs.length > 2) {
-                    for (let listener of this._childrenListeners.concat(this._descendantListeners)) {
-                        if (listener.shouldTrigger(inOriginalPath)) {
-                            _queue.push({
-                                listener: listener,
-                                path: inOriginalPath,
-                                change: inChange
-                            });
-                        }
-                    }
-                }
-                const child = segs.shift();
-                if (this._children[child]) {
-                    this._children[child].notify(segs.join('.'), inChange, inOriginalPath);
-                }
-            } else if (segs.length === 1) {
-                for (let listener of this._listeners) {
+                for (let listener of this._childrenListeners.concat(this._descendantListeners)) {
                     if (listener.shouldTrigger(inOriginalPath)) {
                         _queue.push({
                             listener: listener,
@@ -145,11 +147,27 @@ class Observer {
                             change: inChange
                         });
                     }
-                    if(inChange.type === 'add' && inChange.newValue instanceof ObservableObject) {
+                }
+                const child = segs.shift();
+                if (this._children[child]) {
+                    this._children[child].notify(segs.join('.'), inChange, inOriginalPath);
+                }
+            } else if (segs.length === 1) {
+                for (let listener of this._listeners.concat(this._childrenListeners.concat(this._descendantListeners))) {
+                    if (listener.shouldTrigger(inOriginalPath)) {
+                        _queue.push({
+                            listener: listener,
+                            path: inOriginalPath,
+                            change: inChange
+                        });
+                    }
+                    if (inChange.type === 'add' && inChange.newValue instanceof ObservableObject &&
+                        this._childrenListeners.concat(this._descendantListeners).length) {
+
                         each(inChange.newValue.keys(), (inKey) => {
-                            this.notify(inKey, { 
-                                type : 'add', 
-                                newValue : inChange.newValue.prop(inKey)
+                            this.notify(inKey, {
+                                type: 'add',
+                                newValue: inChange.newValue.prop(inKey)
                             }, inOriginalPath.split('.').concat([inKey]).join('.'));
                         });
                     }

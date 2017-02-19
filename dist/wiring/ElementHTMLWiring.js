@@ -38,7 +38,7 @@ class ElementHTMLWiring extends Wiring {
         super();
         this.element = inElement;
         const attrValue = $(this.element).attr('to-html') || $(this.element).attr('bind-html');
-        this.bindings = Binding.parse(attrValue, inElement);
+        this.bindings = Binding.parse(attrValue);
     }
 
     attach(inApp) {
@@ -47,6 +47,9 @@ class ElementHTMLWiring extends Wiring {
         } else if (!this.app) {
             throw new Error('ElementHTMLWiring: cannot attach to undefined app');
         }
+        const component = inApp.resolveNodeComponent(this.element);
+        const targetElement = component.element === this.element ? $(this.element).parent() : this.element;
+
         if (!$(this.element).attr('to-html')) {
             this.observer = new MutationObserver((mutations) => {
                 each(this.bindings, (inBinding, inIndex) => {
@@ -70,7 +73,7 @@ class ElementHTMLWiring extends Wiring {
 
         each(this.bindings, (inBinding) => {
             if (inBinding instanceof Binding) {
-                inBinding.attach(inApp, handler);
+                inBinding.attach(inApp, handler, targetElement);
             }
         });
     }

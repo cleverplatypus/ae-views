@@ -7,7 +7,6 @@ import get from 'lodash.get';
 import each from 'lodash.foreach';
 import includes from 'lodash.includes';
 
-let delayedSetTimeout;
 
 
 const setValue = function setValue(inValue) {
@@ -40,7 +39,7 @@ class ElementValueWiring extends Wiring {
         super();
         this.element = inElement;
         const attrValue = $(this.element).attr('to-value') || $(this.element).attr('bind-value');
-        this.bindings = Binding.parse(attrValue, inElement);
+        this.bindings = Binding.parse(attrValue);
     }
 
     attach(inApp) {
@@ -49,23 +48,29 @@ class ElementValueWiring extends Wiring {
         } else if (!this.app) {
             throw new Error('ElementValueWiring: cannot attach to undefined app');
         }
+        const component = inApp.resolveNodeComponent(this.element);
+        const targetElement = component.element === this.element ? $(this.element).parent() : this.element;
 
         const setProperty = () => {
-            delayedSetTimeout = null;
+            this.delayedSetTimeout = null;
             each(this.bindings, (inBinding, inIndex) => {
                 inBinding.setValue($(this.element).val());
             });
         };
 
         const changeHandler = () => {
-            if (delayedSetTimeout) {
-                clearTimeout(delayedSetTimeout);
+            if (this.delayedSetTimeout) {
+                clearTimeout(this.delayedSetTimeout);
             }
-            delayedSetTimeout = setTimeout(setProperty, $(this.element).attr('value-out-delay') || 0);
+            this.delayedSetTimeout = setTimeout(setProperty, $(this.element).attr('value-out-delay') || 0);
+
         };
 
         $(this.element).off('change').on('change', changeHandler);
         $(this.element).off('keyup').on('keyup', changeHandler);
+        $(this.element).off('input').on('input', changeHandler);
+        $(this.element).off('focus').on('focus', changeHandler);
+        $(this.element).off('blur').on('blur', changeHandler);
 
         const handler = (inValue) => {
             setValue.call(this);
@@ -73,7 +78,7 @@ class ElementValueWiring extends Wiring {
 
         each(this.bindings, (inBinding) => {
             if (inBinding instanceof Binding) {
-                inBinding.attach(inApp, handler);
+                inBinding.attach(inApp, handler,targetElement);
             }
         });
     }

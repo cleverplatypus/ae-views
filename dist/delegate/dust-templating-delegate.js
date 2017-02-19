@@ -44,6 +44,11 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 
     }
 
+    logLevel(inLevel) {
+        dust.logLevel = inLevel || 'ERROR';
+        return this;
+    }
+
     getTemplate(inName) {
         return {
             render(inModel, inParams) {

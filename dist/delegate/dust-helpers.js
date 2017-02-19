@@ -40,20 +40,9 @@ export default function(dust) {
 
     dust.filters.obscuredcreditcardnumber = function(inValue) {
         if (!isString(inValue)) {
-            return;
+            return '';
         }
-        var split = inValue.split('').reverse();
-        var tail = split.splice(0, 4);
-        tail.unshift('-');
-
-        while (split.length) {
-            if (split.length % 4 === 0) {
-                tail.unshift('-');
-            }
-            tail.unshift('*');
-            split.pop();
-        }
-        return tail.join('').replace(/--/, '-');
+        return inValue.toString().replace(/\D/g, '').replace(/\d{12}(\d{4})/, '•••• •••• •••• $1');
     };
 
     dust.filters.tolower = function(inValue) {
@@ -84,7 +73,7 @@ export default function(dust) {
             var cmp = function cmp(a, b) {
                 return (a[sortkey] < b[sortkey]) ? -1 : ((a[sortkey] > b[sortkey]) ? 1 : 0);
             };
-            
+
             while (sort.length) {
                 sortkey = sort.pop().key;
                 context.stack.head.sort(cmp);
@@ -113,11 +102,12 @@ export default function(dust) {
             compareFn;
 
         params = params || {};
-        if(params.sortKey) {
+        if (params.sortKey) {
             params.sort = params.sort || 'asc';
         }
+
         function desc(a, b) {
-            if(params.sortKey) {
+            if (params.sortKey) {
                 a = get(obj, a + '.' + params.sortKey);
                 b = get(obj, b + '.' + params.sortKey);
             }
@@ -131,7 +121,7 @@ export default function(dust) {
 
         function asc(a, b) {
 
-            if(params.sortKey) {
+            if (params.sortKey) {
                 a = get(obj, a + '.' + params.sortKey);
                 b = get(obj, b + '.' + params.sortKey);
             }
@@ -157,7 +147,7 @@ export default function(dust) {
             if (obj instanceof ObservableObject) {
                 obj = obj.toNative(true);
             }
-            if(params.split && isString(obj)) {
+            if (params.split && isString(obj)) {
                 obj = obj.split(new RegExp(params.split));
             }
             if (body) {
@@ -486,7 +476,7 @@ export default function(dust) {
             output = JSON.stringify(target, jsonFilter, 2);
             switch (to) {
                 case 'console':
-                    log('contextDump', output);
+                    console.log('contextDump', output);
                     break;
                 default:
                     output = output.replace(/</g, '\\u003c');

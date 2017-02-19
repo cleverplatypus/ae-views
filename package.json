@@ -63,6 +63,7 @@
     "lodash.includes": "^4.3.0",
     "lodash.isarray": "^4.0.0",
     "lodash.isboolean": "^3.0.3",
+    "lodash.isequal": "^4.5.0",
     "lodash.isfunction": "^3.0.8",
     "lodash.isplainobject": "^4.0.6",
     "lodash.isstring": "^4.0.1",
@@ -70,8 +71,10 @@
     "lodash.map": "^4.6.0",
     "lodash.merge": "^4.6.0",
     "lodash.mergewith": "^4.6.0",
+    "lodash.remove": "^4.7.0",
     "lodash.result": "^4.5.2",
     "lodash.transform": "^4.6.0",
+    "lodash.uniq": "^4.5.0",
     "loglevel": "^1.4.1",
     "node-uuid": "^1.4.7",
     "signals": "^1.0.0"
@@ -98,11 +101,10 @@
   },
   "gitHead": "4cfcfef5cf88ab00c6e05ec24093f96bd6404d27",
   "license": "ISC",
-  "main": "src/ae.js",
-  "jsnext:main": "src/ae.js",
+  "main": "dist/ae.js",
+  "jsnext:main": "dist/ae.js",
   "name": "ae-views",
   "optionalDependencies": {},
   "readme": "ERROR: No README data found!",
-  
   "version": "0.5.2"
 }

@@ -8,6 +8,7 @@ const map = require('lodash.map');
 const isBoolean = require('lodash.isBoolean');
 import ComponentModel from './ComponentModel';
 import isFunction from 'lodash.isfunction';
+import microtask from './microtask';
 
 import typifyParams from './util/typify-parameters';
 
@@ -158,18 +159,17 @@ class BindingExpression {
 
 const privateConstructor = function privateConstructor(inExpression, inElement) {
     _private.set(this, {
-        element: inElement,
         expression: inExpression
     });
 };
 
 class Binding {
 
-    constructor(inPrivateConstructor, inExpression, inElement) {
+    constructor(inPrivateConstructor, inExpression) {
         if (inPrivateConstructor !== privateConstructor) {
             throw new Error('Binding cannot be instanciated directly. Please use Binding.parse()');
         }
-        privateConstructor.call(this, inExpression, inElement);
+        privateConstructor.call(this, inExpression);
     }
 
     setValue(inValue) { //CRITICAL: support the .path.bla relative binding format
@@ -185,6 +185,7 @@ class Binding {
         const _p = _private.get(this);
         const exp = _p.expression;
         return new Promise((resolve, reject) => {
+
             _p.dataSource.resolve(
                 _p.element,
                 exp.path, exp.modelName).then((inNewValue) => {
@@ -205,12 +206,12 @@ class Binding {
     }
 
 
-    attach(inApp, inHandler) {
+    attach(inApp, inHandler, inTargetElement) {
         const _p = _private.get(this);
         if (inApp) {
             _p.app = inApp;
             _p.handler = inHandler;
-
+            _p.element = inTargetElement;
             _p.dataSource = _p.app.getDataSource(_p.expression.dataSourceName);
             _p.component = _p.app.resolveNodeComponent(_p.element);
 
@@ -237,9 +238,8 @@ class Binding {
 
             }
         }
-        let pu = _p;
-        const observer = (inNewValue, inOldValue) => {
-            if (inNewValue === inOldValue) {
+        const observer = (inNewValue, inOldValue, inEventType) => {
+            if (inNewValue === inOldValue && !/(change|prune)/.test(inEventType)) {
                 return;
             }
             const result = exp.accessor.apply(null, [exp.cast(exp.truthy(inNewValue))].concat(exp.arguments));
@@ -274,18 +274,21 @@ class Binding {
         let watchPath = _p.expression.path.split('.');
         watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
         watchPath = watchPath.join('.');
+        if(!_p.dataSource) {
+            LOG.warn('_p.dataSource is null -- please debug');
+        }
         _p.dataSource //CRITICAL: support the .path.bla relative binding format
             .unbindPath(_p.element, watchPath, _p.observer, _p.expression.modelName);
     }
 
-    static parse(inExpressionString, inElement) {
+    static parse(inExpressionString) {
         if (!BindingExpression.isExpression(inExpressionString)) {
             return inExpressionString;
         }
 
         return map(BindingExpression.parse(inExpressionString), (inValue) => {
             if (inValue instanceof BindingExpression) {
-                return new Binding(privateConstructor, inValue, inElement);
+                return new Binding(privateConstructor, inValue);
             } else {
                 return inValue;
             }
