@@ -75,6 +75,7 @@
     "lodash.result": "^4.5.2",
     "lodash.transform": "^4.6.0",
     "lodash.uniq": "^4.5.0",
+    "lodash.unset": "^4.5.2",
     "loglevel": "^1.4.1",
     "node-uuid": "^1.4.7",
     "signals": "^1.0.0"

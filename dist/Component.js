@@ -66,8 +66,8 @@ const _watchState = function _watchState() {
         };
         let currentState = _private.get(this).stateInfo.prop('currentStateObject');
         if (currentState) {
-            currentState.leaving(inChanges.newValue).then(() => {
-                nextState.entering(inChanges.oldValue).then(() => {
+            (currentState.leaving(inChanges.newValue) || Promise.resolve()).then(() => {
+                (nextState.entering(inChanges.oldValue) || Promise.resolve()).then(() => {
 
                     _private.get(this).stateInfo.prop('currentStateObject', nextState);
                     _private.get(this).stateInfo.prop('state', _p.stateInfo.prop('nextState'));
@@ -146,7 +146,7 @@ class Component {
                 return;
             }
             if (isPlainObject(inAction) && inAction.publish === true) {
-                this.bus.publishAction(actionName, handler ? handler.bind(this) : null);
+                this.bus.publishAction(actionName, handler ? handler.bind(this) : null, this);
             } else {
                 this.bus.addAction(actionName, handler ? handler.bind(this) : null);
             }
@@ -165,6 +165,9 @@ class Component {
         };
 
         this.getModel = (inName) => {
+            if(!inName) {
+                return this.page.resolveNodeModel(this.node);
+            }
             if (this.hasModel(inName)) {
                 return result(inConfig, 'models.' + inName) || _private.get(this).model ;
             }
@@ -264,7 +267,7 @@ class Component {
     }
 
     tryState(inStateName) {
-        if (inStateName === (_private.get(this).stateInfo.prop('state') || '')) {
+        if (!_private.get(this).active || inStateName === (_private.get(this).stateInfo.prop('state') || '')) {
             return Promise.resolve();
         }
 
@@ -302,6 +305,7 @@ class Component {
          const _p = _private.get(this);
          if(inValue) {
             if(!_p.active) {
+                microtask(this.initState.bind(this));
                 this.invalidate();
             }
          }

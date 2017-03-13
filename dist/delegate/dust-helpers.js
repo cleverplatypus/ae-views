@@ -145,7 +145,7 @@ export default function(dust) {
         if (params.key) {
             obj = context.resolve(params.key);
             if (obj instanceof ObservableObject) {
-                obj = obj.toNative(true);
+                obj = obj.toNative();
             }
             if (params.split && isString(obj)) {
                 obj = obj.split(new RegExp(params.split));
@@ -179,10 +179,10 @@ export default function(dust) {
                     }
                 }
             } else {
-                console.log('Missing body block in the iter helper.');
+                LOG.debug('Missing body block in the iter helper.');
             }
         } else {
-            console.log('Missing parameter \'key\' in the iter helper.');
+            LOG.debug('Missing parameter \'key\' in the iter helper.');
         }
         return chunk;
 

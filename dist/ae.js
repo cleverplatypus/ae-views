@@ -1,5 +1,6 @@
 'use strict';
 
+window.LOG = window.LOG || window.console;
 
 
 import Component from './Component';

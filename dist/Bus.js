@@ -4,6 +4,8 @@ import {
     Signal
 } from 'signals';
 import get from 'lodash.get';
+import unset from 'lodash.unset';
+import $ from 'jquery';
 
 class Bus {
 
@@ -13,7 +15,7 @@ class Bus {
     }
 
     publishAction(inName, inHandler) {
-        this.component().page.bus.addAction(inName, inHandler);
+        this.component().page.bus.addAction(inName, inHandler, false, this.component());
     }
 
     bubbleAction(inName, ...rest) {
@@ -30,6 +32,12 @@ class Bus {
     }
 
     triggerAction(inName, inParams, ...rest) {
+        const declarer = get(this, 'signals.' + inName + '.declarer');
+        if(declarer && !$(document).has(declarer.node).length) {
+            // unset(this, 'signals.' + inName);
+            // debugger;
+            return;
+        }
         inParams = inParams || {};
         if (this.signals[inName]) {
             this.signals[inName].dispatch.apply(null, [inParams].concat(rest));
@@ -44,12 +52,13 @@ class Bus {
 
     }
 
-    addAction(inName, inHandler, inOnce) {
+    addAction(inName, inHandler, inOnce, inDeclarer) {
         if (this.signals[inName]) {
             this.signals[inName].dispose();
             //console.warn('action ' + inName + ' was overridden');
         }
         this.signals[inName] = new Signal();
+        this.signals[inName].declarer = inDeclarer;
         if (inHandler) {
             this.signals[inName]['add' + (inOnce ? 'Once' : '')](inHandler);
         }

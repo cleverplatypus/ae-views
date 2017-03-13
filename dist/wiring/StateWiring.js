@@ -7,14 +7,15 @@ import {Signal} from 'signals';
 import attachAction from '../delegate/action-trigger-delegate';
 import $ from 'jquery';
 import microtask from '../microtask';
-const _enterSignal = new Signal();
-const _exitSignal = new Signal();
 
 class StateWiring extends Wiring {
 
     constructor(inElement) {
         super();
         this.element = inElement;
+        this._enterSignal = new Signal();
+        this._exitSignal = new Signal();
+
     }
 
 
@@ -60,7 +61,7 @@ class StateWiring extends Wiring {
                 }
 
                 currentState.rendered();
-                _enterSignal.dispatch();
+                this._enterSignal.dispatch();
             } else {
                 if (method === 'visibility') {
                     $(this.element).addClass('is-hidden');
@@ -75,7 +76,7 @@ class StateWiring extends Wiring {
                 if (isComponent) {
                     component.active = false;
                 }
-                _exitSignal.dispatch();
+                this._exitSignal.dispatch();
             }
         };
 
@@ -99,11 +100,11 @@ class StateWiring extends Wiring {
     }
 
     get onEnter() {
-        return _enterSignal;
+        return this._enterSignal;
     }
 
     get onExit() {
-        return _exitSignal;
+        return this._exitSignal;
     }
 }
 

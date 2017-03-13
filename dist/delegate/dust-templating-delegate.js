@@ -126,7 +126,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
             if (inModel instanceof ObservableObject) {
                 //always resolving lazy properties
                 //TODO: make lazy properties resolution optional
-                inModel.toNative(true, true).then((inModel) => {
+                inModel.toNative( true).then((inModel) => {
                     model = inModel;
                     render();
                 });

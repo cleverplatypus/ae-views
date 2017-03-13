@@ -95,21 +95,21 @@ export default function render(inPage) {
             wiring.attach(_page);
         });
         invalidate.call(this);
-        var observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (/^param-/.test(mutation.attributeName)) {
-                    invalidate.call(this);
-                }
-            });
-        });
+        // var observer = new MutationObserver((mutations) => {
+        //     mutations.forEach((mutation) => {
+        //         if (/^param-/.test(mutation.attributeName)) {
+        //             invalidate.call(this);
+        //         }
+        //     });
+        // });
 
-        // configuration of the observer:
-        var config = {
-            attributes: true
-        };
+        // // configuration of the observer:
+        // var config = {
+        //     attributes: true
+        // };
 
-        // pass in the target node, as well as the observer options
-        observer.observe(this, config);
+        // // pass in the target node, as well as the observer options
+        // observer.observe(this, config);
 
         const path = $(this).attr('from');
         let watchPath = '';

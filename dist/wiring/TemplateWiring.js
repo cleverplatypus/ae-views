@@ -67,7 +67,7 @@ class DelegatedTemplateWiring extends BaseTemplateWiring {
     handler() {
         _p(this).binding.getValue().then((inValue) => {
             if (inValue instanceof ObservableObject) {
-                inValue = inValue.toNative(true);
+                inValue = inValue.toNative();
             }
             let html = '';
             if (_p(this).iterate && isArray(inValue)) { //TODO: handle other ES6 types of iteratable

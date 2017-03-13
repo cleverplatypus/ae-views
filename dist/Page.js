@@ -242,14 +242,14 @@ class Page extends Component {
 
             }
             const wirings = [];
-            _private.get(component).wirings = wirings;
+            component._wirings = wirings;
             wirings.push.apply(wirings,
                 AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data'].concat(get(inDefinition, 'config.bindableAttributes'))));
 
             wirings.push.apply(wirings, PropertyWiring.wire(this));
 
             if ($(this).attr('state-match')) {
-                _private.get(component).wirings.push(new StateWiring(this));
+                component._wirings.push(new StateWiring(this));
             }
 
 
@@ -259,7 +259,7 @@ class Page extends Component {
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);
-            each(_private.get(component).wirings, (wiring) => {
+            each(component._wirings, (wiring) => {
                 wiring.attach(component.page);
             });
             if ($(this).attr('from')) {
@@ -276,7 +276,7 @@ class Page extends Component {
         };
 
         proto.detachedCallback = function() {
-            each(_private.get(component).wirings, (wiring) => {
+            each(component._wirings, (wiring) => {
                 wiring.detach();
             });
             _private.get(component)

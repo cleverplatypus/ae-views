@@ -42,18 +42,19 @@ import aeBind from './ae-bind';
 import aeRender from './ae-render';
 import aeSwitch from './ae-switch';
 import aeInput from './ae-input';
+import aeCheckbox from './ae-checkbox';
 import aeTemplate from './ae-template';
 import aeSelect from './ae-select';
 import aeLink from './ae-link';
 import registerAeElement from './ae-element';
 
 export default function(inPage) {
-    
     each(['div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
         registerAeElement(inPage, inElementName);
     });
 
     aeButton(inPage);
+    aeCheckbox(inPage);
     aeManaged(inPage);
     aeEach(inPage);
     aeState(inPage);

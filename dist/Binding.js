@@ -14,8 +14,6 @@ import typifyParams from './util/typify-parameters';
 
 const $ = require('jquery');
 
-const _private = new Map();
-
 const castBoolean = function castBoolean(inValue) {
     return Boolean(inValue);
 };
@@ -88,7 +86,7 @@ class BindingExpression {
                 return !!inValue;
             }
         };
-        
+
         const modelAndResolver = get(inExpressionString.match(/~((?:\w+:)?\w*)/), 1);
         this.modelName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[0] : null;
         this.resolverName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[1] : modelAndResolver.split(':')[0];
@@ -158,9 +156,7 @@ class BindingExpression {
 }
 
 const privateConstructor = function privateConstructor(inExpression, inElement) {
-    _private.set(this, {
-        expression: inExpression
-    });
+    this._expression = inExpression;
 };
 
 class Binding {
@@ -173,21 +169,19 @@ class Binding {
     }
 
     setValue(inValue) { //CRITICAL: support the .path.bla relative binding format
-        const _p = _private.get(this);
-        const exp = _p.expression;
-        _p.dataSource.setPath(
-            _p.element,
+        const exp = this._expression;
+        this._dataSource.setPath(
+            this._element,
             exp.path,
             exp.cast(inValue), exp.modelName);
     }
 
     getValue() { //CRITICAL: support the .path.bla relative binding format
-        const _p = _private.get(this);
-        const exp = _p.expression;
+        const exp = this._expression;
         return new Promise((resolve, reject) => {
 
-            _p.dataSource.resolve(
-                _p.element,
+            this._dataSource.resolve(
+                this._element,
                 exp.path, exp.modelName).then((inNewValue) => {
                 resolve(exp.accessor.apply(null, [exp.truthy(exp.cast(inNewValue))].concat(exp.arguments)));
             });
@@ -195,10 +189,9 @@ class Binding {
     }
 
     fire() {
-        const _p = _private.get(this);
-        const exp = _p.expression;
+        const exp = this._expression;
         this.getValue().then((inValue) => {
-                _p.handler(inValue);
+                this._handler(inValue);
             })
             .catch((inError) => {
                 LOG.error(inError);
@@ -207,30 +200,29 @@ class Binding {
 
 
     attach(inApp, inHandler, inTargetElement) {
-        const _p = _private.get(this);
         if (inApp) {
-            _p.app = inApp;
-            _p.handler = inHandler;
-            _p.element = inTargetElement;
-            _p.dataSource = _p.app.getDataSource(_p.expression.dataSourceName);
-            _p.component = _p.app.resolveNodeComponent(_p.element);
+            this._app = inApp;
+            this._handler = inHandler;
+            this._element = inTargetElement;
+            this._dataSource = this._app.getDataSource(this._expression.dataSourceName);
+            this._component = this._app.resolveNodeComponent(this._element);
 
         } else {
-            if (!_p.app || !_p.handler) {
+            if (!this._app || !this._handler) {
                 throw new Error('Binding cannot be attached for the first time without app reference or handler');
             }
         }
 
-        const exp = _p.expression;
+        const exp = this._expression;
         exp.accessor = (inValue) => inValue;
         if (exp.resolverName) {
-            if (_p.component.getResolver(exp.resolverName)) {
-                exp.accessor = _p.component.getResolver(exp.resolverName).bind(_p.component);
-            } else if (_p.component.model instanceof ComponentModel &&
-                isFunction(get(_p.component.model, exp.resolverName))) {
-                exp.accessor = _p.component.model[exp.resolverName].bind(_p.component.model);
-            } else if (_p.component.page.getResolver(exp.resolverName)) {
-                exp.accessor = _p.component.page.getResolver(exp.resolverName).bind(_p.component);
+            if (this._component.getResolver(exp.resolverName)) {
+                exp.accessor = this._component.getResolver(exp.resolverName).bind(this._component);
+            } else if (this._component.model instanceof ComponentModel &&
+                isFunction(get(this._component.model, exp.resolverName))) {
+                exp.accessor = this._component.model[exp.resolverName].bind(this._component.model);
+            } else if (this._component.page.getResolver(exp.resolverName)) {
+                exp.accessor = this._component.page.getResolver(exp.resolverName).bind(this._component);
 
             } else {
                 console.warn(`Cannot find getter accessor "${exp.resolverName}" in component or model. 
@@ -263,22 +255,20 @@ class Binding {
         watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
         watchPath = watchPath.join('.');
 
-        _p.observer = //CRITICAL: support the .path.bla relative binding format
-            _p.dataSource.bindPath(_p.element, watchPath, observer, exp.modelName);
-        _p.hander = observer;
+        this._observer = //CRITICAL: support the .path.bla relative binding format
+            this._dataSource.bindPath(this._element, watchPath, observer, exp.modelName);
+        this._hander = observer;
         this.fire();
     }
 
     detach() {
-        const _p = _private.get(this);
-        let watchPath = _p.expression.path.split('.');
-        watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
-        watchPath = watchPath.join('.');
-        if(!_p.dataSource) {
-            LOG.warn('_p.dataSource is null -- please debug');
+        if (this._dataSource) {
+            let watchPath = this._expression.path.split('.');
+            watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
+            watchPath = watchPath.join('.');
+            this._dataSource //CRITICAL: support the .path.bla relative binding format
+                .unbindPath(this._element, watchPath, this._observer, this._expression.modelName);
         }
-        _p.dataSource //CRITICAL: support the .path.bla relative binding format
-            .unbindPath(_p.element, watchPath, _p.observer, _p.expression.modelName);
     }
 
     static parse(inExpressionString) {

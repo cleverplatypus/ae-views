@@ -57,7 +57,20 @@ export default function aeButton(inPage) {
         }
 
         if ($(this).attr('bind-value') || $(this).attr('to-value')) {
-            wirings.push(new ElementValueWiring(this));
+            wirings.push(new ElementValueWiring(this, (inNewVal) => {
+                if (inNewVal === undefined) {
+                    if ($(this).prop('type') === 'checkbox') {
+                        return $(this).prop('checked');
+                    }
+                    return $(this).val();
+                } else {
+                    if ($(this).prop('type') === 'checkbox') {
+                        $(this).prop('checked', inNewVal !== false);
+                    } else {
+                        $(this).val(inNewVal);
+                    }
+                }
+            }));
         }
 
         wirings.push.apply(wirings, PropertyWiring.wire(this));

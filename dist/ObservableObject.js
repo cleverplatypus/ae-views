@@ -12,7 +12,7 @@ import isArray from 'lodash.isArray';
 const setProp = function(inPath, inValue) { //jshint ignore:line
     const notifyDescendantListeners = (inSource, inBackPath, inEventName) => {
         if (inSource instanceof ObservableObject && inSource.isObserved()) {
-            for (let propName in inSource.toNative(true)) {
+            for (let propName in inSource.toNative()) {
                 const newBackPath = inBackPath.concat(propName);
                 this._changesQueue.push({
                     path: newBackPath.join('.'),
@@ -300,8 +300,9 @@ class ObservableObject {
         this._watchesCount -= 1;
     }
 
-    toNative(inDeep, inLazyProps) {
-        if (inLazyProps) {
+    toNative(inResolveLazyProps) {
+
+        if (inResolveLazyProps) {
             return new Promise((resolve, reject) => {
                 const allPromises = [];
                 const descend = (inObj, inFullPath) => {
@@ -311,22 +312,20 @@ class ObservableObject {
                             allPromises.push(this._lazyPaths[fullPath]());
                         }
                         if (inVal instanceof ObservableObject) {
-                            if (inDeep) {
                                 descend(inVal, fullPath);
-                            }
                         }
                     });
                 };
                 descend(this, '');
                 Promise.all(allPromises).then(() => {
-                    resolve(this.toNative(inDeep));
+                    resolve(this.toNative());
                 });
             });
         } else {
             var out = this._isCollection ? [] : {};
             each(this._props, (inVal, inKey) => {
                 let isObservable = inVal instanceof ObservableObject;
-                out[inKey] = isObservable && inDeep === true ? inVal.toNative(true) : inVal;
+                out[inKey] = isObservable ? inVal.toNative() : inVal;
             });
             return out;
         }
