@@ -1,6 +1,6 @@
 const registry = new Map();
 
-export default function(inClass) {
+module.exports =  function(inClass) {
     'use strict';
     if (!registry.has(inClass)) {
         const map = new WeakMap();

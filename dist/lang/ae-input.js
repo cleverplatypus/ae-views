@@ -11,7 +11,7 @@ const PropertyWiring = require('../wiring/PropertyWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 const ElementValueWiring = require('../wiring/ElementValueWiring');
 
-export default function aeButton(inPage) {
+module.exports =  function aeButton(inPage) {
     const _page = inPage;
     let observer;
 

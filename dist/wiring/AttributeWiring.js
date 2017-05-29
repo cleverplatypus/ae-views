@@ -175,4 +175,4 @@ class AttributeWiring extends Wiring {
     }
 }
 
-export default AttributeWiring;
+module.exports = AttributeWiring;

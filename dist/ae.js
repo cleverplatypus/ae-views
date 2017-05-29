@@ -13,5 +13,5 @@ const ObservableObject = require('./ObservableObject');
 const UNRESOLVED = require('./symbol/unresolved');
 const ComponentModel = require('./ComponentModel');
 
-
-export {ComponentModel, Component, Page, State, pagefactory, TemplatingDelegate, MasterPage, ObservableObject, UNRESOLVED};
+module.exports =
+ {ComponentModel, Component, Page, State, pagefactory, TemplatingDelegate, MasterPage, ObservableObject, UNRESOLVED};

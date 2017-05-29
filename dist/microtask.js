@@ -80,4 +80,4 @@ function drain() {
 }
 
 
-export default microtask;
+module.exports = microtask;

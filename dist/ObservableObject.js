@@ -404,4 +404,4 @@ class ObservableObject {
 
 }
 
-export default ObservableObject;
+module.exports = ObservableObject;

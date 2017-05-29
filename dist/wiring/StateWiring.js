@@ -108,4 +108,4 @@ class StateWiring extends Wiring {
     }
 }
 
-export default StateWiring;
+module.exports = StateWiring;

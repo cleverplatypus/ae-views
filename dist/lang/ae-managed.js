@@ -3,7 +3,7 @@
 const $ = require('jquery');
 
 
-export default function action(inPage) {
+module.exports =  function action(inPage) {
     const _page = inPage;
 
     var proto = Object.create(HTMLElement.prototype);

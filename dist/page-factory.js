@@ -33,4 +33,4 @@ class PageFactory {
 }
 
 
-export default new PageFactory();
+module.exports =  new PageFactory();

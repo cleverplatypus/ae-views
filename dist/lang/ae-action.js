@@ -30,7 +30,7 @@ const attachAction = require('../delegate/action-trigger-delegate');
 let _page;
 
 
-export default function action(inPage) {
+module.exports =  function action(inPage) {
 
     _page = inPage;
 

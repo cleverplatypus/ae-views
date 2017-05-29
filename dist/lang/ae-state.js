@@ -1,7 +1,7 @@
 const $ = require('jquery');
 const microtask = require('../microtask');
 
-export default function state(inPage) {
+module.exports =  function state(inPage) {
     'use strict';
     const _page = inPage;
     var proto = Object.create(HTMLElement.prototype);

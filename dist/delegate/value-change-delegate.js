@@ -160,4 +160,4 @@ class InputValueChangeDelegate {
 
 }
 
-export default new InputValueChangeDelegate();
+module.exports =  new InputValueChangeDelegate();

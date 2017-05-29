@@ -3,7 +3,7 @@
 let _page = null;
 const ComponentModel = require('../ComponentModel');
 
-export default function() {
+module.exports =  function() {
     return function(inPage) {
         const ModelDataSource = function(inPage) {
             this.page = _page = inPage;

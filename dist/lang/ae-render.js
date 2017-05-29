@@ -6,7 +6,7 @@ const ObservableObject = require('../ObservableObject');
 const transform = require('lodash.transform');
 const each = require('lodash.foreach');
 
-export default function render(inPage) {
+module.exports =  function render(inPage) {
     'use strict';
     const _private = new WeakMap();
     const _page = inPage;

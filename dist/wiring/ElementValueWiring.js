@@ -92,4 +92,4 @@ class ElementValueWiring extends Wiring {
 
 
 }
-export default ElementValueWiring;
+module.exports = ElementValueWiring;

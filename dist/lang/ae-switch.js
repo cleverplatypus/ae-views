@@ -10,7 +10,7 @@ const Binding = require('../Binding');
  *   selection of its children. It behaves like a radio group.
  *   if no path attribute is found, the switch targets the component's state
  */
-export default function aeSwitch(inPage) {
+module.exports =  function aeSwitch(inPage) {
     const _page = inPage;
 
     const selectHandler = function selectHandler(inSelectedElement) {

@@ -48,7 +48,7 @@ const aeSelect = require('./ae-select');
 const aeLink = require('./ae-link');
 const registerAeElement = require('./ae-element');
 
-export default function(inPage) {
+module.exports =  function(inPage) {
     each(['div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
         registerAeElement(inPage, inElementName);
     });

@@ -139,4 +139,4 @@ class PropertyWiring extends Wiring {
     }
 }
 
-export default PropertyWiring;
+module.exports = PropertyWiring;

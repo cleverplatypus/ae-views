@@ -161,4 +161,4 @@ class TemplateWiring {
     }
 }
 
-export default TemplateWiring;
+module.exports = TemplateWiring;

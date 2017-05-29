@@ -23,4 +23,4 @@ class ComponentModel extends ObservableObject {
 	}
 }
 
-export default ComponentModel;
+module.exports = ComponentModel;

@@ -40,4 +40,4 @@ class SignalWiring extends Wiring {
     }
 }
 
-export default SignalWiring;
+module.exports = SignalWiring;

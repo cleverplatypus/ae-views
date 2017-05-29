@@ -38,4 +38,4 @@ class MasterPage {
     }
 }
 
-export default MasterPage;
+module.exports = MasterPage;

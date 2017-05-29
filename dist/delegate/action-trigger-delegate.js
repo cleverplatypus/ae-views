@@ -40,7 +40,7 @@ const resolveTargets = function resolveTargets(inPage, inConfig) {
 };
 
 
-export default function attachAction(inPage, inConfig) {
+module.exports =  function attachAction(inPage, inConfig) {
     let target = resolveTargets.call(this, inPage, inConfig);
     if (get(this, 'pending') === true) {
         const observer = new MutationObserver((mutations) => {

@@ -74,7 +74,7 @@ class SelectValueWiring extends Wiring {
 
 }
 
-export default function aeSelect(inPage) {
+module.exports =  function aeSelect(inPage) {
     const _page = inPage;
     let observer;
 

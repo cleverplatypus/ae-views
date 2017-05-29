@@ -8,7 +8,7 @@ const each = require('lodash.foreach');
 const AttributeWiring = require('../wiring/AttributeWiring');
 const StateWiring = require('../wiring/StateWiring');
 
-export default function render(inPage) {
+module.exports =  function render(inPage) {
     const _private = new WeakMap();
     const _page = inPage;
     var proto = Object.create(HTMLDivElement.prototype);

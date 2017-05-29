@@ -1,3 +1,3 @@
 'use strict';
 
-export default Symbol('unresolved');
+module.exports =  Symbol('unresolved');

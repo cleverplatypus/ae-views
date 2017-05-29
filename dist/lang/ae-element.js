@@ -15,7 +15,7 @@ const SignalWiring = require('../wiring/SignalWiring');
 const StateWiring = require('../wiring/StateWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 
-export default function aeElementDefinition(inApp, inElementName) {
+module.exports =  function aeElementDefinition(inApp, inElementName) {
 
     const _app = inApp;
 

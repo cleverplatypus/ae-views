@@ -141,6 +141,6 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 }
 let instance;
 
-export default function(inEvilFn) {
+module.exports =  function(inEvilFn) {
     return (instance ? instance : (instance = new DustTemplatingDelegate(inEvilFn)));
 }

@@ -291,4 +291,4 @@ class Binding {
 
 }
 
-export default Binding;
+module.exports = Binding;

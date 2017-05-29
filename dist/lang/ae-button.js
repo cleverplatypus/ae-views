@@ -9,7 +9,7 @@ const StateWiring = require('../wiring/StateWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 const each = require('lodash.foreach');
 
-export default function aeButton(inPage) {
+module.exports =  function aeButton(inPage) {
     const _page = inPage;
 
     var proto = Object.create(HTMLButtonElement.prototype);

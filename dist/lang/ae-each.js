@@ -5,7 +5,7 @@ const $ = require('jquery');
 
 const ObservableObject = require('../ObservableObject');
 
-export default function each(inPage) {
+module.exports =  function each(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
     const _templatingDelegate = factory.getTemplatingDelegate();

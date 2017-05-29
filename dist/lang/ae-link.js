@@ -9,7 +9,7 @@ const get = require('lodash.get');
 let _page;
 
 
-export default function link(inPage) {
+module.exports =  function link(inPage) {
 
     _page = inPage;
 

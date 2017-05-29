@@ -10,4 +10,4 @@ class TemplatingDelegate {
 	}
 }
 
-export default TemplatingDelegate;
+module.exports = TemplatingDelegate;

@@ -353,4 +353,4 @@ class Component {
 
 }
 
-export default Component;
+module.exports = Component;

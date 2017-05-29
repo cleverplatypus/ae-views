@@ -1,8 +1,6 @@
 'use strict';
 
-import {
-    Signal
-} from 'signals';
+const Signal = require('signals').Signal;
 const get = require('lodash.get');
 const unset = require('lodash.unset');
 const $ = require('jquery');
@@ -88,4 +86,4 @@ class Bus {
     }
 }
 
-export default Bus;
+module.exports = Bus;

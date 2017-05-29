@@ -5,7 +5,7 @@ const ObservableObject = require('../ObservableObject');
 const isString = require('lodash.isString');
 const keys = require('lodash.keys');
 const get = require('lodash.get');
-export default function(dust) {
+module.exports =  function(dust) {
     'use strict';
 
 

@@ -7,7 +7,7 @@ const each = require('lodash.foreach');
 const valueChangeDelegate = require('../delegate/value-change-delegate');
 
 
-export default function bind(inPage) {
+module.exports =  function bind(inPage) {
     const _page = inPage;
     const _private = new WeakSet();
 

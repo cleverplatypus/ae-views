@@ -123,4 +123,4 @@ class State {
 	}
 }
 
-export default State;
+module.exports = State;

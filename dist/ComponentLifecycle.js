@@ -3,7 +3,7 @@
 
 const _private = new WeakMap();
 
-export default class ComponentLifecycle {
+module.exports =  class ComponentLifecycle {
 	constructor(inSignal) {
 		_private.set(this, {signal : inSignal});
 	}
