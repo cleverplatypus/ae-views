@@ -5,13 +5,13 @@ var rename = require('gulp-rename');
 var jshint = require('gulp-jshint');
 
 gulp.task('bundle', () =>
-    gulp.src('./src/**.js')
+    gulp.src('./dist/**.js')
     .pipe(babel({
         presets: ['es2015', 'stage-0']
     }))
     .pipe(uglify())
     .pipe(rename('bundle.js'))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('build'))
 );
 
 gulp.task('lint', () => {

@@ -57,8 +57,10 @@ const callNextInitializer = function() {
     let result = initializer.call(this);
     let resultHandler = () => {
         let fn;
-        while (fn = _config.components.shift()) { //jshint ignore:line
-            fn(this);
+        if (_config.components) {
+            while (fn = _config.components.shift()) { //jshint ignore:line
+                fn(this);
+            }
         }
         if (_initializers.length) {
             callNextInitializer.call(this);
@@ -116,9 +118,9 @@ class Page extends Component {
         if (inModelName) {
             return component.getModel(inModelName);
         }
-        if(component.model) {
+        if (component.model) {
             return component.model;
-        } else if(!(component instanceof Page)){
+        } else if (!(component instanceof Page)) {
             return this.resolveNodeModel($(component.node).parent(), inModelName);
         }
         return null;
@@ -140,6 +142,11 @@ class Page extends Component {
         }
         return _registry.get(node);
 
+    }
+
+    getController(inName) {
+        inName = inName || 'page';
+        return super.getController(inName);
     }
 
     getResolver(inName) {
@@ -256,6 +263,8 @@ class Page extends Component {
             _private.get(component)
                 .lifecycleSignal.dispatch('element-created');
         };
+
+
 
         proto.attachedCallback = function() {
             const component = _registry.get(this);

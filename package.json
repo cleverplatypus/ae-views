@@ -1,40 +1,4 @@
 {
-  "_args": [
-    [
-      "ae-views@git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-      "/Users/aekidna/Development/Projects/Heydo/koalapp2/app"
-    ]
-  ],
-  "_from": "git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-  "_id": "ae-views@1.0.0",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/ae-views",
-  "_phantomChildren": {},
-  "_requested": {
-    "hosted": {
-      "directUrl": "https://bitbucket.org/aekidna/ae-views/raw/master/package.json",
-      "httpsUrl": "git+https://bitbucket.org/aekidna/ae-views.git",
-      "shortcut": "bitbucket:aekidna/ae-views",
-      "ssh": "git@bitbucket.org:aekidna/ae-views.git",
-      "sshUrl": "git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-      "type": "bitbucket"
-    },
-    "name": "ae-views",
-    "raw": "ae-views@git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-    "rawSpec": "git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-    "scope": null,
-    "spec": "git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-    "type": "hosted"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "git+ssh://git@bitbucket.org/aekidna/ae-views.git#4cfcfef5cf88ab00c6e05ec24093f96bd6404d27",
-  "_shasum": "6373518f92cc1ef8ae7e3d51639cafc775d95f3c",
-  "_shrinkwrap": null,
-  "_spec": "ae-views@git+ssh://git@bitbucket.org/aekidna/ae-views.git",
-  "_where": "/Users/aekidna/Development/Projects/Heydo/koalapp2/app",
   "author": "",
   "browserify": {
     "transform": [
@@ -107,5 +71,8 @@
   "name": "ae-views",
   "optionalDependencies": {},
   "readme": "ERROR: No README data found!",
-  "version": "0.5.2"
+  "version": "0.5.2",
+  "scripts" : {
+    "postinstall" : "gulp bundle"
+  }
 }

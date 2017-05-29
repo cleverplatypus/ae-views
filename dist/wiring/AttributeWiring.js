@@ -168,7 +168,7 @@ class AttributeWiring extends Wiring {
             inWiring.hasClassBinding = hasClassBinding;
         });
         each(attrToRemove, (inName) => {
-            //$(inElement).removeAttr(inName);
+           // $(inElement).removeAttr(inName);
         });
         return wirings;
 
