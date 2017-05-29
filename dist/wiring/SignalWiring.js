@@ -1,8 +1,8 @@
 'use strict';
 
-import Wiring from './Wiring';
-import attachAction from '../delegate/action-trigger-delegate';
-import $ from 'jquery';
+const Wiring = require('./Wiring');
+const attachAction = require('../delegate/action-trigger-delegate');
+const $ = require('jquery');
 
 class SignalWiring extends Wiring {
 

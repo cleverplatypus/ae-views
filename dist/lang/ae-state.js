@@ -1,5 +1,5 @@
-import $ from 'jquery';
-import microtask from '../microtask';
+const $ = require('jquery');
+const microtask = require('../microtask');
 
 export default function state(inPage) {
     'use strict';

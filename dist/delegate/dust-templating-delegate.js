@@ -1,15 +1,15 @@
 'use strict';
 
-import TemplatingDelegate from './TemplatingDelegate';
-import dust from 'ae-dustjs';
-import uuid from 'node-uuid';
-import ObservableObject from '../ObservableObject';
-import get from 'lodash.get';
-import each from 'lodash.foreach';
-import result from 'lodash.result';
-import isFunction from 'lodash.isfunction';
+const TemplatingDelegate = require('./TemplatingDelegate');
+const dust = require('ae-dustjs');
+const uuid = require('node-uuid');
+const ObservableObject = require('../ObservableObject');
+const get = require('lodash.get');
+const each = require('lodash.foreach');
+const result = require('lodash.result');
+const isFunction = require('lodash.isfunction');
 
-import dustHelpers from './dust-helpers';
+const dustHelpers = require('./dust-helpers');
 dustHelpers(dust);
 const _templates = new Map();
 let evilFn;

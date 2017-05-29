@@ -1,16 +1,16 @@
 'use strict';
 
-import $ from 'jquery';
+const $ = require('jquery');
 
-import keycode from 'keycode';
-import attachAction from '../delegate/action-trigger-delegate';
-import valueChangeDelegate from '../delegate/value-change-delegate';
-import each from 'lodash.foreach';
-import SignalWiring from '../wiring/SignalWiring';
-import PropertyWiring from '../wiring/PropertyWiring';
-import AttributeWiring from '../wiring/AttributeWiring';
-import Wiring from '../wiring/Wiring';
-import Binding from '../Binding';
+const keycode = require('keycode');
+const attachAction = require('../delegate/action-trigger-delegate');
+const valueChangeDelegate = require('../delegate/value-change-delegate');
+const each = require('lodash.foreach');
+const SignalWiring = require('../wiring/SignalWiring');
+const PropertyWiring = require('../wiring/PropertyWiring');
+const AttributeWiring = require('../wiring/AttributeWiring');
+const Wiring = require('../wiring/Wiring');
+const Binding = require('../Binding');
 
 let delayedSetTimeout;
 

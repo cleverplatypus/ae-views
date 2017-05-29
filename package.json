@@ -71,8 +71,5 @@
   "name": "ae-views",
   "optionalDependencies": {},
   "readme": "ERROR: No README data found!",
-  "version": "0.5.2",
-  "scripts" : {
-    "prepublish" : "gulp bundle"
-  }
+  "version": "0.5.2"
 }

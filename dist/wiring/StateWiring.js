@@ -1,12 +1,12 @@
 'use strict';
 
-import Wiring from './Wiring';
-import Component from '../Component';
-import {Signal} from 'signals';
+const Wiring = require('./Wiring');
+const Component = require('../Component');
+const Signal = require('signals').Signal;
 
-import attachAction from '../delegate/action-trigger-delegate';
-import $ from 'jquery';
-import microtask from '../microtask';
+const attachAction = require('../delegate/action-trigger-delegate');
+const $ = require('jquery');
+const microtask = require('../microtask');
 
 class StateWiring extends Wiring {
 

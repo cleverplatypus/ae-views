@@ -1,10 +1,10 @@
 'use strict';
 
 
-import $ from 'jquery';
+const $ = require('jquery');
 
-import attachAction from '../delegate/action-trigger-delegate';
-import get from 'lodash.get';
+const attachAction = require('../delegate/action-trigger-delegate');
+const get = require('lodash.get');
 
 let _page;
 

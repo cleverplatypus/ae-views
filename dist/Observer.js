@@ -1,10 +1,10 @@
-import isArray from 'lodash.isarray';
+const isArray = require('lodash.isarray');
 
-import microtask from './microtask';
-import ObservableObject from './ObservableObject';
-import each from 'lodash.foreach';
-import find from 'lodash.find';
-import remove from 'lodash.remove';
+const microtask = require('./microtask');
+const ObservableObject = require('./ObservableObject');
+const each = require('lodash.foreach');
+const find = require('lodash.find');
+const remove = require('lodash.remove');
 
 class Queue {
     constructor() {

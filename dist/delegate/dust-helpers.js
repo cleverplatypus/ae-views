@@ -1,10 +1,10 @@
 /*! dustjs-helpers - v1.7.3
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
-import ObservableObject from '../ObservableObject';
-import isString from 'lodash.isString';
-import keys from 'lodash.keys';
-import get from 'lodash.get';
+const ObservableObject = require('../ObservableObject');
+const isString = require('lodash.isString');
+const keys = require('lodash.keys');
+const get = require('lodash.get');
 export default function(dust) {
     'use strict';
 

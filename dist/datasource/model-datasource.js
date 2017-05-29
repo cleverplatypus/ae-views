@@ -1,7 +1,7 @@
 'use strict';
 
 let _page = null;
-import ComponentModel from '../ComponentModel';
+const ComponentModel = require('../ComponentModel');
 
 export default function() {
     return function(inPage) {

@@ -23,9 +23,9 @@
  */
 
 
-import $ from 'jquery';
+const $ = require('jquery');
 
-import attachAction from '../delegate/action-trigger-delegate';
+const attachAction = require('../delegate/action-trigger-delegate');
 
 let _page;
 

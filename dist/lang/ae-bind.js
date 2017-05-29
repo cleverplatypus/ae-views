@@ -1,10 +1,10 @@
 'use strict';
 
-import $ from 'jquery';
+const $ = require('jquery');
 
-import isString from 'lodash.isString';
-import each from 'lodash.foreach';
-import valueChangeDelegate from '../delegate/value-change-delegate';
+const isString = require('lodash.isString');
+const each = require('lodash.foreach');
+const valueChangeDelegate = require('../delegate/value-change-delegate');
 
 
 export default function bind(inPage) {

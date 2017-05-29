@@ -1,13 +1,13 @@
 'use strict';
 
-import $ from 'jquery';
+const $ = require('jquery');
 
-import attachAction from '../delegate/action-trigger-delegate';
-import ElementHTMLWiring from '../wiring/ElementHTMLWiring';
-import PropertyWiring from '../wiring/PropertyWiring';
-import StateWiring from '../wiring/StateWiring';
-import AttributeWiring from '../wiring/AttributeWiring';
-import each from 'lodash.foreach';
+const attachAction = require('../delegate/action-trigger-delegate');
+const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
+const PropertyWiring = require('../wiring/PropertyWiring');
+const StateWiring = require('../wiring/StateWiring');
+const AttributeWiring = require('../wiring/AttributeWiring');
+const each = require('lodash.foreach');
 
 export default function aeButton(inPage) {
     const _page = inPage;

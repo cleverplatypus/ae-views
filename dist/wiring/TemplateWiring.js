@@ -1,9 +1,9 @@
 'use strict';
-import AppFactory  from '../page-factory';
-import Wiring from './Wiring';
+const AppFactory = require('../page-factory');
+const Wiring = require('./Wiring');
 const $ = require('jquery');
-import Binding  from '../Binding';
-import ObservableObject from '../ObservableObject';
+const Binding = require('../Binding');
+const ObservableObject = require('../ObservableObject');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
 const isFunction = require('lodash.isFunction');

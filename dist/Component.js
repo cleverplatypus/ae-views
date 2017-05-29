@@ -1,22 +1,20 @@
 'use strict';
-import microtask from './microtask';
-import ObservableObject from './ObservableObject';
-import ComponentModel from './ComponentModel';
-import State from './State';
-import Bus from './Bus';
-import isString from 'lodash.isString';
-import isFunction from 'lodash.isFunction';
-import isPlainObject from 'lodash.isPlainObject';
-import each from 'lodash.foreach';
-import get from 'lodash.get';
-import $ from 'jquery';
-import factory from './page-factory';
-import ComponentLifecycle from './ComponentLifecycle';
-import {
-    Signal
-} from 'signals';
-import privateHash from './util/private';
-import result from 'lodash.result';
+const microtask = require('./microtask');
+const ObservableObject = require('./ObservableObject');
+const ComponentModel = require('./ComponentModel');
+const State = require('./State');
+const Bus = require('./Bus');
+const isString = require('lodash.isString');
+const isFunction = require('lodash.isFunction');
+const isPlainObject = require('lodash.isPlainObject');
+const each = require('lodash.foreach');
+const get = require('lodash.get');
+const $ = require('jquery');
+const factory = require('./page-factory');
+const ComponentLifecycle = require('./ComponentLifecycle');
+const Signal = require('signals').Signal;
+const privateHash = require('./util/private');
+const result = require('lodash.result');
 
 const _private = privateHash('component');
 

@@ -1,11 +1,11 @@
 'use strict';
 
-import $ from 'jquery';
-import Bus from './Bus';
-import Component from './Component';
-import Page from './Page';
-import ObservableObject from './ObservableObject';
-import dustTemplatingDelegate from './delegate/dust-templating-delegate';
+const $ = require('jquery');
+const Bus = require('./Bus');
+const Component = require('./Component');
+const Page = require('./Page');
+const ObservableObject = require('./ObservableObject');
+const dustTemplatingDelegate = require('./delegate/dust-templating-delegate');
 
 
 let _templatingDelegate;

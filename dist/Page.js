@@ -1,23 +1,23 @@
 'use strict';
 
-import Component from './component';
-import get from 'lodash.get';
-import each from 'lodash.foreach';
-import isFunction from 'lodash.isFunction';
-import isPlainObject from 'lodash.isPlainObject';
-import ObservableObject from './ObservableObject';
-import $ from 'jquery';
+const Component = require('./component');
+const get = require('lodash.get');
+const each = require('lodash.foreach');
+const isFunction = require('lodash.isFunction');
+const isPlainObject = require('lodash.isPlainObject');
+const ObservableObject = require('./ObservableObject');
+const $ = require('jquery');
 
-import modelDataSource from './datasource/model-datasource';
+const modelDataSource = require('./datasource/model-datasource');
 const _dataSources = new Map();
-import lang from './lang/ae-lang';
-import factory from './page-factory';
-import ComponentLifecycle from './ComponentLifecycle';
-import privateHash from './util/private';
-import LiteUrl from 'lite-url';
-import AttributeWiring from './wiring/AttributeWiring';
-import PropertyWiring from './wiring/PropertyWiring';
-import StateWiring from './wiring/StateWiring';
+const lang = require('./lang/ae-lang');
+const factory = require('./page-factory');
+const ComponentLifecycle = require('./ComponentLifecycle');
+const privateHash = require('./util/private');
+const LiteUrl = require('lite-url');
+const AttributeWiring = require('./wiring/AttributeWiring');
+const PropertyWiring = require('./wiring/PropertyWiring');
+const StateWiring = require('./wiring/StateWiring');
 
 const _private = privateHash('component');
 

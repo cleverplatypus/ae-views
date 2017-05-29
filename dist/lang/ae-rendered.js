@@ -1,12 +1,12 @@
-import $ from 'jquery';
-import microtask from '../microtask';
+const $ = require('jquery');
+const microtask = require('../microtask');
 
-import factory from '../page-factory';
-import ObservableObject from '../ObservableObject';
-import transform from 'lodash.transform';
-import each from 'lodash.foreach';
-import AttributeWiring from '../wiring/AttributeWiring';
-import StateWiring from '../wiring/StateWiring';
+const factory = require('../page-factory');
+const ObservableObject = require('../ObservableObject');
+const transform = require('lodash.transform');
+const each = require('lodash.foreach');
+const AttributeWiring = require('../wiring/AttributeWiring');
+const StateWiring = require('../wiring/StateWiring');
 
 export default function render(inPage) {
     const _private = new WeakMap();

@@ -1,7 +1,7 @@
 'use strict';
 
-import $ from 'jquery';
-import each from 'lodash.foreach';
+const $ = require('jquery');
+const each = require('lodash.foreach');
 
 $.fn.extend({
     getPath: function () {
@@ -32,21 +32,21 @@ $.fn.extend({
     }
 });
 
-import aeManaged from './ae-managed';
-import aeRendered from './ae-rendered';
-import aeButton from './ae-button';
-import aeEach from './ae-each';
-import aeState from './ae-state';
-import aeAction from './ae-action';
-import aeBind from './ae-bind';
-import aeRender from './ae-render';
-import aeSwitch from './ae-switch';
-import aeInput from './ae-input';
-import aeCheckbox from './ae-checkbox';
-import aeTemplate from './ae-template';
-import aeSelect from './ae-select';
-import aeLink from './ae-link';
-import registerAeElement from './ae-element';
+const aeManaged = require('./ae-managed');
+const aeRendered = require('./ae-rendered');
+const aeButton = require('./ae-button');
+const aeEach = require('./ae-each');
+const aeState = require('./ae-state');
+const aeAction = require('./ae-action');
+const aeBind = require('./ae-bind');
+const aeRender = require('./ae-render');
+const aeSwitch = require('./ae-switch');
+const aeInput = require('./ae-input');
+const aeCheckbox = require('./ae-checkbox');
+const aeTemplate = require('./ae-template');
+const aeSelect = require('./ae-select');
+const aeLink = require('./ae-link');
+const registerAeElement = require('./ae-element');
 
 export default function(inPage) {
     each(['div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {

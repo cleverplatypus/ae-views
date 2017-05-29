@@ -1,9 +1,9 @@
 'use strict';
 
-import $ from 'jquery';
-import each from 'lodash.foreach';
-import includes from 'lodash.includes';
-import ObservableObject from '../ObservableObject';
+const $ = require('jquery');
+const each = require('lodash.foreach');
+const includes = require('lodash.includes');
+const ObservableObject = require('../ObservableObject');
 
 class InputValueChangeDelegate {
 

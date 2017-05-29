@@ -3,9 +3,9 @@
 import {
     Signal
 } from 'signals';
-import get from 'lodash.get';
-import unset from 'lodash.unset';
-import $ from 'jquery';
+const get = require('lodash.get');
+const unset = require('lodash.unset');
+const $ = require('jquery');
 
 class Bus {
 

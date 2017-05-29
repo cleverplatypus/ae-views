@@ -1,12 +1,12 @@
 'use strict';
 
-import $ from 'jquery';
-import get from 'lodash.get';
-import each from 'lodash.foreach';
-import isString from 'lodash.isString';
+const $ = require('jquery');
+const get = require('lodash.get');
+const each = require('lodash.foreach');
+const isString = require('lodash.isString');
 
-import UNRESOLVED from '../symbol/unresolved';
-import typifyParams from '../util/typify-parameters';
+const UNRESOLVED = require('../symbol/unresolved');
+const typifyParams = require('../util/typify-parameters');
 
 
 const resolveTargets = function resolveTargets(inPage, inConfig) {

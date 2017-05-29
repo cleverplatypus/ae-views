@@ -1,9 +1,9 @@
 'use strict';
 
-import $ from 'jquery';
-import microtask from '../microtask';
-import isArray from 'lodash.isarray';
-import Binding from '../Binding';
+const $ = require('jquery');
+const microtask = require('../microtask');
+const isArray = require('lodash.isarray');
+const Binding = require('../Binding');
 
 /**
  *   A container for element that change the value of a property based on 

@@ -1,8 +1,8 @@
 'use strict';
 
-import Wiring from './Wiring';
+const Wiring = require('./Wiring');
 const $ = require('jquery');
-import Binding from '../Binding';
+const Binding = require('../Binding');
 
 const get = require('lodash.get');
 const each = require('lodash.foreach');

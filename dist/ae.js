@@ -3,15 +3,15 @@
 window.LOG = window.LOG || window.console;
 
 
-import Component from './Component';
-import Page from './Page';
-import State from './State';
-import pagefactory from './page-factory';
-import TemplatingDelegate from './delegate/TemplatingDelegate';
-import MasterPage from './MasterPage';
-import ObservableObject from './ObservableObject';
-import UNRESOLVED from './symbol/unresolved';
-import ComponentModel from './ComponentModel';
+const Component = require('./Component');
+const Page = require('./Page');
+const State = require('./State');
+const pagefactory = require('./page-factory');
+const TemplatingDelegate = require('./delegate/TemplatingDelegate');
+const MasterPage = require('./MasterPage');
+const ObservableObject = require('./ObservableObject');
+const UNRESOLVED = require('./symbol/unresolved');
+const ComponentModel = require('./ComponentModel');
 
 
 export {ComponentModel, Component, Page, State, pagefactory, TemplatingDelegate, MasterPage, ObservableObject, UNRESOLVED};

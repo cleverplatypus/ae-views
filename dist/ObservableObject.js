@@ -1,11 +1,11 @@
 'use strict';
-import Observer from './Observer';
-import isPlainObject from 'lodash.isPlainObject';
-import keys from 'lodash.keys';
-import each from 'lodash.foreach';
-import isString from 'lodash.isString';
-import get from 'lodash.get';
-import isArray from 'lodash.isArray';
+const Observer = require('./Observer');
+const isPlainObject = require('lodash.isPlainObject');
+const keys = require('lodash.keys');
+const each = require('lodash.foreach');
+const isString = require('lodash.isString');
+const get = require('lodash.get');
+const isArray = require('lodash.isArray');
 
 
 

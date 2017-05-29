@@ -1,9 +1,9 @@
 'use strict';
 
-import factory from '../page-factory';
-import $ from 'jquery';
+const factory = require('../page-factory');
+const $ = require('jquery');
 
-import ObservableObject from '../ObservableObject';
+const ObservableObject = require('../ObservableObject');
 
 export default function each(inPage) {
     const _page = inPage;

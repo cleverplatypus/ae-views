@@ -6,11 +6,11 @@ const each = require('lodash.foreach');
 const isString = require('lodash.isString');
 const map = require('lodash.map');
 const isBoolean = require('lodash.isBoolean');
-import ComponentModel from './ComponentModel';
-import isFunction from 'lodash.isfunction';
-import microtask from './microtask';
+const ComponentModel = require('./ComponentModel');
+const isFunction = require('lodash.isfunction');
+const microtask = require('./microtask');
 
-import typifyParams from './util/typify-parameters';
+const typifyParams = require('./util/typify-parameters');
 
 const $ = require('jquery');
 

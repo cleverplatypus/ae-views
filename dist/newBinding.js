@@ -10,11 +10,11 @@ const expressionParser = require('./peg/binding-expression').parse;
 const isPlainObject = require('lodash.isPlainObject');
 const some = require('lodash.some');
 
-import ComponentModel from './ComponentModel';
-import isFunction from 'lodash.isfunction';
-import microtask from './microtask';
+const ComponentModel = require('./ComponentModel');
+const isFunction = require('lodash.isfunction');
+const microtask = require('./microtask');
 
-import typifyParams from './util/typify-parameters';
+const typifyParams = require('./util/typify-parameters');
 
 const $ = require('jquery');
 

@@ -1,7 +1,7 @@
 'use strict';
 
-import ObservableObject from './ObservableObject';
-import has from 'lodash.has';
+const ObservableObject = require('./ObservableObject');
+const has = require('lodash.has');
 
 class ComponentModel extends ObservableObject {
 	constructor(inInitObj) {
