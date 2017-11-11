@@ -1,10 +1,10 @@
 const isArray = require('lodash.isarray');
 
 const microtask = require('./microtask');
-const ObservableObject = require('./ObservableObject');
 const each = require('lodash.foreach');
 const find = require('lodash.find');
 const remove = require('lodash.remove');
+const get = require('lodash.get');
 
 class Queue {
     constructor() {
@@ -161,7 +161,7 @@ class Observer {
                             change: inChange
                         });
                     }
-                    if (inChange.type === 'add' && inChange.newValue instanceof ObservableObject &&
+                    if (inChange.type === 'add' && get(inChange, 'newValue.constructor.name') === 'ObservableObject' &&
                         this._childrenListeners.concat(this._descendantListeners).length) {
 
                         each(inChange.newValue.keys(), (inKey) => {

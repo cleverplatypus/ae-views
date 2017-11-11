@@ -3,9 +3,8 @@
 const isArray = require('lodash.isArray');
 const merge = require('lodash.merge');
 const mergeWith = require('lodash.mergeWith');
-const pageFactory = require('./page-factory');
 let _config, _model, _constructorFn;
-
+const Page = require('./Page');
 class MasterPage {
 
     constructor(inConfig, inModel, inConstructorFn) {
@@ -34,7 +33,7 @@ class MasterPage {
             inConstructorFn.call(this);
         };
 
-        return pageFactory.page(config, inModel, constructorFn);
+        return Page.create(config, inModel, constructorFn);
     }
 }
 

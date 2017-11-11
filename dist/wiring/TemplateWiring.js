@@ -1,5 +1,4 @@
 'use strict';
-const AppFactory = require('../page-factory');
 const Wiring = require('./Wiring');
 const $ = require('jquery');
 const Binding = require('../Binding');
@@ -8,6 +7,7 @@ const get = require('lodash.get');
 const each = require('lodash.foreach');
 const isFunction = require('lodash.isFunction');
 const isArray = require('lodash.isArray');
+const templatingDelegate = require('../delegate/dust-templating-delegate');
 
 const _private = new WeakMap();
 
@@ -73,12 +73,12 @@ class DelegatedTemplateWiring extends BaseTemplateWiring {
             if (_p(this).iterate && isArray(inValue)) { //TODO: handle other ES6 types of iteratable
                 each(inValue, (inItem) => {
                 	inValue = _p(this).eachFunction(inValue);
-                    AppFactory.render(_p(this).templateName, inItem).then((inHtml) => {
+                    templatingDelegate.render(_p(this).templateName, inItem).then((inHtml) => {
                         html += inHtml;
                     });
                 });
             } else {
-                AppFactory.render(_p(this).templateName, inValue).then((inHtml) => {
+                templatingDelegate.render(_p(this).templateName, inValue).then((inHtml) => {
                     html = inHtml;
                 });
             }

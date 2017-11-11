@@ -1,14 +1,13 @@
 'use strict';
 
-const factory = require('../page-factory');
 const $ = require('jquery');
-
+const Page = require('../Page');
 const ObservableObject = require('../ObservableObject');
 
 module.exports =  function each(inPage) {
     const _page = inPage;
     const _private = new WeakMap();
-    const _templatingDelegate = factory.getTemplatingDelegate();
+const templatingDelegate = require('../delegate/dust-templating-delegate');
 
     var proto = Object.create(HTMLElement.prototype);
 
@@ -24,7 +23,7 @@ module.exports =  function each(inPage) {
             let template = $(this).find('>template');
 
             _private.set(this, {
-                templateName: _templatingDelegate.registerTemplate(template.html())
+                templateName: templatingDelegate.registerTemplate(template.html())
             });
         } else {
             _private.set(this, {
@@ -54,12 +53,12 @@ module.exports =  function each(inPage) {
             $(this).find('>ae-managed').empty();
             if (inData instanceof ObservableObject ) {
                 for (let instance of inData) {
-                    _templatingDelegate.render(templateName, instance)
+                    templatingDelegate.render(templateName, instance)
                         .then(appendFn)
                         .catch(errorFn);
                 }
             } else {
-                _templatingDelegate.render(templateName, inData)
+                templatingDelegate.render(templateName, inData)
                     .then(appendFn)
                     .catch(errorFn);
             }

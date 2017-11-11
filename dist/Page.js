@@ -11,13 +11,13 @@ const $ = require('jquery');
 const modelDataSource = require('./datasource/model-datasource');
 const _dataSources = new Map();
 const lang = require('./lang/ae-lang');
-const factory = require('./page-factory');
 const ComponentLifecycle = require('./ComponentLifecycle');
 const privateHash = require('./util/private');
 const LiteUrl = require('lite-url');
 const AttributeWiring = require('./wiring/AttributeWiring');
 const PropertyWiring = require('./wiring/PropertyWiring');
 const StateWiring = require('./wiring/StateWiring');
+const dustTemplatingDelegate = require('./delegate/dust-templating-delegate');
 
 const _private = privateHash('component');
 
@@ -300,6 +300,15 @@ class Page extends Component {
 
     }
 
+    static get templatingDelegate() {
+        return _templatingDelegate;
+    }
+    
+    static create(inConfig, inModel, inSetupFunction) {
+         _templatingDelegate = dustTemplatingDelegate;
+        let page = new Page(inConfig, inModel, inSetupFunction);
+        return page;
+    }
 }
 
 

@@ -1,47 +1,22 @@
 'use strict';
 
 const TemplatingDelegate = require('./TemplatingDelegate');
-const dust = require('ae-dustjs');
+const dust = require('dustjs-linkedin');
 const uuid = require('node-uuid');
 const ObservableObject = require('../ObservableObject');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
 const result = require('lodash.result');
 const isFunction = require('lodash.isfunction');
-
+const merge = require('lodash.merge');
 const dustHelpers = require('./dust-helpers');
 dustHelpers(dust);
 const _templates = new Map();
-let evilFn;
 let globalContext;
 
 class DustTemplatingDelegate extends TemplatingDelegate {
-    constructor(inEvilFn) {
+    constructor() {
         super();
-        var n = 'EV' + 'a' + 'L';
-        evilFn = inEvilFn || window[n.toLowerCase()];
-
-        // dust.collectionResolver = function(inCollection) {
-        //     if (inCollection instanceof ObservableObject && inCollection.isCollection) {
-        //         return inCollection.toNative();
-        //     } else {
-        //         return inCollection;
-        //     }
-        // };
-
-        // dust.propertyResolver = function(inBase, inPath) {
-        //     if (inBase instanceof ObservableObject) {
-        //         if (inBase.isCollection && inPath === 'length') {
-        //             return inBase.length;
-        //         } else {
-        //             return inBase.prop(inPath);
-        //         }
-        //     } else {
-        //         return get(inBase, inPath);
-        //     }
-        // };
-
-
     }
 
     logLevel(inLevel) {
@@ -57,8 +32,14 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         };
     }
 
+    updateGlobalContext(inData) {
+        globalContext = globalContext || {};
+        merge(globalContext,  inData);
+    }
+
     registerExtensions(inExtensions) {
-        globalContext = get(inExtensions, 'globalContext');
+        globalContext = globalContext || {};
+        merge(globalContext,  get(inExtensions, 'globalContext'));
 
         each(get(inExtensions, 'filters'), (inFilter, inName) => {
             dust.filters[inName] = inFilter;
@@ -66,19 +47,14 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         each(get(inExtensions, 'helpers'), (inHelper, inName) => {
             dust.helpers[inName] = inHelper;
         });
+        return this;
     }
 
-    setCollectionResolver(inResolver) {
-        dust.collectionResolver = inResolver;
-    }
-
-    setPropertyResolver(inResolver) {
-        dust.propertyResolver = inResolver;
-    }
 
     register(inName, inTemplate) {
         _templates.set(inName, inTemplate);
         dust.register(inName, inTemplate);
+        return this;
     }
 
 
@@ -86,7 +62,7 @@ class DustTemplatingDelegate extends TemplatingDelegate {
         inName = inName || ('template_' + uuid.v4());
         const compiledSrc = dust.compile(inSource).replace(/\bdust\b/g, '');
 
-        const compiledFn = evilFn(compiledSrc);
+        const compiledFn = eval(compiledSrc);//jshint ignore:line
         if (compiledFn instanceof Promise) {
             compiledFn.then((inFn) => {
                 _templates.set(inName, inFn);
@@ -141,6 +117,4 @@ class DustTemplatingDelegate extends TemplatingDelegate {
 }
 let instance;
 
-module.exports =  function(inEvilFn) {
-    return (instance ? instance : (instance = new DustTemplatingDelegate(inEvilFn)));
-}
+module.exports =  new DustTemplatingDelegate();

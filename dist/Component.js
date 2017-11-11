@@ -10,12 +10,11 @@ const isPlainObject = require('lodash.isPlainObject');
 const each = require('lodash.foreach');
 const get = require('lodash.get');
 const $ = require('jquery');
-const factory = require('./page-factory');
 const ComponentLifecycle = require('./ComponentLifecycle');
 const Signal = require('signals').Signal;
 const privateHash = require('./util/private');
 const result = require('lodash.result');
-
+const templatingDelegate = require('./delegate/dust-templating-delegate');
 const _private = privateHash('component');
 
 const _setupModel = function _setupModel(inModel) {
@@ -83,6 +82,26 @@ const _watchState = function _watchState() {
 };
 
 
+const componentConfigPreprocessor = function componentConfigPreprocessor(inConfig) {
+    if (!inConfig || !inConfig.templates || isPlainObject(inConfig.templates)) {
+        return;
+    }
+    const templatesObj = {};
+    each(inConfig.templates, (inValue) => {
+        if (isPlainObject(inValue)) {
+            each(inValue, (inTemplate, inKey) => {
+                templatesObj[inKey] = inTemplate;
+            });
+        } else {
+            if (!isFunction(inValue)) {
+                throw new Error('Templates in component config must be either a dust template reference or a { name : templateFn} tuple');
+            }
+            templatesObj[inValue._defaultName] = inValue;
+        }
+        inConfig.templates = templatesObj;
+    });
+};
+
 
 class Component {
 
@@ -114,9 +133,7 @@ class Component {
         });
 
 
-        if (factory.componentConfigPreprocessor) {
-            factory.componentConfigPreprocessor(inConfig);
-        }
+        componentConfigPreprocessor(inConfig);
 
         this._properties = {};
         this.config = inConfig;
@@ -180,7 +197,7 @@ class Component {
             let actualTemplateName = templateName === '_default' ?
                 '_default.' + this.name :
                 templateName;
-            factory.getTemplatingDelegate()
+            templatingDelegate
                 .register(actualTemplateName, templates[templateName]);
         }
         _private.get(this).hasDefaultTemplate = !!templates._default;
@@ -279,6 +296,12 @@ class Component {
                 if (inError) {
                     reject(inError);
                 } else {
+                    if(inOldState) {
+                        $(this.element).removeClass('ae-state-' + inOldState);
+                    }
+                    if(inNewState) {
+                        $(this.element).addClass('ae-state-' + inNewState);
+                    }
                     resolve(inNewState, inOldState);
                 }
                 this.unwatchState(watcher);
@@ -326,7 +349,7 @@ class Component {
         return new Promise((resolve, reject) => {
             _private.get(this).willRender = false;
             if (_private.get(this).hasDefaultTemplate) {
-                const delegate = factory.getTemplatingDelegate();
+                const delegate = templatingDelegate;
                 const model = inModel ?
                     ObservableObject.fromObject(inModel) :
                     this.data();

@@ -1,10 +1,10 @@
 const $ = require('jquery');
 const microtask = require('../microtask');
-
-const factory = require('../page-factory');
+const Page = require('../Page');
 const ObservableObject = require('../ObservableObject');
 const transform = require('lodash.transform');
 const each = require('lodash.foreach');
+const templatingDelegate = require('../delegate/dust-templating-delegate');
 
 module.exports =  function render(inPage) {
     'use strict';
@@ -33,7 +33,7 @@ module.exports =  function render(inPage) {
                 item.specified && /^param-/.test(item.name) && (result[item.name.replace('param-', '')] = item.value); //jshint ignore:line
             }, {});
 
-            factory.getTemplatingDelegate()
+            templatingDelegate
                 .render(templateName, inValue || {}, _private.get(this).params)
                 .then((inHtml) => {
                     $(this).find('>ae-managed').html(inHtml);
@@ -63,7 +63,7 @@ module.exports =  function render(inPage) {
             if (!template) {
                 throw new Error($(this).getPath() + ' must have a template attribute or a template element');
             }
-            templateName = factory.getTemplatingDelegate()
+            templateName = templatingDelegate
                 .registerTemplate(template.html());
             $(this).attr('template', templateName);
             $(this).empty();
