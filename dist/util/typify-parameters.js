@@ -1,7 +1,7 @@
 'use strict';
 const UNRESOLVED = require('../symbol/unresolved');
 const each = require('lodash.foreach');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 
 module.exports =  function typifyParams(inPage, inParams) {
     const out = {};

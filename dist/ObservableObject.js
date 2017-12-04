@@ -1,11 +1,11 @@
 'use strict';
 const Observer = require('./Observer');
-const isPlainObject = require('lodash.isPlainObject');
+const isPlainObject = require('lodash.isplainobject');
 const keys = require('lodash.keys');
 const each = require('lodash.foreach');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 const get = require('lodash.get');
-const isArray = require('lodash.isArray');
+const isArray = require('lodash.isarray');
 
 
 

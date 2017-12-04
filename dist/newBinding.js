@@ -3,11 +3,11 @@
 
 const get = require('lodash.get');
 const each = require('lodash.foreach');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 const map = require('lodash.map');
-const isBoolean = require('lodash.isBoolean');
+const isBoolean = require('lodash.isboolean');
 const expressionParser = require('./peg/binding-expression').parse;
-const isPlainObject = require('lodash.isPlainObject');
+const isPlainObject = require('lodash.isplainobject');
 const some = require('lodash.some');
 
 const ComponentModel = require('./ComponentModel');

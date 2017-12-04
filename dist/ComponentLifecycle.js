@@ -5,13 +5,13 @@ const _private = new WeakMap();
 
 module.exports =  class ComponentLifecycle {
 	constructor(inSignal) {
-		_private.set(this, {signal : inSignal});
+		_private.set(this, {signal : inSignal, renderCount : 0});
 	}
 
 	rendered(inHandler) {
 		_private.get(this).signal.add((inType) => {
 			if(inType === 'rendered') {
-				inHandler();
+				inHandler(++_private.get(this).renderCount);
 			}
 		});
 	}

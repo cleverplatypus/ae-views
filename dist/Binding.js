@@ -3,9 +3,9 @@
 
 const get = require('lodash.get');
 const each = require('lodash.foreach');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 const map = require('lodash.map');
-const isBoolean = require('lodash.isBoolean');
+const isBoolean = require('lodash.isboolean');
 const ComponentModel = require('./ComponentModel');
 const isFunction = require('lodash.isfunction');
 const microtask = require('./microtask');

@@ -9,7 +9,7 @@ const StateWiring = require('../wiring/StateWiring');
 const Page = require('../Page');
 const templatingDelegate = require('../delegate/dust-templating-delegate');
 
-module.exports =  function render(inPage) {
+module.exports = function render(inPage) {
     const _private = new WeakMap();
     const _page = inPage;
     var proto = Object.create(HTMLDivElement.prototype);
@@ -119,17 +119,19 @@ module.exports =  function render(inPage) {
             watchPath[watchPath.length - 1] = '[' + watchPath[watchPath.length - 1] + ']';
             watchPath = watchPath.join('.');
         }
-        _page.getDataSource().bindPath(this, watchPath, (inBaseModel) => {
-
-            if (inBaseModel instanceof ObservableObject) {
-                inBaseModel.watch(watchPath, () => {
+        if (!$(this).attr('no-bind')) {
+            _page.getDataSource().bindPath(this, watchPath, (inBaseModel) => {
+                if (inBaseModel instanceof ObservableObject) {
+                    inBaseModel.watch(watchPath, () => {
+                        invalidate.call(this);
+                    });
+                } else {
                     invalidate.call(this);
-                });
-            } else {
+                }
                 invalidate.call(this);
-            }
-            invalidate.call(this);
-        });
+            });
+        }
+
         if ($(this).attr('watch')) {
             _page.getDataSource().bindPath(this, $(this).attr('watch'), (inBaseModel) => {
 

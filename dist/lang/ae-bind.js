@@ -2,7 +2,7 @@
 
 const $ = require('jquery');
 
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 const each = require('lodash.foreach');
 const valueChangeDelegate = require('../delegate/value-change-delegate');
 

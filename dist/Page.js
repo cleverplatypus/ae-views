@@ -3,8 +3,8 @@
 const Component = require('./component');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
-const isFunction = require('lodash.isFunction');
-const isPlainObject = require('lodash.isPlainObject');
+const isFunction = require('lodash.isfunction');
+const isPlainObject = require('lodash.isplainobject');
 const ObservableObject = require('./ObservableObject');
 const $ = require('jquery');
 

@@ -5,8 +5,8 @@ const Binding = require('../Binding');
 const ObservableObject = require('../ObservableObject');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
-const isFunction = require('lodash.isFunction');
-const isArray = require('lodash.isArray');
+const isFunction = require('lodash.isfunction');
+const isArray = require('lodash.isarray');
 const templatingDelegate = require('../delegate/dust-templating-delegate');
 
 const _private = new WeakMap();

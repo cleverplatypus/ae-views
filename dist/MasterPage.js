@@ -1,8 +1,8 @@
 'use strict';
 
-const isArray = require('lodash.isArray');
+const isArray = require('lodash.isarray');
 const merge = require('lodash.merge');
-const mergeWith = require('lodash.mergeWith');
+const mergeWith = require('lodash.mergewith');
 let _config, _model, _constructorFn;
 const Page = require('./Page');
 class MasterPage {

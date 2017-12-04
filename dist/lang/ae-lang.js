@@ -49,7 +49,7 @@ const aeLink = require('./ae-link');
 const registerAeElement = require('./ae-element');
 
 module.exports =  function(inPage) {
-    each(['div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
+    each(['form', 'div', 'i', 'ul', 'li', 'a', 'nav', 'span', 'main', 'section', 'textarea'], (inElementName) => {
         registerAeElement(inPage, inElementName);
     });
 
@@ -67,5 +67,5 @@ module.exports =  function(inPage) {
     aeSwitch(inPage);
     aeInput(inPage);
     aeLink(inPage);
-}
+};
 

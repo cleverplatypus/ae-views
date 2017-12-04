@@ -3,7 +3,7 @@
 const $ = require('jquery');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 
 const UNRESOLVED = require('../symbol/unresolved');
 const typifyParams = require('../util/typify-parameters');

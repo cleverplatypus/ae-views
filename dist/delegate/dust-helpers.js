@@ -2,7 +2,7 @@
  * http://dustjs.com/
  * Copyright (c) 2015 Aleksander Williams; Released under the MIT License */
 const ObservableObject = require('../ObservableObject');
-const isString = require('lodash.isString');
+const isString = require('lodash.isstring');
 const keys = require('lodash.keys');
 const get = require('lodash.get');
 module.exports =  function(dust) {

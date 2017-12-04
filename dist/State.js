@@ -2,8 +2,8 @@
 
 const find = require('lodash.find');
 const map = require('lodash.map');
-const isString = require('lodash.isString');
-const isArray = require('lodash.isArray');
+const isString = require('lodash.isstring');
+const isArray = require('lodash.isarray');
 
 const _private = new WeakMap();
 

@@ -6,6 +6,7 @@ const attachAction = require('../delegate/action-trigger-delegate');
 const ElementHTMLWiring = require('../wiring/ElementHTMLWiring');
 const PropertyWiring = require('../wiring/PropertyWiring');
 const StateWiring = require('../wiring/StateWiring');
+const SignalWiring = require('../wiring/SignalWiring');
 const AttributeWiring = require('../wiring/AttributeWiring');
 const each = require('lodash.foreach');
 
@@ -28,6 +29,11 @@ module.exports =  function aeButton(inPage) {
         }
         wirings.push.apply(wirings, PropertyWiring.wire(this));
 
+        $.each(this.attributes, (i, attrib) => {
+            if (/^signal/.test(attrib.name)) {
+                wirings.push(new SignalWiring(this, attrib.name));
+            }
+        });
 
         wirings.push.apply(wirings);
         wirings.push.apply(wirings, AttributeWiring.wire(this, ['class', 'id', 'name', 'param', 'data', 'style']));

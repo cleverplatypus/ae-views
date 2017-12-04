@@ -4,9 +4,9 @@ const ObservableObject = require('./ObservableObject');
 const ComponentModel = require('./ComponentModel');
 const State = require('./State');
 const Bus = require('./Bus');
-const isString = require('lodash.isString');
-const isFunction = require('lodash.isFunction');
-const isPlainObject = require('lodash.isPlainObject');
+const isString = require('lodash.isstring');
+const isFunction = require('lodash.isfunction');
+const isPlainObject = require('lodash.isplainobject');
 const each = require('lodash.foreach');
 const get = require('lodash.get');
 const $ = require('jquery');
@@ -112,7 +112,7 @@ class Component {
         } else {
             [inInitObj, inConstructor, inPage] = [inParam2, inParam3, inParam4];
         }
-
+        this._renderCount = 0;
 
         const lifecycleSignal = new Signal();
         const lifecycle = new ComponentLifecycle(lifecycleSignal);
@@ -359,6 +359,7 @@ class Component {
                     $(this.node).html(inHtml);
 
                     this.afterRender && this.afterRender(); //jshint ignore:line
+                    this._renderCount++;
                     this.microtask(() => {
                         _private.get(this)
                             .lifecycleSignal.dispatch('rendered');
