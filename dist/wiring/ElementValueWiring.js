@@ -26,8 +26,8 @@ const setValue = function setValue(inValue) {
     });
     Promise.all(promises).then(() => {
         const totalVal = val.join('');
-        if ($(this.element).val() !== totalVal) {
-            $(this.element).val(totalVal);
+        if ($(this.element)[this.elementValueMethod]() !== totalVal) {
+            $(this.element)[this.elementValueMethod](totalVal);
         }
     });
 
@@ -38,6 +38,7 @@ class ElementValueWiring extends Wiring {
     constructor(inElement) {
         super();
         this.element = inElement;
+        this.elementValueMethod = this.element.value !== undefined ? 'val' : 'text';
         const attrValue = $(this.element).attr('to-value') || $(this.element).attr('bind-value');
         this.bindings = Binding.parse(attrValue);
     }
@@ -54,7 +55,7 @@ class ElementValueWiring extends Wiring {
         const setProperty = () => {
             this.delayedSetTimeout = null;
             each(this.bindings, (inBinding, inIndex) => {
-                inBinding.setValue($(this.element).val());
+                inBinding.setValue($(this.element)[this.elementValueMethod]());
             });
         };
 
@@ -66,6 +67,7 @@ class ElementValueWiring extends Wiring {
 
         };
 
+        $(this.element).off('input').on('input', changeHandler);
         $(this.element).off('change').on('change', changeHandler);
         $(this.element).off('keyup').on('keyup', changeHandler);
         $(this.element).off('input').on('input', changeHandler);

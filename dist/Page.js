@@ -1,6 +1,6 @@
 'use strict';
 
-const Component = require('./component');
+const Component = require('./Component');
 const get = require('lodash.get');
 const each = require('lodash.foreach');
 const isFunction = require('lodash.isfunction');
@@ -49,12 +49,6 @@ const startPage = function startPage() {
 };
 
 const callNextInitializer = function() {
-    let initializer = _initializers.shift();
-    if (!initializer) {
-        startPage.call(this);
-        return;
-    }
-    let result = initializer.call(this);
     let resultHandler = () => {
         let fn;
         if (_config.components) {
@@ -68,6 +62,12 @@ const callNextInitializer = function() {
             startPage.call(this);
         }
     };
+    let initializer = _initializers.shift();
+    if (!initializer) {
+        resultHandler();
+        return;
+    }
+    let result = initializer.call(this);
     if (result instanceof Promise) {
         result.then(resultHandler);
     } else {

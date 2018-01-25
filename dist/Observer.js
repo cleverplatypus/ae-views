@@ -25,8 +25,6 @@ class Queue {
             for (let notification of this._notifications) {
                 notification.listener.trigger(notification.path, notification.change);
             }
-            window.nots = window.nots || [];
-            window.nots.push(this._notifications);
             this._notifications = [];
         });
     }
