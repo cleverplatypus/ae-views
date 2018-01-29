@@ -138,6 +138,20 @@ class ObservableObject {
         }
     }
 
+    quiet() {
+        this._isSilent = true;
+    }
+
+    unquiet() {
+        this._isSilent = false;
+    }
+
+
+
+    isUnresolved() {
+        return keys(this._lazyPaths).length > 0;
+    }
+
     isObserved() {
         return true;//!!this._watchesCount;
     }
@@ -170,6 +184,10 @@ class ObservableObject {
 
     get observer() {
         return this._observer;
+    }
+
+    isSilent() {
+        return this._isSilent;
     }
 
     fill(inData, inPath, inSilent) {
@@ -342,7 +360,7 @@ class ObservableObject {
     }
 
     static notifyWatchers(inInstance) {
-        if (inInstance.isSilent || !inInstance.isObserved()) {
+        if (inInstance.isSilent() || !inInstance.isObserved()) {
             return;
         }
 

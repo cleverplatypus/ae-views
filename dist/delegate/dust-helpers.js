@@ -467,6 +467,9 @@ module.exports =  function(dust) {
                 key = context.resolve(params.key),
                 target, output;
             switch (key) {
+                case 'global':
+                    target = context.global;
+                    break;
                 case 'full':
                     target = context.stack;
                     break;

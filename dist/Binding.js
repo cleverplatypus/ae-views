@@ -257,7 +257,7 @@ class Binding {
 
         this._observer = //CRITICAL: support the .path.bla relative binding format
             this._dataSource.bindPath(this._element, watchPath, observer, exp.modelName);
-        this._hander = observer;
+       //this._handler  = observer;
         this.fire();
     }
 

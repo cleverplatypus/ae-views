@@ -14,12 +14,12 @@ class ComponentModel extends ObservableObject {
 		}
 	}
 
-	data(inPath, inData) {
+	data(inPath, inData, inSilent) {
 		if(typeof inPath === 'object') {
-			return this.prop('data', inPath);
+			return this.prop('data', inPath, inSilent);
 		}
 		const path = 'data' + (inPath ? '.' + inPath : '');
-		return this.prop(path, inData);
+		return this.prop(path, inData, inSilent);
 	}
 }
 

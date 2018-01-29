@@ -66,14 +66,13 @@ class ElementValueWiring extends Wiring {
             this.delayedSetTimeout = setTimeout(setProperty, $(this.element).attr('value-out-delay') || 0);
 
         };
-
-        $(this.element).off('input').on('input', changeHandler);
-        $(this.element).off('change').on('change', changeHandler);
-        $(this.element).off('keyup').on('keyup', changeHandler);
-        $(this.element).off('input').on('input', changeHandler);
-        $(this.element).off('focus').on('focus', changeHandler);
-        $(this.element).off('blur').on('blur', changeHandler);
-
+        let events = ['input','change', 'keyup', 'focus', 'blur'];
+        if($(this.element).attr('additional-binding-events')) {
+            events = events.concat($(this.element).attr('additional-binding-events').replace(/\s/g, '').split(','));
+        }
+        each(events, (event) => {
+            $(this.element).off(event).on(event, changeHandler);
+        });
         const handler = (inValue) => {
             setValue.call(this);
         };
