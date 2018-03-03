@@ -37,7 +37,7 @@ module.exports =  function() {
 
             this.unbindPath = function unbindPath(inNode, inObserver, inPath, inModelName) { //CRITICAL: refactor to comply to new binding mechanism
                 const model = _page.resolveNodeModel(inNode, inModelName);
-                model.unwatch(inObserver, inPath);
+                model.unwatch(inPath, inObserver);
             };
 
             this.bindPath = function bindPath(inNode, inPath, inHandler, inModelName) {

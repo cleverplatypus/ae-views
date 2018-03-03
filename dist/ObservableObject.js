@@ -37,13 +37,17 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
                 this._changesQueue.push({
                     path: inBackPath.concat(inPath).join('.'),
                     change: {
-                        type: oldValue === undefined ? 'add' : 'replace',
+                        type: inNewValue === undefined ? 'delete' : (oldValue === undefined ? 'add' : 'replace'),
                         oldValue: oldValue,
                         newValue: inNewValue
                     }
                 });
             }
-            inSource._props[isNaN(inPath) ? inPath : parseInt(inPath)] = inNewValue;
+            if (inNewValue === undefined) {
+                delete inSource._props[isNaN(inPath) ? inPath : parseInt(inPath)];
+            } else {
+                inSource._props[isNaN(inPath) ? inPath : parseInt(inPath)] = inNewValue;
+            }
             if (oldValue instanceof ObservableObject) {
                 notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
             } else if (inNewValue instanceof ObservableObject) {
@@ -53,10 +57,12 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
             const localProp = pathSegs.shift();
             const oldValue = inSource._props[localProp];
 
-            if (!(oldValue instanceof ObservableObject) || (oldValue.isCollection && isNaN(pathSegs[0])) /*|| (!oldValue.isCollection && !isNaN(pathSegs[0]))*/) {
-                inSource._props[localProp] = new ObservableObject(/*{
-                    isCollection: !isNaN(localProp)
-                }*/);
+            if (!(oldValue instanceof ObservableObject) || (oldValue.isCollection && isNaN(pathSegs[0])) /*|| (!oldValue.isCollection && !isNaN(pathSegs[0]))*/ ) {
+                inSource._props[localProp] = new ObservableObject(
+                    /*{
+                                        isCollection: !isNaN(localProp)
+                                    }*/
+                );
                 if (oldValue instanceof ObservableObject) {
                     notifyDescendantListeners(oldValue, inBackPath.concat([inPath]), 'prune');
                 } else if (inNewValue instanceof ObservableObject) {
@@ -89,7 +95,7 @@ const setProp = function(inPath, inValue) { //jshint ignore:line
 const getProp = function(inPath) {
     const descend = (inBase, inSubPath) => {
         if (inSubPath.length === 1) {
-            if(!(inBase instanceof ObservableObject)) {
+            if (!(inBase instanceof ObservableObject)) {
                 return;
             }
             let propName = inSubPath.pop();
@@ -102,7 +108,7 @@ const getProp = function(inPath) {
             if (!inBase._props.hasOwnProperty(propName)) {
                 return undefined;
             }
-            if(inBase._props[propName]) {
+            if (inBase._props[propName]) {
                 return descend(inBase._props[propName], inSubPath);
             }
         }
@@ -123,7 +129,7 @@ class ObservableObject {
         this._watchesCount = 0;
     }
 
-    * [Symbol.iterator]() {
+    *[Symbol.iterator]() {
         const src = this._props;
         if (this.isCollection) {
             for (var item of src) {
@@ -153,7 +159,7 @@ class ObservableObject {
     }
 
     isObserved() {
-        return true;//!!this._watchesCount;
+        return true; //!!this._watchesCount;
     }
 
     /**
@@ -306,6 +312,25 @@ class ObservableObject {
         }
     }
 
+    push(inPath, inValue, inSilent) {
+        const target = getProp.call(this, inPath);
+        if(!(target instanceof ObservableObject) || !target.isCollection) {
+            console.warn('Trying to push value on a non collection branch');
+            return;
+        }
+        this.prop(inPath + '.'+ target._props.length, inValue, inSilent);
+    }
+
+    delete(inPath, inSilent) {
+        if (!inPath) {
+            console.warn('Trying to call (ObservableObject).delete() without path');
+        }
+        setProp.call(this, inPath);
+        if (!inSilent && this.isObserved()) {
+            ObservableObject.notifyWatchers(this);
+        }
+    }
+
 
     //TODO: implement event-specific watch
     watch(inPath, inHandler, inEvent) {
@@ -313,8 +338,8 @@ class ObservableObject {
         this._watchesCount += 1;
     }
 
-    unwatch(inHandler, inPath) {
-        this._observer.unlisten(inHandler, inPath);
+    unwatch(inPath, inHandler) {
+        this._observer.unlisten(inPath, inHandler);
         this._watchesCount -= 1;
     }
 
@@ -330,7 +355,7 @@ class ObservableObject {
                             allPromises.push(this._lazyPaths[fullPath]());
                         }
                         if (inVal instanceof ObservableObject) {
-                                descend(inVal, fullPath);
+                            descend(inVal, fullPath);
                         }
                     });
                 };

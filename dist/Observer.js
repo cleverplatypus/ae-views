@@ -78,17 +78,17 @@ class Observer {
     /**
      * inPath is optional
      */
-    unlisten(inHandler, inPath) {
+    unlisten(inPath, inHandler) {
         const match = (inListener) => {
             return inListener.handler === inHandler &&
             (!inPath || inListener.fullPath === inPath);
-        }
+        };
         remove(this._childrenListeners, match);
         remove(this._descendantListeners, match);
         remove(this._listeners, match);
         each(this._children, (inChild) => {
-            inChild.unlisten(inHandler, inPath);
-        })
+            inChild.unlisten(inPath, inHandler);
+        });
     }
 
     dump() {

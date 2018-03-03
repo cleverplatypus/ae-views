@@ -89,6 +89,10 @@ class BindingExpression {
 
         const modelAndResolver = get(inExpressionString.match(/~((?:\w+:)?\w*)/), 1);
         this.modelName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[0] : null;
+        if(this.modelName === 'self') {
+            this.targetSelf = true;
+            this.modelName = null;
+        }
         this.resolverName = /:/.test(modelAndResolver) ? modelAndResolver.split(':')[1] : modelAndResolver.split(':')[0];
         switch (get(pathAndCast, 1)) {
             case 'number':
@@ -203,7 +207,7 @@ class Binding {
         if (inApp) {
             this._app = inApp;
             this._handler = inHandler;
-            this._element = inTargetElement;
+            this._element = this._expression.targetSelf ? inTargetElement : $(inTargetElement).parent();
             this._dataSource = this._app.getDataSource(this._expression.dataSourceName);
             this._component = this._app.resolveNodeComponent(this._element);
 

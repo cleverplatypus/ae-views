@@ -114,7 +114,7 @@ class AttributeWiring extends Wiring {
         }
 
         const component = inApp.resolveNodeComponent(this.element);
-        const targetElement = component.element === this.element ? $(this.element).parent() : this.element;
+        const targetElement = /*component.element === this.element ? $(this.element).parent() :*/ this.element;
 
         const handler = (inValue) => {
             if (this.attrName === 'class') {
